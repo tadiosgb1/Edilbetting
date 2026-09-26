@@ -1,4 +1,4 @@
-<template>
+﻿<template>
   <div class="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-[100] p-4">
     <div class="bg-white rounded-2xl shadow-2xl w-full max-w-lg flex flex-col max-h-[90vh] overflow-hidden">
 
@@ -46,7 +46,7 @@
             class="flex items-start justify-between p-4 rounded-xl border border-gray-100 hover:bg-gray-50 transition"
           >
             <div class="flex-1 min-w-0">
-              <p class="font-semibold text-gray-800 truncate text-sm">{{ a.test?.title || '—' }}</p>
+              <p class="font-semibold text-gray-800 truncate text-sm">{{ a.test?.title || 'ÔÇö' }}</p>
               <div class="flex flex-wrap items-center gap-2 mt-1">
                 <span :class="statusBadge(a.status)">{{ formatStatus(a.status) }}</span>
                 <span v-if="a.test?.duration" class="text-[10px] text-gray-400">
@@ -165,7 +165,7 @@ export default {
     },
 
     formatDate(date) {
-      if (!date) return '—';
+      if (!date) return 'ÔÇö';
       return new Date(date).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
     },
   },

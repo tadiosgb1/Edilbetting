@@ -1,19 +1,15 @@
 <template>
   <div class="p-6 bg-gray-50 min-h-screen text-sm text-gray-800">
-
     <!-- Header -->
     <div class="mb-6 border-b pb-4 border-gray-200">
       <h1 class="text-lg font-bold text-gray-800">Admin Dashboard</h1>
       <p class="text-xs text-gray-500 mt-0.5">System-wide overview — GYZ Psycho Platform</p>
     </div>
-
     <!-- Loading -->
     <div v-if="loading" class="flex items-center justify-center py-20 text-gray-400">
       <i class="fas fa-spinner animate-spin text-2xl"></i>
     </div>
-
     <div v-else>
-
       <!-- KPI Cards -->
       <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4 mb-6">
         <div v-for="card in kpiCards" :key="card.label"
@@ -27,32 +23,26 @@
           </div>
         </div>
       </div>
-
       <!-- Charts Row -->
       <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-6">
-
         <!-- Users vs Organizations bar -->
         <div class="lg:col-span-2 bg-white rounded-xl border border-gray-200 p-5">
           <h2 class="text-sm font-semibold text-gray-700 mb-4">Platform Growth Overview</h2>
           <apexchart type="bar" height="260" :options="growthOptions" :series="growthSeries" />
         </div>
-
         <!-- Donut: content breakdown -->
         <div class="bg-white rounded-xl border border-gray-200 p-5">
           <h2 class="text-sm font-semibold text-gray-700 mb-4">Content Breakdown</h2>
           <apexchart type="donut" height="260" :options="donutOptions" :series="donutSeries" />
         </div>
       </div>
-
       <!-- Bottom Row -->
       <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-6">
-
         <!-- Score distribution -->
         <div class="bg-white rounded-xl border border-gray-200 p-5">
           <h2 class="text-sm font-semibold text-gray-700 mb-4">Test Score Distribution</h2>
           <apexchart type="area" height="220" :options="scoreOptions" :series="scoreSeries" />
         </div>
-
         <!-- Recent results table -->
         <div class="bg-white rounded-xl border border-gray-200 p-5">
           <h2 class="text-sm font-semibold text-gray-700 mb-4">Recent Test Results</h2>
@@ -83,10 +73,8 @@
           </div>
         </div>
       </div>
-
       <!-- Recent Users + Recent Progresses -->
       <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
-
         <!-- Recent Users -->
         <div class="bg-white rounded-xl border border-gray-200 p-5">
           <h2 class="text-sm font-semibold text-gray-700 mb-4">Recently Registered Users</h2>
@@ -105,7 +93,6 @@
             <p v-if="!stats.recentUsers?.length" class="text-center text-gray-400 italic text-xs py-4">No users yet.</p>
           </div>
         </div>
-
         <!-- Recent Progresses -->
         <div class="bg-white rounded-xl border border-gray-200 p-5">
           <h2 class="text-sm font-semibold text-gray-700 mb-4">Recent Test Activity</h2>
@@ -136,25 +123,20 @@
           </div>
         </div>
       </div>
-
     </div>
   </div>
 </template>
-
 <script>
 import VueApexCharts from "vue3-apexcharts";
-
 export default {
   name: "SuperDashboard",
   components: { apexchart: VueApexCharts },
-
   data() {
     return {
       loading: true,
       stats: {},
     };
   },
-
   computed: {
     kpiCards() {
       const c = this.stats.counts || {};
@@ -165,7 +147,6 @@ export default {
         { label: "Completed Tests",      value: c.completedProgresses ?? 0, icon: "fas fa-check-circle", bg: "bg-emerald-50", color: "text-emerald-500" },
       ];
     },
-
     growthSeries() {
       const c = this.stats.counts || {};
       return [{
@@ -173,7 +154,6 @@ export default {
         data: [c.users ?? 0, c.organizations ?? 0, c.groups ?? 0, c.tests ?? 0, c.results ?? 0, c.progresses ?? 0],
       }];
     },
-
     growthOptions() {
       return {
         chart: { toolbar: { show: false }, fontFamily: "inherit" },
@@ -185,12 +165,10 @@ export default {
         tooltip: { theme: "light" },
       };
     },
-
     donutSeries() {
       const c = this.stats.counts || {};
       return [c.tests ?? 0, c.questions ?? 0, c.categories ?? 0, c.traits ?? 0];
     },
-
     donutOptions() {
       return {
         chart: { fontFamily: "inherit" },
@@ -201,12 +179,10 @@ export default {
         plotOptions: { pie: { donut: { size: "65%" } } },
       };
     },
-
     scoreSeries() {
       const scores = (this.stats.recentResults || []).map(r => r.score ?? 0);
       return [{ name: "Score", data: scores.length ? scores : [0] }];
     },
-
     scoreOptions() {
       const labels = (this.stats.recentResults || []).map((_, i) => `Result ${i + 1}`);
       return {
@@ -221,7 +197,6 @@ export default {
       };
     },
   },
-
   methods: {
     async fetchStats() {
       this.loading = true;
@@ -234,24 +209,20 @@ export default {
         this.loading = false;
       }
     },
-
     scoreBadge(score) {
       if (score === null || score === undefined) return "px-2 py-0.5 rounded text-gray-400 bg-gray-100 text-[10px] font-medium";
       if (score >= 80) return "px-2 py-0.5 rounded text-green-700 bg-green-100 text-[10px] font-medium";
       if (score >= 60) return "px-2 py-0.5 rounded text-amber-700 bg-amber-100 text-[10px] font-medium";
       return "px-2 py-0.5 rounded text-red-700 bg-red-100 text-[10px] font-medium";
     },
-
     initials(first, last) {
       return ((first?.[0] || '') + (last?.[0] || '')).toUpperCase();
     },
-
     formatDate(date) {
       if (!date) return '—';
       return new Date(date).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
     },
   },
-
   mounted() {
     this.fetchStats();
   },

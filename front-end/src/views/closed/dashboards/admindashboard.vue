@@ -1,19 +1,15 @@
 <template>
   <div class="p-6 bg-gray-50 min-h-screen text-sm text-gray-800">
-
     <!-- Header -->
     <div class="mb-6 border-b pb-4 border-gray-200">
       <h1 class="text-lg font-bold text-gray-800">Organization Dashboard</h1>
       <p class="text-xs text-gray-500 mt-0.5">Overview of your organization's assessment activity</p>
     </div>
-
     <!-- Loading -->
     <div v-if="loading" class="flex items-center justify-center py-20 text-gray-400">
       <i class="fas fa-spinner animate-spin text-2xl"></i>
     </div>
-
     <div v-else>
-
       <!-- KPI Cards -->
       <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-6">
         <div v-for="card in kpiCards" :key="card.label"
@@ -27,23 +23,19 @@
           </div>
         </div>
       </div>
-
       <!-- Charts Row -->
       <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-6">
-
         <!-- Test participation over time -->
         <div class="lg:col-span-2 bg-white rounded-xl border border-gray-200 p-5">
           <h2 class="text-sm font-semibold text-gray-700 mb-4">Test Participation Activity</h2>
           <apexchart type="area" height="250" :options="participationOptions" :series="participationSeries" />
         </div>
-
         <!-- Score breakdown donut -->
         <div class="bg-white rounded-xl border border-gray-200 p-5">
           <h2 class="text-sm font-semibold text-gray-700 mb-4">Score Breakdown</h2>
           <apexchart type="donut" height="250" :options="scoreDonutOptions" :series="scoreDonutSeries" />
         </div>
       </div>
-
       <!-- Recent Results Table -->
       <div class="bg-white rounded-xl border border-gray-200 p-5 mb-6">
         <h2 class="text-sm font-semibold text-gray-700 mb-4">Recent Assessment Results</h2>
@@ -79,7 +71,6 @@
           </table>
         </div>
       </div>
-
       <!-- Recent Activity -->
       <div class="bg-white rounded-xl border border-gray-200 p-5">
         <h2 class="text-sm font-semibold text-gray-700 mb-4">Recent Test Activity</h2>
@@ -109,25 +100,20 @@
           </table>
         </div>
       </div>
-
     </div>
   </div>
 </template>
-
 <script>
 import VueApexCharts from "vue3-apexcharts";
-
 export default {
   name: "AdminDashboard",
   components: { apexchart: VueApexCharts },
-
   data() {
     return {
       loading: true,
       stats: {},
     };
   },
-
   computed: {
     kpiCards() {
       const c = this.stats.counts || {};
@@ -138,12 +124,10 @@ export default {
         { label: "Avg Score",       value: (c.avgScore ?? 0) + '%', icon: "fas fa-chart-line", bg: "bg-amber-50",  color: "text-amber-500" },
       ];
     },
-
     participationSeries() {
       const scores = (this.stats.recentProgresses || []).map(p => p.score ?? 0);
       return [{ name: "Score", data: scores.length ? scores : [0] }];
     },
-
     participationOptions() {
       const labels = (this.stats.recentProgresses || []).map((_, i) => `Activity ${i + 1}`);
       return {
@@ -157,7 +141,6 @@ export default {
         yaxis: { min: 0, max: 100 },
       };
     },
-
     scoreDonutSeries() {
       const results = this.stats.recentResults || [];
       const high   = results.filter(r => (r.score ?? 0) >= 80).length;
@@ -165,7 +148,6 @@ export default {
       const low    = results.filter(r => (r.score ?? 0) < 60).length;
       return [high || 0, mid || 0, low || 0];
     },
-
     scoreDonutOptions() {
       return {
         chart: { fontFamily: "inherit" },
@@ -177,7 +159,6 @@ export default {
       };
     },
   },
-
   methods: {
     async fetchStats() {
       this.loading = true;
@@ -190,20 +171,17 @@ export default {
         this.loading = false;
       }
     },
-
     scoreBadge(score) {
       if (score === null || score === undefined) return "px-2 py-0.5 rounded text-gray-400 bg-gray-100 text-[10px] font-medium";
       if (score >= 80) return "px-2 py-0.5 rounded text-green-700 bg-green-100 text-[10px] font-medium";
       if (score >= 60) return "px-2 py-0.5 rounded text-amber-700 bg-amber-100 text-[10px] font-medium";
       return "px-2 py-0.5 rounded text-red-700 bg-red-100 text-[10px] font-medium";
     },
-
     formatDate(date) {
       if (!date) return '—';
       return new Date(date).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
     },
   },
-
   mounted() {
     this.fetchStats();
   },

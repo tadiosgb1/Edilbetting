@@ -18,6 +18,3 @@ export default {
   },
 };
 </script>
-<style scoped>
-/* Optional: you can customize animation speed or colors here */
-</style>

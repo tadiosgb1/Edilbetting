@@ -10,13 +10,14 @@
     </div>
   </div>
 </template>
-
 <script>
 export default {
+  name: "DeleteConfirmModal",
   props: {
     visible: { type: Boolean, default: false },
-    title: { type: String, default: "Confirm Action" },
+    title:   { type: String, default: "Confirm Action" },
     message: { type: String, default: "Are you sure?" },
   },
+  emits: ['confirm', 'cancel'],
 };
 </script>

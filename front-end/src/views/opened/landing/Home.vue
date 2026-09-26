@@ -1,34 +1,146 @@
 <template>
   <div class="min-h-screen bg-slate-950 text-slate-100 font-sans flex flex-col pb-16 lg:pb-0">
-    <!-- Top Header -->
-    <header class="bg-slate-900 border-b border-slate-800 px-4 py-3 flex justify-between items-center sticky top-0 z-40">
-      <div class="flex items-center gap-6">
-        <div class="flex items-center gap-2">
-          <span class="bg-amber-500 text-black font-black text-xl px-2 py-0.5 rounded tracking-wider">BET</span>
-          <span class="font-bold text-xl tracking-wide text-white">PLATFORM</span>
-        </div>
-        <nav class="hidden md:flex gap-4 text-sm font-semibold">
-          <button @click="activeTab = 'sports'" :class="activeTab === 'sports' ? 'text-amber-400 border-b-2 border-amber-400' : 'text-slate-400 hover:text-white'" class="pb-1">Sports</button>
-          <button @click="activeTab = 'live'" :class="activeTab === 'live' ? 'text-amber-400 border-b-2 border-amber-400' : 'text-slate-400 hover:text-white'" class="pb-1 flex items-center gap-1">
-            <span class="w-2 h-2 rounded-full bg-red-500 animate-pulse"></span> Live
+    <!-- ── Top Header ─────────────────────────────────────────────────── -->
+    <header class="bg-slate-900 border-b border-slate-800 sticky top-0 z-40 shadow-lg">
+      <!-- Main header row -->
+      <div class="flex items-center justify-between px-3 sm:px-5 h-14">
+
+        <!-- Left: Logo + hamburger toggle on mobile -->
+        <div class="flex items-center gap-3">
+          <!-- Mobile menu toggle -->
+          <button
+            @click="mobileMenuOpen = !mobileMenuOpen"
+            class="lg:hidden w-9 h-9 flex items-center justify-center rounded-lg text-slate-400 hover:bg-slate-800 hover:text-white transition"
+            :aria-expanded="mobileMenuOpen"
+            aria-label="Toggle menu"
+          >
+            <svg v-if="!mobileMenuOpen" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/>
+            </svg>
+            <svg v-else class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+            </svg>
           </button>
-        </nav>
+
+          <!-- Logo -->
+          <div class="flex items-center gap-1.5">
+            <span class="bg-amber-500 text-black font-black text-base sm:text-xl px-2 py-0.5 rounded tracking-wider leading-tight">BET</span>
+            <span class="font-bold text-base sm:text-xl tracking-wide text-white hidden xs:inline">PLATFORM</span>
+          </div>
+
+          <!-- Desktop nav tabs -->
+          <nav class="hidden lg:flex items-center gap-1 ml-4">
+            <button
+              @click="activeTab = 'sports'"
+              :class="activeTab === 'sports' ? 'bg-slate-800 text-amber-400' : 'text-slate-400 hover:text-white hover:bg-slate-800/60'"
+              class="px-3 py-1.5 rounded text-sm font-semibold transition"
+            >Sports</button>
+            <button
+              @click="activeTab = 'live'"
+              :class="activeTab === 'live' ? 'bg-slate-800 text-amber-400' : 'text-slate-400 hover:text-white hover:bg-slate-800/60'"
+              class="px-3 py-1.5 rounded text-sm font-semibold transition flex items-center gap-1.5"
+            >
+              <span class="w-2 h-2 rounded-full bg-red-500 animate-pulse flex-shrink-0"></span>
+              Live
+            </button>
+          </nav>
+        </div>
+
+        <!-- Right: Balance + actions -->
+        <div class="flex items-center gap-1.5 sm:gap-2.5">
+          <!-- Balance pill — compact on small screens -->
+          <div
+            v-if="userBalance !== null"
+            class="bg-slate-800 border border-slate-700 rounded-lg px-2 sm:px-3 py-1 sm:py-1.5 flex items-center gap-1"
+          >
+            <span class="text-slate-400 text-[10px] sm:text-xs font-bold uppercase tracking-wide hidden sm:inline">Balance</span>
+            <span class="text-amber-400 font-black text-xs sm:text-sm">{{ userBalance.toFixed(2) }}</span>
+            <span class="text-slate-500 text-[10px] hidden sm:inline">ETB</span>
+          </div>
+
+          <!-- Deposit button -->
+          <button
+            @click="showDepositModal = true"
+            class="bg-amber-500 hover:bg-amber-400 active:scale-95 text-black font-black text-xs sm:text-sm px-2.5 sm:px-4 py-1.5 sm:py-2 rounded-lg transition shadow-md shadow-amber-500/20 flex items-center gap-1"
+          >
+            <svg class="w-3.5 h-3.5 sm:hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4"/>
+            </svg>
+            <span class="hidden sm:inline">Deposit</span>
+            <span class="sm:hidden font-black text-sm leading-none">+</span>
+          </button>
+
+          <!-- Auth buttons — desktop -->
+          <template v-if="!isLoggedIn">
+            <button
+              @click="openAuth('login')"
+              class="hidden sm:inline-flex text-sm font-semibold text-slate-300 hover:text-white px-3 py-1.5 rounded-lg hover:bg-slate-800 transition"
+            >Login</button>
+            <button
+              @click="openAuth('register')"
+              class="hidden sm:inline-flex bg-slate-800 hover:bg-slate-700 text-amber-400 border border-slate-700 text-sm font-bold px-3 py-1.5 rounded-lg transition"
+            >Register</button>
+
+            <!-- Mobile: single avatar/login icon -->
+            <button
+              @click="openAuth('login')"
+              class="sm:hidden w-9 h-9 flex items-center justify-center rounded-lg bg-slate-800 text-amber-400 border border-slate-700 hover:bg-slate-700 transition"
+              aria-label="Login"
+            >
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
+              </svg>
+            </button>
+          </template>
+
+          <!-- Logged in user avatar -->
+          <div v-else class="w-9 h-9 rounded-lg bg-amber-500 flex items-center justify-center text-black font-black text-sm cursor-pointer">
+            U
+          </div>
+        </div>
       </div>
 
-      <div class="flex items-center gap-3">
-        <div v-if="userBalance !== null" class="bg-slate-800 px-3 py-1.5 rounded text-xs md:text-sm font-semibold text-slate-200 border border-slate-700">
-          Balance: <span class="text-amber-400">{{ userBalance.toFixed(2) }} ETB</span>
-        </div>
-        
-        <button @click="showDepositModal = true" class="bg-amber-500 hover:bg-amber-400 text-black font-bold text-xs md:text-sm px-3 md:px-4 py-1.5 md:py-2 rounded transition">
-          Deposit
-        </button>
+      <!-- Mobile dropdown nav (Sports / Live tabs) -->
+      <transition
+        enter-active-class="transition-all duration-200 ease-out"
+        enter-from-class="opacity-0 -translate-y-2"
+        enter-to-class="opacity-100 translate-y-0"
+        leave-active-class="transition-all duration-150 ease-in"
+        leave-from-class="opacity-100 translate-y-0"
+        leave-to-class="opacity-0 -translate-y-2"
+      >
+        <div v-if="mobileMenuOpen" class="lg:hidden border-t border-slate-800 bg-slate-900/98 backdrop-blur-sm">
+          <div class="px-3 py-3 flex flex-col gap-1">
+            <button
+              @click="activeTab = 'sports'; mobileMenuOpen = false"
+              :class="activeTab === 'sports' ? 'bg-amber-500/10 text-amber-400 border-l-2 border-amber-500' : 'text-slate-300 hover:bg-slate-800'"
+              class="w-full text-left px-4 py-2.5 rounded text-sm font-semibold transition"
+            >⚽ Sports</button>
+            <button
+              @click="activeTab = 'live'; mobileMenuOpen = false; filterLive = true"
+              :class="activeTab === 'live' ? 'bg-amber-500/10 text-amber-400 border-l-2 border-amber-500' : 'text-slate-300 hover:bg-slate-800'"
+              class="w-full text-left px-4 py-2.5 rounded text-sm font-semibold transition flex items-center gap-2"
+            >
+              <span class="w-2 h-2 rounded-full bg-red-500 animate-pulse"></span>
+              Live Matches
+            </button>
 
-        <div v-if="!isLoggedIn" class="flex gap-2">
-          <button @click="openAuth('login')" class="text-xs md:text-sm font-semibold text-slate-300 hover:text-white px-2 py-1">Login</button>
-          <button @click="openAuth('register')" class="bg-slate-800 hover:bg-slate-700 text-amber-400 border border-slate-700 text-xs md:text-sm font-bold px-3 py-1.5 rounded transition">Register</button>
+            <!-- Auth links for mobile (inside menu) -->
+            <template v-if="!isLoggedIn">
+              <div class="border-t border-slate-800 mt-1 pt-2 flex gap-2">
+                <button
+                  @click="openAuth('login'); mobileMenuOpen = false"
+                  class="flex-1 py-2.5 text-sm font-bold text-slate-300 hover:text-white border border-slate-700 rounded-lg transition hover:bg-slate-800"
+                >Login</button>
+                <button
+                  @click="openAuth('register'); mobileMenuOpen = false"
+                  class="flex-1 py-2.5 text-sm font-bold text-amber-400 bg-slate-800 hover:bg-slate-700 border border-slate-700 rounded-lg transition"
+                >Register</button>
+              </div>
+            </template>
+          </div>
         </div>
-      </div>
+      </transition>
     </header>
 
     <!-- Main Workspace -->
@@ -355,6 +467,7 @@ export default {
       authMode: 'login',
       showDepositModal: false,
       mobileDrawer: null,
+      mobileMenuOpen: false,
 
       sportsList: [],
       matches: [],

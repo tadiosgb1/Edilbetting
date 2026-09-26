@@ -1,4 +1,4 @@
-<template>
+﻿<template>
   <div>
     <transition
       enter-active-class="transform transition duration-300 ease-out"

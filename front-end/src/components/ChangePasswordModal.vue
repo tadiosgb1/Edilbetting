@@ -1,7 +1,5 @@
 <template>
   <teleport to="body">
-
-    <!-- Backdrop -->
     <transition
       enter-active-class="transition-opacity duration-300 ease-out"
       enter-from-class="opacity-0"
@@ -15,8 +13,6 @@
         @click="$emit('close')"
       ></div>
     </transition>
-
-    <!-- Drawer panel -->
     <transition
       enter-active-class="transition-transform duration-300 ease-out"
       enter-from-class="translate-x-full"
@@ -26,8 +22,6 @@
       leave-to-class="translate-x-full"
     >
       <div class="fixed top-0 right-0 h-full w-full max-w-md bg-white shadow-2xl z-[160] flex flex-col">
-
-        <!-- Drawer header — same green gradient as Edit Profile -->
         <div class="bg-gradient-to-r from-green-500 to-green-600 px-6 py-5 flex items-center justify-between shrink-0">
           <div class="flex items-center gap-3">
             <div class="w-9 h-9 bg-white/20 rounded-xl flex items-center justify-center">
@@ -45,19 +39,14 @@
             <i class="fas fa-times text-xs"></i>
           </button>
         </div>
-
-        <!-- Drawer body (scrollable) -->
         <form @submit.prevent="submit" class="flex-1 overflow-y-auto">
           <div class="p-6 space-y-5">
-
-            <!-- Security tip banner -->
             <div class="flex items-start gap-3 bg-green-50 border border-green-100 rounded-xl px-4 py-3">
               <i class="fas fa-shield-alt text-green-500 mt-0.5 text-sm shrink-0"></i>
               <p class="text-xs text-green-700 leading-relaxed">
                 Use a strong password with uppercase letters, numbers, and symbols. Never share it with anyone.
               </p>
             </div>
-
             <!-- Current Password -->
             <div>
               <label class="block text-xs font-semibold text-gray-600 mb-1.5">
@@ -81,14 +70,11 @@
                 <i class="fas fa-exclamation-circle mr-1"></i>{{ errors.currentPassword }}
               </p>
             </div>
-
-            <!-- Divider -->
             <div class="flex items-center gap-3">
               <div class="flex-1 h-px bg-gray-100"></div>
               <span class="text-[10px] text-gray-400 uppercase tracking-widest font-semibold">New Password</span>
               <div class="flex-1 h-px bg-gray-100"></div>
             </div>
-
             <!-- New Password -->
             <div>
               <label class="block text-xs font-semibold text-gray-600 mb-1.5">
@@ -111,8 +97,6 @@
               <p v-if="errors.newPassword" class="text-red-500 text-[11px] mt-1">
                 <i class="fas fa-exclamation-circle mr-1"></i>{{ errors.newPassword }}
               </p>
-
-              <!-- Strength bar -->
               <div v-if="form.newPassword" class="mt-2.5 space-y-1.5">
                 <div class="flex gap-1">
                   <div
@@ -127,7 +111,6 @@
                 </div>
               </div>
             </div>
-
             <!-- Confirm Password -->
             <div>
               <label class="block text-xs font-semibold text-gray-600 mb-1.5">
@@ -147,7 +130,6 @@
                   <i :class="show.confirm ? 'fas fa-eye-slash' : 'fas fa-eye'" class="text-xs"></i>
                 </button>
               </div>
-              <!-- Match indicator -->
               <p v-if="errors.confirmPassword" class="text-red-500 text-[11px] mt-1">
                 <i class="fas fa-exclamation-circle mr-1"></i>{{ errors.confirmPassword }}
               </p>
@@ -158,8 +140,6 @@
                 <i class="fas fa-check-circle mr-1"></i>Passwords match
               </p>
             </div>
-
-            <!-- Server error -->
             <div
               v-if="serverError"
               class="flex items-center gap-2 bg-red-50 border border-red-200 text-red-600 text-xs rounded-xl px-4 py-3"
@@ -167,11 +147,8 @@
               <i class="fas fa-exclamation-triangle shrink-0"></i>
               <span>{{ serverError }}</span>
             </div>
-
           </div>
         </form>
-
-        <!-- Drawer footer (sticky) -->
         <div class="shrink-0 px-6 py-4 border-t border-gray-100 bg-white flex items-center justify-end gap-3">
           <button
             type="button"
@@ -191,40 +168,23 @@
             {{ saving ? 'Updating…' : 'Update Password' }}
           </button>
         </div>
-
-      </div><!-- /drawer panel -->
+      </div>
     </transition>
-
   </teleport>
 </template>
-
 <script>
 export default {
   name: 'ChangePasswordModal',
   emits: ['close', 'changed'],
-
   data() {
     return {
       saving: false,
       serverError: '',
-      form: {
-        currentPassword: '',
-        newPassword: '',
-        confirmPassword: ''
-      },
-      errors: {
-        currentPassword: '',
-        newPassword: '',
-        confirmPassword: ''
-      },
-      show: {
-        current: false,
-        newPwd: false,
-        confirm: false
-      }
+      form: { currentPassword: '', newPassword: '', confirmPassword: '' },
+      errors: { currentPassword: '', newPassword: '', confirmPassword: '' },
+      show: { current: false, newPwd: false, confirm: false },
     };
   },
-
   computed: {
     strength() {
       const p = this.form.newPassword;
@@ -233,7 +193,6 @@ export default {
       if (p.length >= 10) score++;
       if (/[A-Z]/.test(p) && /[0-9]/.test(p)) score++;
       if (/[^A-Za-z0-9]/.test(p)) score++;
-
       const levels = [
         { label: 'Too short', barColor: 'bg-red-400',    textColor: 'text-red-500'    },
         { label: 'Weak',      barColor: 'bg-orange-400', textColor: 'text-orange-500' },
@@ -242,14 +201,12 @@ export default {
         { label: 'Strong',    barColor: 'bg-green-500',  textColor: 'text-green-600'  },
       ];
       return { score, ...levels[score] };
-    }
+    },
   },
-
   methods: {
     validate() {
       this.errors = { currentPassword: '', newPassword: '', confirmPassword: '' };
       let valid = true;
-
       if (!this.form.currentPassword) {
         this.errors.currentPassword = 'Current password is required';
         valid = false;
@@ -267,19 +224,15 @@ export default {
       }
       return valid;
     },
-
     async submit() {
       this.serverError = '';
       if (!this.validate()) return;
-
       this.saving = true;
       try {
         await this.$apiPost('/auth/change-password', {
           currentPassword: this.form.currentPassword,
-          newPassword: this.form.newPassword
+          newPassword: this.form.newPassword,
         });
-
-        this.$root.$refs.toast?.showToast('Password changed successfully', 'success');
         this.$emit('changed');
         this.$emit('close');
       } catch (e) {
@@ -294,7 +247,7 @@ export default {
       } finally {
         this.saving = false;
       }
-    }
-  }
+    },
+  },
 };
 </script>

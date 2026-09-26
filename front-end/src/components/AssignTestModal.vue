@@ -1,4 +1,4 @@
-<template>
+﻿<template>
   <div class="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-[100] p-4">
     <div class="bg-white rounded-2xl shadow-2xl w-full max-w-lg flex flex-col max-h-[90vh] overflow-hidden">
 
@@ -26,7 +26,7 @@
         </button>
       </div>
 
-      <!-- Tab switcher — only shown when opened from TestView (test prop provided, no fixed target) -->
+      <!-- Tab switcher ÔÇö only shown when opened from TestView (test prop provided, no fixed target) -->
       <div v-if="test && !targetId" class="flex border-b border-gray-100 shrink-0 px-6 pt-4 gap-1">
         <button
           @click="assignMode = 'user'"
@@ -51,7 +51,7 @@
       <!-- Body -->
       <div class="flex-1 overflow-y-auto p-6 space-y-5">
 
-        <!-- ── Fixed test info (when test prop is passed) ── -->
+        <!-- ÔöÇÔöÇ Fixed test info (when test prop is passed) ÔöÇÔöÇ -->
         <div v-if="test" class="flex items-center gap-3 bg-purple-50 border border-purple-200 rounded-xl px-4 py-3">
           <div class="w-9 h-9 bg-purple-100 rounded-lg flex items-center justify-center shrink-0">
             <i class="fas fa-file-alt text-purple-600 text-sm"></i>
@@ -63,7 +63,7 @@
           <span class="text-[10px] bg-purple-200 text-purple-700 font-semibold px-2 py-0.5 rounded-full">Selected</span>
         </div>
 
-        <!-- ── Test selector (when no test prop — opened from Users/Groups view) ── -->
+        <!-- ÔöÇÔöÇ Test selector (when no test prop ÔÇö opened from Users/Groups view) ÔöÇÔöÇ -->
         <div v-if="!test">
           <label class="block mb-2 text-xs font-semibold text-gray-600 uppercase tracking-wider">
             Select Test
@@ -100,7 +100,7 @@
           </div>
         </div>
 
-        <!-- ── Target selector (when test is fixed — opened from TestView) ── -->
+        <!-- ÔöÇÔöÇ Target selector (when test is fixed ÔÇö opened from TestView) ÔöÇÔöÇ -->
         <div v-if="test && !targetId">
           <label class="block mb-2 text-xs font-semibold text-gray-600 uppercase tracking-wider">
             {{ assignMode === 'user' ? 'Select User' : 'Select Group' }}
@@ -214,12 +214,12 @@ export default {
   name: 'AssignTestModal',
 
   props: {
-    // ── Mode A: opened from Users/Groups view — test must be selected ──
+    // ÔöÇÔöÇ Mode A: opened from Users/Groups view ÔÇö test must be selected ÔöÇÔöÇ
     targetType: { type: String, default: null },   // "user" or "group"
     targetId:   { type: Number, default: null },
     targetName: { type: String, default: '' },
 
-    // ── Mode B: opened from TestView — test is fixed, target must be selected ──
+    // ÔöÇÔöÇ Mode B: opened from TestView ÔÇö test is fixed, target must be selected ÔöÇÔöÇ
     test: { type: Object, default: null },          // { id, title, duration }
 
     // Optional pre-selection (Mode A)
@@ -230,13 +230,13 @@ export default {
 
   data() {
     return {
-      // Mode A — test selection
+      // Mode A ÔÇö test selection
       allTests:       [],
       testSearch:     '',
       selectedTestId: null,
       loadingTests:   false,
 
-      // Mode B — target selection
+      // Mode B ÔÇö target selection
       assignMode:       'user',   // 'user' | 'group'
       allTargets:       [],
       filteredTargets:  [],
@@ -292,7 +292,7 @@ export default {
   },
 
   methods: {
-    // ── Mode A: fetch all tests ──
+    // ÔöÇÔöÇ Mode A: fetch all tests ÔöÇÔöÇ
     async fetchTests() {
       this.loadingTests = true;
       try {
@@ -305,7 +305,7 @@ export default {
       }
     },
 
-    // ── Mode B: load users or groups ──
+    // ÔöÇÔöÇ Mode B: load users or groups ÔöÇÔöÇ
     async loadTargets() {
       this.loadingTargets = true;
       try {

@@ -1,19 +1,15 @@
 <template>
   <div class="p-6 bg-gray-50 min-h-screen text-sm text-gray-800">
-
     <!-- Header -->
     <div class="mb-6 border-b pb-4 border-gray-200">
       <h1 class="text-lg font-bold text-gray-800">My Dashboard</h1>
       <p class="text-xs text-gray-500 mt-0.5">Your personal psychometric assessment overview</p>
     </div>
-
     <!-- Loading -->
     <div v-if="loading" class="flex items-center justify-center py-20 text-gray-400">
       <i class="fas fa-spinner animate-spin text-2xl"></i>
     </div>
-
     <div v-else>
-
       <!-- KPI Cards -->
       <div class="grid grid-cols-2 sm:grid-cols-3 gap-4 mb-6">
         <div v-for="card in kpiCards" :key="card.label"
@@ -27,13 +23,11 @@
           </div>
         </div>
       </div>
-
       <!-- Score trend chart -->
       <div class="bg-white rounded-xl border border-gray-200 p-5 mb-6">
         <h2 class="text-sm font-semibold text-gray-700 mb-4">My Score Trend</h2>
         <apexchart type="line" height="240" :options="trendOptions" :series="trendSeries" />
       </div>
-
       <!-- My Results Table -->
       <div class="bg-white rounded-xl border border-gray-200 p-5">
         <h2 class="text-sm font-semibold text-gray-700 mb-4">My Test Results</h2>
@@ -67,18 +61,14 @@
           </table>
         </div>
       </div>
-
     </div>
   </div>
 </template>
-
 <script>
 import VueApexCharts from "vue3-apexcharts";
-
 export default {
   name: "UserDashboard",
   components: { apexchart: VueApexCharts },
-
   data() {
     return {
       loading: true,
@@ -86,12 +76,10 @@ export default {
       myProgresses: [],
     };
   },
-
   computed: {
     userId() {
       return localStorage.getItem("userId");
     },
-
     kpiCards() {
       const scores = this.myResults.map(r => r.score ?? 0);
       const avg = scores.length ? Math.round(scores.reduce((a, b) => a + b, 0) / scores.length) : 0;
@@ -102,12 +90,10 @@ export default {
         { label: "Completed Tests", value: completed,                 icon: "fas fa-check-circle", bg: "bg-green-50",  color: "text-green-500" },
       ];
     },
-
     trendSeries() {
       const scores = this.myResults.map(r => r.score ?? 0);
       return [{ name: "Score", data: scores.length ? scores : [0] }];
     },
-
     trendOptions() {
       const labels = this.myResults.map((r, i) => r.Test?.title || `Test ${i + 1}`);
       return {
@@ -122,7 +108,6 @@ export default {
       };
     },
   },
-
   methods: {
     async fetchMyData() {
       this.loading = true;
@@ -131,10 +116,7 @@ export default {
           this.$apiGet("/result", { page_size: 50 }),
           this.$apiGet("/progress", { page_size: 50 }),
         ]);
-
         const userId = parseInt(this.userId);
-
-        // Filter to current user's data
         this.myResults     = (resultsRes.data  || []).filter(r => r.user_id === userId || r.User?.id === userId);
         this.myProgresses  = (progressRes.data || []).filter(p => p.user_id === userId || p.User?.id === userId);
       } catch (e) {
@@ -143,20 +125,17 @@ export default {
         this.loading = false;
       }
     },
-
     scoreBadge(score) {
       if (score === null || score === undefined) return "px-2 py-0.5 rounded text-gray-400 bg-gray-100 text-[10px] font-medium";
       if (score >= 80) return "px-2 py-0.5 rounded text-green-700 bg-green-100 text-[10px] font-medium";
       if (score >= 60) return "px-2 py-0.5 rounded text-amber-700 bg-amber-100 text-[10px] font-medium";
       return "px-2 py-0.5 rounded text-red-700 bg-red-100 text-[10px] font-medium";
     },
-
     formatDate(date) {
       if (!date) return '—';
       return new Date(date).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
     },
   },
-
   mounted() {
     this.fetchMyData();
   },
