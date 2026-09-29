@@ -28,6 +28,19 @@
           </router-link>
         </div>
 
+        <!-- Sports — admin only -->
+        <div v-if="isAdmin" class="px-3 mb-2">
+          <router-link
+            :to="{ name: 'sports' }"
+            class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors"
+            :class="$route.name === 'sports' ? 'bg-green-50 text-green-700' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'"
+          >
+            <i class="fas fa-trophy w-4 text-center"
+              :class="$route.name === 'sports' ? 'text-green-600' : 'text-gray-400'"></i>
+            Sports
+          </router-link>
+        </div>
+
         <!-- Users — admin only -->
         <div v-if="isAdmin" class="px-3 mb-2">
           <router-link
