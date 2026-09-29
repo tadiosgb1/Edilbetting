@@ -1,14 +1,14 @@
 const express = require('express');
 const router = express.Router();
 
-router.use('/sports', require('./sportsRoutes'));
-router.use('/events', require('./eventsRoutes'));
-router.use('/odds', require('./oddsRoutes'));
-router.use('/markets', require('./marketsRoutes'));
+router.use('/sports', require('./Sportsroutes'));
+router.use('/events', require('./Eventsroutes'));
+router.use('/odds', require('./Oddsroutes'));
+router.use('/markets', require('./Marketsroutes'));
 router.use('/wallet', require('./walletRoutes'));
-router.use('/payments', require('./paymentRoutes'));
-router.use('/bets', require('./betRoutes'));
+router.use('/payments', require('./paymentsRoutes'));
+router.use('/bets', require('./betsRoutes'));
 router.use('/admin', require('./adminRoutes'));
-router.use('/health', require('./healthRoutes'));
+router.use('/health', require('./Healthroutes'));
 
 module.exports = router;
