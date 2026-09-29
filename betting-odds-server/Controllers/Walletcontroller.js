@@ -1,5 +1,5 @@
 'use strict';
-const { WalletTransaction } = require('../models');
+const { WalletTransaction } = require('../Models');
 const { getOrCreateWallet } = require('../services/walletService');
 
 /** GET /api/wallet/:userId/balance */
