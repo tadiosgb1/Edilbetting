@@ -1,5 +1,5 @@
 'use strict';
-const { sequelize, Bet, BetSelection, OddsCurrent, Event } = require('../models');
+const { sequelize, Bet, BetSelection, OddsCurrent, Event } = require('../Models');
 const { adjustBalance } = require('../services/walletService');
 
 /**
