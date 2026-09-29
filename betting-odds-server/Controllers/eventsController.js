@@ -1,6 +1,6 @@
 'use strict';
 const { Op }    = require('sequelize');
-const { Event, Sport, OddsCurrent } = require('../models');
+const { Event, Sport, OddsCurrent } = require('../Models');
 
 /**
  * GET /api/events/:sportKey
