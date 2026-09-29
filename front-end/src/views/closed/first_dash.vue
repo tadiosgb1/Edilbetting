@@ -113,7 +113,10 @@
             <h2 class="text-sm font-black text-slate-800">Recent Bets</h2>
             <p class="text-[10px] text-slate-400 mt-1">Sample betting tickets for the admin overview</p>
           </div>
-          <span class="text-[10px] font-black text-slate-400 uppercase">{{ recentBets.length }} tickets</span>
+          <div class="flex items-center gap-3">
+            <span class="text-[10px] font-black text-slate-400 uppercase">{{ recentBets.length }} tickets</span>
+            <button @click="$router.push({ name: 'bets' })" class="text-[10px] font-black text-green-600 hover:text-green-700 uppercase tracking-wider">View all bets <i class="fas fa-arrow-right ml-1"></i></button>
+          </div>
         </div>
         <div class="overflow-x-auto">
           <table class="min-w-full text-xs">
@@ -176,10 +179,10 @@ export default {
       ],
       recentBets: [
         { id: 1, ticket: "EDB-104928", customer: "M. Tesfaye", selection: "Arsenal to Win", event: "Arsenal vs Chelsea", odds: "1.72", stake: "ETB 2,000", potential: "ETB 3,440", status: "Won" },
-        { id: 2, ticket: "EDB-104927", customer: "A. Bekele", selection: "Over 2.5 Goals", event: "Real Madrid vs Barcelona", odds: "1.84", stake: "ETB 1,500", potential: "ETB 2,760", status: "Open" },
+        { id: 2, ticket: "EDB-104927", customer: "A. Bekele", selection: "Over 2.5 Goals", event: "Real Madrid vs Barcelona", odds: "1.84", stake: "ETB 1,500", potential: "ETB 2,760", status: "pending" },
         { id: 3, ticket: "EDB-104926", customer: "S. Alemu", selection: "Both Teams To Score", event: "Inter vs AC Milan", odds: "1.61", stake: "ETB 5,000", potential: "ETB 8,050", status: "Open" },
         { id: 4, ticket: "EDB-104925", customer: "D. Girma", selection: "Bayern to Win", event: "Bayern vs Dortmund", odds: "1.48", stake: "ETB 750", potential: "ETB 1,110", status: "Lost" },
-        { id: 5, ticket: "EDB-104924", customer: "R. Kassa", selection: "Double Chance 1X", event: "Napoli vs Roma", odds: "1.36", stake: "ETB 3,000", potential: "ETB 4,080", status: "Pending" },
+        { id: 5, ticket: "EDB-104924", customer: "R. Kassa", selection: "Double Chance 1X", event: "Napoli vs Roma", odds: "1.36", stake: "ETB 3,000", potential: "ETB 4,080", status: "pending" },
       ],
     };
   },
@@ -215,7 +218,7 @@ export default {
     betStatusOptions() {
       return {
         chart: { fontFamily: "inherit" },
-        labels: ["Open", "Won", "Lost", "Pending"],
+        labels: ["Pending", "Won", "Lost", "Void"],
         colors: ["#3b82f6", "#22c55e", "#ef4444", "#f59e0b"],
         legend: { show: false }, dataLabels: { enabled: false },
         plotOptions: { pie: { donut: { size: "68%" } } },
@@ -223,7 +226,7 @@ export default {
     },
     betStatusLegend() {
       return [
-        { label: "Open", value: "742" }, { label: "Won", value: "318" },
+        { label: "Pending", value: "742" }, { label: "Won", value: "318" },
         { label: "Lost", value: "156" }, { label: "Pending", value: "68" },
       ];
     },
@@ -232,9 +235,9 @@ export default {
     betStatusClass(status) {
       return {
         "bg-green-50 text-green-700": status === "Won",
-        "bg-blue-50 text-blue-700": status === "Open",
+        "bg-amber-50 text-amber-700": status === "pending",
         "bg-red-50 text-red-700": status === "Lost",
-        "bg-amber-50 text-amber-700": status === "Pending",
+        "bg-amber-50 text-amber-700": status === "pending",
       };
     },
   },
