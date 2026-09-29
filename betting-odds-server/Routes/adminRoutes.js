@@ -12,6 +12,13 @@ const asyncHandler = require('../middleware/asyncHandler');
  */
 
 /**
+ * GET /api/admin/bootstrap
+ * Creates the first admin from ADMIN_PHONE / ADMIN_PASSWORD environment
+ * variables, or safely reports that initialization has already happened.
+ */
+router.get('/bootstrap', asyncHandler(ctrl.bootstrapAdmin));
+
+/**
  * @swagger
  * /admin/sync/sports:
  *   post:
