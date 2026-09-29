@@ -1,73 +1,51 @@
 'use strict';
+
 const sequelize = require('../config/database');
 
-const Sport            = require('./Sport');
-const MarketCatalog    = require('./MarketCatalog');
-const Event            = require('./Event');
-const OddsCurrent      = require('./OddsCurrent');
-const OddsHistory      = require('./OddsHistory');
-const Result           = require('./Result');
-const User             = require('./User');
-const Wallet           = require('./Wallet');
-const WalletTransaction= require('./WalletTransaction');
-const PaymentProof     = require('./PaymentProof');
-const Bet              = require('./Bet');
-const BetSelection     = require('./BetSelection');
-const ApiUsageLog      = require('./ApiUsageLog');
-const AuditLog         = require('./AuditLog');
+const Sport = require('./Sport');
+const MarketCatalog = require('./MarketCatalog');
+const Event = require('./Event');
+const OddsCurrent = require('./Oddscurrent');
+const OddsHistory = require('./Oddshistory');
+const Result = require('./Result');
+const User = require('./User');
+const Wallet = require('./Wallet');
+const WalletTransaction = require('./Wallettransaction');
+const PaymentProof = require('./Paymentproof');
+const Bet = require('./Bet');
+const BetSelection = require('./BetSelection');
+const ApiUsageLog = require('./Apiusagelog');
+const AuditLog = require('./Auditlog');
 
-// ── Associations ────────────────────────────────────────────────────────────
-Event.belongsTo(Sport,      { foreignKey: 'sportKey', targetKey: 'sportKey' });
-Sport.hasMany(Event,        { foreignKey: 'sportKey', sourceKey: 'sportKey' });
+if (!Event.associations.sport) Event.belongsTo(Sport, { foreignKey: 'sportKey', targetKey: 'sportKey' });
+if (!Sport.associations.events) Sport.hasMany(Event, { foreignKey: 'sportKey', sourceKey: 'sportKey' });
 
-OddsCurrent.belongsTo(Event, { foreignKey: 'eventId', targetKey: 'eventId' });
-Event.hasMany(OddsCurrent,   { foreignKey: 'eventId', sourceKey: 'eventId', as: 'odds' });
+if (!OddsCurrent.associations.Event) OddsCurrent.belongsTo(Event, { foreignKey: 'eventId', targetKey: 'eventId' });
+if (!Event.associations.odds) Event.hasMany(OddsCurrent, { foreignKey: 'eventId', sourceKey: 'eventId', as: 'odds' });
 
-OddsHistory.belongsTo(Event, { foreignKey: 'eventId', targetKey: 'eventId' });
+if (!OddsHistory.associations.Event) OddsHistory.belongsTo(Event, { foreignKey: 'eventId', targetKey: 'eventId' });
+if (!Result.associations.Event) Result.belongsTo(Event, { foreignKey: 'eventId', targetKey: 'eventId' });
+if (!Event.associations.Result) Event.hasOne(Result, { foreignKey: 'eventId', sourceKey: 'eventId' });
 
-Result.belongsTo(Event,    { foreignKey: 'eventId', targetKey: 'eventId' });
-Event.hasOne(Result,       { foreignKey: 'eventId', sourceKey: 'eventId' });
+if (!Wallet.associations.User) Wallet.belongsTo(User, { foreignKey: 'userId', targetKey: 'userId' });
+if (!User.associations.Wallet) User.hasOne(Wallet, { foreignKey: 'userId', sourceKey: 'userId' });
 
-Wallet.belongsTo(User,     { foreignKey: 'userId', targetKey: 'userId' });
-User.hasOne(Wallet,        { foreignKey: 'userId', sourceKey: 'userId' });
+if (!WalletTransaction.associations.User) WalletTransaction.belongsTo(User, { foreignKey: 'userId', targetKey: 'userId' });
+if (!User.associations.WalletTransactions) User.hasMany(WalletTransaction, { foreignKey: 'userId', sourceKey: 'userId' });
 
-WalletTransaction.belongsTo(User, { foreignKey: 'userId', targetKey: 'userId' });
-User.hasMany(WalletTransaction,   { foreignKey: 'userId', sourceKey: 'userId' });
+if (!PaymentProof.associations.User) PaymentProof.belongsTo(User, { foreignKey: 'userId', targetKey: 'userId' });
+if (!User.associations.PaymentProofs) User.hasMany(PaymentProof, { foreignKey: 'userId', sourceKey: 'userId' });
 
-PaymentProof.belongsTo(User, { foreignKey: 'userId', targetKey: 'userId' });
-User.hasMany(PaymentProof,   { foreignKey: 'userId', sourceKey: 'userId' });
+if (!Bet.associations.User) Bet.belongsTo(User, { foreignKey: 'userId', targetKey: 'userId' });
+if (!User.associations.Bets) User.hasMany(Bet, { foreignKey: 'userId', sourceKey: 'userId' });
 
-Bet.belongsTo(User,  { foreignKey: 'userId', targetKey: 'userId' });
-User.hasMany(Bet,    { foreignKey: 'userId', sourceKey: 'userId' });
+if (!BetSelection.associations.Bet) BetSelection.belongsTo(Bet, { foreignKey: 'betId', targetKey: 'betId' });
+if (!Bet.associations.selections) Bet.hasMany(BetSelection, { foreignKey: 'betId', sourceKey: 'betId', as: 'selections' });
+if (!BetSelection.associations.Event) BetSelection.belongsTo(Event, { foreignKey: 'eventId', targetKey: 'eventId' });
 
-BetSelection.belongsTo(Bet,   { foreignKey: 'betId',  targetKey: 'betId' });
-Bet.hasMany(BetSelection,     { foreignKey: 'betId',  sourceKey: 'betId', as: 'selections' });
-
-BetSelection.belongsTo(Event, { foreignKey: 'eventId', targetKey: 'eventId' });
-
-// ── Database init (called once at startup) ──────────────────────────────────
 async function initDatabase() {
   await sequelize.authenticate();
-  // alter:true adjusts columns to match models without dropping data.
-  // Switch to proper migrations before going to production.
   await sequelize.sync({ alter: true });
 }
 
-module.exports = {
-  sequelize,
-  initDatabase,
-  Sport,
-  MarketCatalog,
-  Event,
-  OddsCurrent,
-  OddsHistory,
-  Result,
-  User,
-  Wallet,
-  WalletTransaction,
-  PaymentProof,
-  Bet,
-  BetSelection,
-  ApiUsageLog,
-  AuditLog,
-};
+module.exports = { sequelize, initDatabase, Sport, MarketCatalog, Event, OddsCurrent, OddsHistory, Result, User, Wallet, WalletTransaction, PaymentProof, Bet, BetSelection, ApiUsageLog, AuditLog };
