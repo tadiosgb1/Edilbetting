@@ -1,6 +1,6 @@
 'use strict';
 const { Op }             = require('sequelize');
-const { Sport, Event }   = require('../models');
+const { Sport, Event }   = require('../Models');
 const { resolveCountry } = require('../services/countryResolver');
 
 /**
