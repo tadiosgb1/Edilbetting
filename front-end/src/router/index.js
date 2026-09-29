@@ -9,6 +9,8 @@ import first_dash from '../views/closed/first_dash.vue';
 import dashboard from '../views/closed/dashboard.vue';
 import UsersView from '../views/closed/Users/UsersView.vue';
 import BetsView from '../views/closed/Bets/BetsView.vue';
+import SportsView from '../views/closed/Sports/SportsView.vue';
+import EventsView from '../views/closed/Events/EventsView.vue';
 
 const routes = [
   // ── Public / Landing ──────────────────────────────────────────────────
@@ -70,6 +72,18 @@ const routes = [
         path: "bets",
         name: "bets",
         component: BetsView,
+        meta: { requiresAuth: true, role: "admin" },
+      },
+      {
+        path: "sports",
+        name: "sports",
+        component: SportsView,
+        meta: { requiresAuth: true, role: "admin" },
+      },
+      {
+        path: "events/:sportKey",
+        name: "events",
+        component: EventsView,
         meta: { requiresAuth: true, role: "admin" },
       },
     ],
