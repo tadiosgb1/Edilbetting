@@ -1,7 +1,7 @@
 require('dotenv').config();
 
 const app = require('./app');
-const { initDatabase } = require('./models');
+const { initDatabase } = require('./Models');
 const cronScheduler = require('./jobs/cronScheduler');
 const logger = require('./utils/logger');
 
