@@ -8,6 +8,7 @@ import Registration from '../views/opened/auth/registration.vue';
 import first_dash from '../views/closed/first_dash.vue';
 import dashboard from '../views/closed/dashboard.vue';
 import UsersView from '../views/closed/Users/UsersView.vue';
+import BetsView from '../views/closed/Bets/BetsView.vue';
 
 const routes = [
   // ── Public / Landing ──────────────────────────────────────────────────
@@ -63,6 +64,12 @@ const routes = [
         path: "users",
         name: "users",
         component: UsersView,
+        meta: { requiresAuth: true, role: "admin" },
+      },
+      {
+        path: "bets",
+        name: "bets",
+        component: BetsView,
         meta: { requiresAuth: true, role: "admin" },
       },
     ],
