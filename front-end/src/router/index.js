@@ -7,6 +7,7 @@ import AccessDenied from "../views/opened/auth/accessDenied.vue";
 import Registration from '../views/opened/auth/registration.vue';
 import first_dash from '../views/closed/first_dash.vue';
 import dashboard from '../views/closed/dashboard.vue';
+import UsersView from '../views/closed/Users/UsersView.vue';
 
 const routes = [
   // ── Public / Landing ──────────────────────────────────────────────────
@@ -57,6 +58,12 @@ const routes = [
         path: "first-dash",
         name: "first-dash",
         component: first_dash,
+      },
+      {
+        path: "users",
+        name: "users",
+        component: UsersView,
+        meta: { requiresAuth: true, role: "admin" },
       },
     ],
   },
