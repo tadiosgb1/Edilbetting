@@ -121,8 +121,22 @@ async function getUser(req, res) {
   });
 }
 
+async function listUsers(req, res) {
+  const users = await User.findAll({
+    attributes: { exclude: ['passwordHash'] },
+    order: [['createdAt', 'DESC']],
+  });
+
+  return res.json({
+    success: true,
+    count: users.length,
+    users,
+  });
+}
+
 module.exports = {
   register,
   login,
   getUser,
+  listUsers,
 };
