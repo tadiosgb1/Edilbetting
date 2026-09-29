@@ -1,5 +1,5 @@
 'use strict';
-const { PaymentProof, AuditLog } = require('../models');
+const { PaymentProof, AuditLog } = require('../Models');
 const { adjustBalance, getOrCreateWallet } = require('../services/walletService');
 
 /**
