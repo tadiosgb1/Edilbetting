@@ -26,7 +26,7 @@
 
         <div v-else-if="error" class="bg-red-950/40 border border-red-900 rounded-xl p-5 text-center">
           <p class="text-sm text-red-300">{{ error }}</p>
-          <button @click="fetchHistory" class="mt-3 text-xs font-bold text-amber-400 hover:text-amber-300">Try again</button>
+          <button @click="fetchHistory" class="mt-3 text-xs font-bold text-primary hover:text-amber-300">Try again</button>
         </div>
 
         <div v-else-if="!bets.length" class="py-16 text-center">
@@ -73,13 +73,13 @@
                     <button
                       v-if="isPending(bet)"
                       @click="$emit('pay-bet', bet)"
-                      class="px-3 py-2 rounded-lg bg-amber-500 text-black hover:bg-amber-400 text-xs font-black">
+                      class="px-3 py-2 rounded-lg bg-primary text-black hover:bg-primary text-xs font-black">
                       Pay
                     </button>
                     <button
                       v-if="canEditBet(bet)"
                       @click="startEditing(bet)"
-                      class="px-3 py-2 rounded-lg border border-amber-500/30 text-amber-400 hover:bg-amber-500/10 text-xs font-black">
+                      class="px-3 py-2 rounded-lg border border-primary/30 text-primary hover:bg-primary/10 text-xs font-black">
                       Edit
                     </button>
                     <button
@@ -99,7 +99,7 @@
               </div>
 
               <div v-if="isExpanded(bet)" class="mt-5 pt-5 border-t border-slate-800">
-                <div v-if="editingBetId === bet.betId" class="mb-5 p-4 rounded-xl border border-amber-500/20 bg-amber-500/5">
+                <div v-if="editingBetId === bet.betId" class="mb-5 p-4 rounded-xl border border-primary/20 bg-primary/5">
                   <div class="flex items-center justify-between gap-3 mb-4">
                     <div>
                       <p class="text-xs font-black text-white">Edit pending bet</p>
@@ -115,7 +115,7 @@
                       type="number"
                       min="0.01"
                       step="0.01"
-                      class="mt-1 w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-sm font-bold text-white focus:border-amber-500 outline-none">
+                      class="mt-1 w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-sm font-bold text-white focus:border-primary outline-none">
                   </div>
 
                   <div class="space-y-3">
@@ -132,7 +132,7 @@
                         </div>
                         <select
                           v-model="selection.outcomeName"
-                          class="bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-xs font-bold text-white outline-none focus:border-amber-500">
+                          class="bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-xs font-bold text-white outline-none focus:border-primary">
                           <option v-for="option in matchOptions(selection)" :key="option.key" :value="option.name">
                             {{ option.label }} — {{ option.name }}
                           </option>
@@ -148,7 +148,7 @@
                     <button
                       @click="saveBet(bet)"
                       :disabled="savingBetId === bet.betId"
-                      class="px-4 py-2 rounded-lg bg-amber-500 text-black hover:bg-amber-400 text-xs font-black disabled:opacity-50 disabled:cursor-not-allowed">
+                      class="px-4 py-2 rounded-lg bg-primary text-black hover:bg-primary text-xs font-black disabled:opacity-50 disabled:cursor-not-allowed">
                       {{ savingBetId === bet.betId ? 'Saving…' : 'Save Changes' }}
                     </button>
                   </div>
@@ -157,7 +157,7 @@
                 <div class="grid grid-cols-2 sm:grid-cols-3 gap-4 mb-5">
                   <div>
                     <p class="text-[9px] text-slate-600 uppercase font-black">Total Odds</p>
-                    <p class="text-sm font-black text-amber-400 mt-1">{{ Number(bet.totalOdds || 0).toFixed(2) }}</p>
+                    <p class="text-sm font-black text-primary mt-1">{{ Number(bet.totalOdds || 0).toFixed(2) }}</p>
                   </div>
                   <div>
                     <p class="text-[9px] text-slate-600 uppercase font-black">Selections</p>
@@ -184,7 +184,7 @@
                       <div
                         v-for="option in matchOptions(selection)"
                         :key="option.key"
-                        :class="option.selected ? 'bg-amber-500 text-black border-amber-400' : 'bg-slate-950 text-slate-400 border-slate-800'"
+                        :class="option.selected ? 'bg-primary text-black border-primary' : 'bg-slate-950 text-slate-400 border-slate-800'"
                         class="border rounded-lg px-2 py-3 text-center">
                         <p class="text-[9px] font-black uppercase">{{ option.label }}</p>
                         <p class="text-[10px] font-bold truncate mt-0.5">{{ option.name }}</p>
@@ -206,7 +206,7 @@
 
       <div class="px-5 py-3 border-t border-slate-800 flex justify-end flex-shrink-0">
         <button @click="fetchHistory" :disabled="loading"
-          class="text-xs font-bold text-slate-400 hover:text-amber-400 disabled:opacity-50">
+          class="text-xs font-bold text-slate-400 hover:text-primary disabled:opacity-50">
           ↻ Refresh
         </button>
       </div>
@@ -391,12 +391,12 @@ export default {
     },
     statusClass(status) {
       return {
-        pending: 'bg-amber-500/10 text-amber-400 border border-amber-500/20',
+        pending: 'bg-primary/10 text-primary border border-primary/20',
         won: 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20',
         lost: 'bg-red-500/10 text-red-400 border border-red-500/20',
         void: 'bg-slate-700 text-slate-300 border border-slate-600',
         cancelled: 'bg-slate-700 text-slate-400 border border-slate-600',
-      }[status] || 'bg-amber-500/10 text-amber-400 border border-amber-500/20';
+      }[status] || 'bg-primary/10 text-primary border border-primary/20';
     },
   },
 };
