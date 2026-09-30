@@ -71,6 +71,12 @@
                 <div class="flex items-center justify-between gap-2 border-t lg:border-t-0 border-slate-800 pt-3 lg:pt-0 lg:pl-4">
                   <div class="flex items-center gap-2">
                     <button
+                      v-if="isPending(bet)"
+                      @click="$emit('pay-bet', bet)"
+                      class="px-3 py-2 rounded-lg bg-amber-500 text-black hover:bg-amber-400 text-xs font-black">
+                      Pay
+                    </button>
+                    <button
                       v-if="canEditBet(bet)"
                       @click="startEditing(bet)"
                       class="px-3 py-2 rounded-lg border border-amber-500/30 text-amber-400 hover:bg-amber-500/10 text-xs font-black">
@@ -219,7 +225,7 @@ export default {
     api: { type: String, default: 'http://localhost:3000/api' },
   },
   components: { ConfirmModal },
-  emits: ['close'],
+  emits: ['close', 'pay-bet'],
   data() {
     return {
       bets: [],
