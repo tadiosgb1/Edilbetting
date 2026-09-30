@@ -31,7 +31,23 @@ async function listEvents(req, res) {
     ],
     order:   [['commenceTime', 'ASC']],
   });
-  res.json({ success: true, sportKey, count: events.length, data: events });
+  const data = events.map((event) => {
+    const json = event.toJSON();
+    const rows = Array.isArray(json.odds) ? json.odds : [];
+    const h2h = rows.filter((row) => row.marketKey === 'h2h' && !row.suspended);
+    const homeRow = h2h.find((row) => row.outcomeName === json.homeTeam || row.outcomeName === 'Home');
+    const drawRow = h2h.find((row) => row.outcomeName === 'Draw');
+    const awayRow = h2h.find((row) => row.outcomeName === json.awayTeam || row.outcomeName === 'Away');
+    return {
+      ...json,
+      odds: {
+        home: homeRow ? Number(homeRow.displayPrice) : null,
+        draw: drawRow ? Number(drawRow.displayPrice) : null,
+        away: awayRow ? Number(awayRow.displayPrice) : null,
+      },
+    };
+  });
+  res.json({ success: true, sportKey, count: data.length, data });
 }
 
 /**
