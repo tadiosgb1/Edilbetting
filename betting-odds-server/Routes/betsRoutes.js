@@ -67,6 +67,7 @@ router.get('/:userId', asyncHandler(ctrl.getBetsForUser));
  *     tags: [Bets]
  */
 router.get('/:userId/:betId', asyncHandler(ctrl.getBetById));
+router.put('/:userId/:betId', asyncHandler(ctrl.updateBet));
 
 /**
  * @swagger
