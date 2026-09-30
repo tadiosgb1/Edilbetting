@@ -962,7 +962,7 @@ export default {
       try {
         const r = await fetch(`${this.api}/sports/top-leagues`);
         const d = await r.json();
-        if (d.success) this.topLeagues = d.data;
+        if (d.success) this.topLeagues = d.data.map(lg => ({ ...lg, key: lg.sportKey }));
       } catch (e) { console.error('fetchTopLeagues', e); }
       finally { this.loadingTopLeagues = false; }
     },
@@ -984,13 +984,15 @@ export default {
       this.matches      = [];
       this.marketCounts = {};   // reset counts for the new league
       try {
-        const r = await fetch(`${this.api}/odds/${sportKey}?markets=h2h,totals&regions=eu`);
+        // Sport/league events come from the backend event endpoint.
+        // Example: GET /api/events/soccer_epl
+        const r = await fetch(`${this.api}/events/${encodeURIComponent(sportKey)}`);
         const d = await r.json();
         if (d.success) this.matches = d.data.map(ev => this.transformEvent(ev));
-      } catch (e) { console.error('fetchOdds', e); }
+      } catch (e) { console.error('fetchOdds/events', e); }
       finally { this.loadingOdds = false; }
-      // NOTE: market counts are NOT pre-fetched here.
-      // They are fetched lazily when the user clicks the N+ button (see openMatchDetail).
+      // Additional markets are intentionally still fetched lazily from
+      // their existing endpoints when a match is opened.
     },
 
     // ── Fetch market count for ONE match (lazy, on-demand) ────────────────
@@ -1011,33 +1013,26 @@ export default {
 
     // ── Event transformer ─────────────────────────────────────────────────
     transformEvent(ev) {
-      const isLiveFlag = new Date(ev.commence_time) <= new Date();
-      let home=null, draw=null, away=null, over=null, under=null;
-      if (ev.bookmakers?.length) {
-        const bm  = ev.bookmakers[0];
-        const h2h = bm.markets?.find(m => m.key==='h2h');
-        if (h2h) {
-          home = h2h.outcomes.find(o => o.name===ev.home_team)?.price ?? null;
-          away = h2h.outcomes.find(o => o.name===ev.away_team)?.price ?? null;
-          draw = h2h.outcomes.find(o => o.name==='Draw')?.price       ?? null;
-        }
-        const tot = bm.markets?.find(m => m.key==='totals');
-        if (tot) {
-          over  = tot.outcomes.find(o => o.name==='Over')?.price  ?? null;
-          under = tot.outcomes.find(o => o.name==='Under')?.price ?? null;
-        }
-      }
+      // /api/events/:sportKey returns DB events in camelCase and includes
+      // current odds as ev.odds. The h2h market supplies 1X2 prices.
+      const homeTeam = ev.homeTeam ?? '';
+      const awayTeam = ev.awayTeam ?? '';
+      const home = Number.isFinite(Number(ev.odds?.home)) ? Number(ev.odds.home) : null;
+      const draw = Number.isFinite(Number(ev.odds?.draw)) ? Number(ev.odds.draw) : null;
+      const away = Number.isFinite(Number(ev.odds?.away)) ? Number(ev.odds.away) : null;
+
       return {
-        id:           ev.id,
-        sport_key:    ev.sport_key,
-        sport_title:  ev.sport_title,
-        homeTeam:     ev.home_team,
-        awayTeam:     ev.away_team,
-        commenceTime: ev.commence_time,
-        isLive:       isLiveFlag,
+        id:           ev.eventId,
+        sport_key:    ev.sportKey,
+        sport_title:  ev.Sport?.title || ev.sportKey,
+        homeTeam,
+        awayTeam,
+        commenceTime: ev.commenceTime,
+        status:       ev.status,
+        isLive:       ev.status === 'live',
         homeScore:    null,
         awayScore:    null,
-        odds: { home, draw, away, over, under, bttsYes:1.75, bttsNo:2.05 },
+        odds: { home, draw, away, over:null, under:null, bttsYes:null, bttsNo:null },
       };
     },
 
