@@ -14,8 +14,11 @@ module.exports = function adminAuth(req, res, next) {
 
   try {
     const payload = jwt.verify(token, JWT_SECRET);
+    const roles = Array.isArray(payload.roles) ? payload.roles : [];
+    const roleNames = roles.map(role => String(role?.name || role).trim().toLowerCase());
+    const isAdmin = payload.isAdmin === true || String(payload.role || '').trim().toLowerCase() === 'admin' || roleNames.includes('admin');
 
-    if (!payload.isAdmin) {
+    if (!isAdmin) {
       return res.status(403).json({ success: false, error: 'Admin access required.' });
     }
 
