@@ -13,10 +13,10 @@
     <div class="bg-slate-900 border border-slate-800 rounded-xl w-full max-w-6xl max-h-[90vh] flex flex-col shadow-2xl">
       <div class="px-5 py-4 border-b border-slate-800 flex items-center justify-between flex-shrink-0">
         <div>
-          <h3 class="text-lg font-black text-white">📜 Bet History</h3>
+          <h3 class="text-lg font-black text-white"><i class="fa-solid fa-clock-rotate-left mr-2"></i>Bet History</h3>
           <p class="text-[10px] text-slate-500 mt-0.5">Your saved bets and their current status</p>
         </div>
-        <button @click="$emit('close')" class="text-slate-400 hover:text-white text-xl font-bold">✕</button>
+        <button @click="$emit('close')" class="text-slate-400 hover:text-white text-xl font-bold"><i class="fa-solid fa-xmark"></i></button>
       </div>
 
       <div class="flex-1 overflow-y-auto p-3 sm:p-5">
@@ -30,7 +30,7 @@
         </div>
 
         <div v-else-if="!bets.length" class="py-16 text-center">
-          <div class="text-4xl mb-3">📋</div>
+          <div class="text-4xl mb-3"><i class="fa-solid fa-receipt"></i></div>
           <p class="text-sm font-bold text-slate-400">No bets yet</p>
           <p class="text-xs text-slate-600 mt-1">Your booked bets will appear here.</p>
         </div>
