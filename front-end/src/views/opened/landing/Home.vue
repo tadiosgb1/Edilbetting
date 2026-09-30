@@ -793,6 +793,7 @@
       :user-id="currentUserId"
       :api="api"
       @close="showBetHistoryModal=false"
+      @pay-bet="openBetPayment"
     />
     <AuthModal :is-open="showAuthModal" :initial-mode="authMode" @close="showAuthModal=false" @success="handleAuthSuccess"/>
     <DepositModal :is-open="showDepositModal" @close="showDepositModal=false" @depositSuccess="handleDepositSuccess"/>
@@ -873,16 +874,6 @@ export default {
       // Payment proof — opened after the bet is successfully booked
       pendingBetId:      null,
       pendingBetAmount:  0,
-      isSubmittingProof_UNUSED: false,
-      paymentProof_UNUSED: {
-        method: 'telebirr',
-        txReference: '',
-        senderName: '',
-        senderPhone: '',
-        screenshotUrl: '',
-        imageHash: '',
-      },
-
       // Toast
       toast: { show: false, message: '', type: 'success' },
     };
