@@ -108,4 +108,47 @@ async function getBetById(req, res) {
   res.json({ success: true, data: bet });
 }
 
-module.exports = { placeBet, getBetsForUser, getBetById };
+/**
+ * POST /api/bets/:userId/:betId/cancel
+ *
+ * A player may cancel only their own pending bet. The row is locked inside
+ * a transaction so an approval/settlement cannot race the cancellation.
+ * Pending bets do not debit the wallet at placement, so cancellation does
+ * not create a wallet refund.
+ */
+async function cancelBet(req, res) {
+  const { userId, betId } = req.params;
+
+  const cancelledBet = await sequelize.transaction(async (t) => {
+    const bet = await Bet.findOne({
+      where: { betId, userId },
+      transaction: t,
+      lock: t.LOCK.UPDATE,
+    });
+
+    if (!bet) {
+      throw Object.assign(new Error('Bet not found.'), { statusCode: 404 });
+    }
+
+    if (bet.status !== 'pending') {
+      throw Object.assign(
+        new Error('Only pending bets can be cancelled.'),
+        { statusCode: 409 }
+      );
+    }
+
+    bet.status = 'cancelled';
+    bet.settledAt = new Date();
+    await bet.save({ transaction: t });
+
+    return bet;
+  });
+
+  res.json({
+    success: true,
+    message: 'Bet cancelled successfully.',
+    data: cancelledBet,
+  });
+}
+
+module.exports = { placeBet, getBetsForUser, getBetById, cancelBet };

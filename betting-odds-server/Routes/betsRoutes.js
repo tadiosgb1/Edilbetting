@@ -68,4 +68,26 @@ router.get('/:userId', asyncHandler(ctrl.getBetsForUser));
  */
 router.get('/:userId/:betId', asyncHandler(ctrl.getBetById));
 
+/**
+ * @swagger
+ * /bets/{userId}/{betId}/cancel:
+ *   post:
+ *     summary: Cancel a player's own pending bet
+ *     tags: [Bets]
+ *     parameters:
+ *       - in: path
+ *         name: userId
+ *         required: true
+ *         schema: { type: string, format: uuid }
+ *       - in: path
+ *         name: betId
+ *         required: true
+ *         schema: { type: string, format: uuid }
+ *     responses:
+ *       200: { description: Bet cancelled successfully }
+ *       404: { description: Bet not found }
+ *       409: { description: Bet is no longer pending }
+ */
+router.post('/:userId/:betId/cancel', asyncHandler(ctrl.cancelBet));
+
 module.exports = router;
