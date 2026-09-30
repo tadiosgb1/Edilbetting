@@ -82,6 +82,16 @@
                   </div>
                 </div>
               </div>
+
+              <div v-if="isPending(bet)" class="mt-4 pt-3 border-t border-slate-800 flex items-center justify-between gap-3">
+                <p class="text-[10px] text-slate-500">You can cancel this bet while it is still pending approval.</p>
+                <button
+                  @click="cancelBet(bet)"
+                  :disabled="cancellingBetId === bet.betId"
+                  class="px-3 py-2 rounded-lg border border-red-500/30 text-red-400 hover:bg-red-500/10 hover:text-red-300 text-xs font-black disabled:opacity-50 disabled:cursor-not-allowed flex-shrink-0">
+                  {{ cancellingBetId === bet.betId ? 'Cancelling…' : 'Cancel Bet' }}
+                </button>
+              </div>
             </div>
           </article>
         </div>
@@ -111,6 +121,7 @@ export default {
       bets: [],
       loading: false,
       error: '',
+      cancellingBetId: null,
     };
   },
   watch: {
@@ -137,6 +148,40 @@ export default {
         this.error = e.message || 'Could not load bet history.';
       } finally {
         this.loading = false;
+      }
+    },
+    isPending(bet) {
+      return String(bet.status || '').toLowerCase() === 'pending';
+    },
+    async cancelBet(bet) {
+      if (!this.userId || !bet?.betId || !this.isPending(bet) || this.cancellingBetId) return;
+      if (!window.confirm('Cancel this pending bet? This cannot be undone.')) return;
+
+      this.cancellingBetId = bet.betId;
+      this.error = '';
+      try {
+        const res = await fetch(
+          `${this.api}/bets/${encodeURIComponent(this.userId)}/${encodeURIComponent(bet.betId)}/cancel`,
+          { method: 'POST' }
+        );
+        const data = await res.json();
+        if (!res.ok || !data.success) {
+          throw new Error(data.error || 'Could not cancel the bet.');
+        }
+
+        const index = this.bets.findIndex(item => item.betId === bet.betId);
+        if (index !== -1) {
+          this.bets.splice(index, 1, {
+            ...this.bets[index],
+            ...(data.data || {}),
+            status: 'cancelled',
+          });
+        }
+      } catch (e) {
+        console.error('cancelBet', e);
+        this.error = e.message || 'Could not cancel the bet.';
+      } finally {
+        this.cancellingBetId = null;
       }
     },
     money(value) {
