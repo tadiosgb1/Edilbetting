@@ -17,16 +17,16 @@
           </button>
           <!-- Logo -->
           <div class="flex items-center gap-1.5 cursor-pointer" @click="resetToHome">
-            <span class="bg-amber-500 text-black font-black text-base sm:text-lg px-2 py-0.5 rounded tracking-widest leading-tight">EDIL</span>
+            <span class="bg-primary text-black font-black text-base sm:text-lg px-2 py-0.5 rounded tracking-widest leading-tight">EDIL</span>
             <span class="font-black text-base sm:text-lg tracking-wide text-white">BET</span>
           </div>
           <!-- Desktop nav -->
           <nav class="hidden lg:flex items-center gap-1 ml-5">
             <button @click="resetToHome"
-              :class="currentView === 'home' ? 'bg-amber-500/10 text-amber-400' : 'text-slate-400 hover:text-white hover:bg-slate-800/60'"
+              :class="currentView === 'home' ? 'bg-primary/10 text-primary' : 'text-slate-400 hover:text-white hover:bg-slate-800/60'"
               class="px-3 py-1.5 rounded text-sm font-semibold transition">🏠 Home</button>
             <button @click="goToSports"
-              :class="['sports','live','detail'].includes(currentView) ? 'bg-amber-500/10 text-amber-400' : 'text-slate-400 hover:text-white hover:bg-slate-800/60'"
+              :class="['sports','live','detail'].includes(currentView) ? 'bg-primary/10 text-primary' : 'text-slate-400 hover:text-white hover:bg-slate-800/60'"
               class="px-3 py-1.5 rounded text-sm font-semibold transition">⚽ Sports</button>
             <button @click="goToLive"
               :class="currentView === 'live' ? 'bg-red-500/10 text-red-400' : 'text-slate-400 hover:text-white hover:bg-slate-800/60'"
@@ -40,15 +40,15 @@
           <div v-if="userBalance !== null"
             class="bg-slate-800 border border-slate-700 rounded-lg px-2 sm:px-3 py-1 sm:py-1.5 flex items-center gap-1">
             <span class="text-slate-400 text-[10px] sm:text-xs font-bold uppercase tracking-wide hidden sm:inline">Balance</span>
-            <span class="text-amber-400 font-black text-xs sm:text-sm">{{ userBalance.toFixed(2) }}</span>
+            <span class="text-primary font-black text-xs sm:text-sm">{{ userBalance.toFixed(2) }}</span>
             <span class="text-slate-500 text-[10px] hidden sm:inline">ETB</span>
           </div>
           <button v-if="isLoggedIn" @click="showBetHistoryModal = true"
-            class="hidden sm:inline-flex bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-300 hover:text-amber-400 font-bold text-xs sm:text-sm px-2.5 sm:px-3 py-1.5 sm:py-2 rounded-lg transition">
+            class="hidden sm:inline-flex bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-300 hover:text-primary font-bold text-xs sm:text-sm px-2.5 sm:px-3 py-1.5 sm:py-2 rounded-lg transition">
             Bet History
           </button>
           <button @click="showDepositModal = true"
-            class="bg-amber-500 hover:bg-amber-400 active:scale-95 text-black font-black text-xs sm:text-sm px-2.5 sm:px-4 py-1.5 sm:py-2 rounded-lg transition shadow-md shadow-amber-500/20">
+            class="bg-primary hover:bg-primary active:scale-95 text-black font-black text-xs sm:text-sm px-2.5 sm:px-4 py-1.5 sm:py-2 rounded-lg transition shadow-md shadow-primary/20">
             <span class="hidden sm:inline">Deposit</span>
             <span class="sm:hidden font-black text-base leading-none">+</span>
           </button>
@@ -56,8 +56,8 @@
             <button @click="openAuth('login')"
               class="hidden sm:inline-flex text-sm font-semibold text-slate-300 hover:text-white px-3 py-1.5 rounded-lg hover:bg-slate-800 transition">Login</button>
             <button @click="openAuth('register')"
-              class="hidden sm:inline-flex bg-slate-800 hover:bg-slate-700 text-amber-400 border border-slate-700 text-sm font-bold px-3 py-1.5 rounded-lg transition">Register</button>
-            <button @click="openAuth('login')" class="sm:hidden w-9 h-9 flex items-center justify-center rounded-lg bg-slate-800 text-amber-400 border border-slate-700">
+              class="hidden sm:inline-flex bg-slate-800 hover:bg-slate-700 text-primary border border-slate-700 text-sm font-bold px-3 py-1.5 rounded-lg transition">Register</button>
+            <button @click="openAuth('login')" class="sm:hidden w-9 h-9 flex items-center justify-center rounded-lg bg-slate-800 text-primary border border-slate-700">
               <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
               </svg>
@@ -66,7 +66,7 @@
           <div v-else class="relative">
             <button @click="profileMenuOpen = !profileMenuOpen"
               class="flex items-center gap-2 bg-slate-800 hover:bg-slate-700 border border-slate-700 rounded-lg px-2 py-1.5 transition">
-              <span class="w-7 h-7 rounded-md bg-amber-500 flex items-center justify-center text-black font-black text-xs">
+              <span class="w-7 h-7 rounded-md bg-primary flex items-center justify-center text-black font-black text-xs">
                 {{ userInitial }}
               </span>
               <span class="hidden sm:block text-xs font-bold text-slate-200 max-w-24 truncate">{{ currentUser?.fullName || currentUser?.phoneNumber }}</span>
@@ -78,7 +78,7 @@
                 <p class="text-[10px] text-slate-500 mt-0.5 truncate">{{ currentUser?.phoneNumber || '' }}</p>
               </div>
               <button @click="showBetHistoryModal=true; profileMenuOpen=false"
-                class="w-full text-left px-4 py-3 text-xs font-bold text-slate-300 hover:bg-slate-800 hover:text-amber-400 transition">📜 Bet History</button>
+                class="w-full text-left px-4 py-3 text-xs font-bold text-slate-300 hover:bg-slate-800 hover:text-primary transition">📜 Bet History</button>
               <button @click="logout"
                 class="w-full text-left px-4 py-3 text-xs font-bold text-red-400 hover:bg-slate-800 transition border-t border-slate-800">↪ Logout</button>
             </div>
@@ -92,7 +92,7 @@
         <div v-if="mobileMenuOpen" class="lg:hidden border-t border-slate-800 bg-slate-900/98 backdrop-blur-sm">
           <div class="px-3 py-3 flex flex-col gap-1">
             <button @click="resetToHome(); mobileMenuOpen=false"
-              :class="currentView==='home' ? 'bg-amber-500/10 text-amber-400 border-l-2 border-amber-500':'text-slate-300 hover:bg-slate-800'"
+              :class="currentView==='home' ? 'bg-primary/10 text-primary border-l-2 border-primary':'text-slate-300 hover:bg-slate-800'"
               class="w-full text-left px-4 py-2.5 rounded text-sm font-semibold transition">🏠 Home</button>
             <button @click="goToSports(); mobileMenuOpen=false"
               class="w-full text-left px-4 py-2.5 rounded text-sm font-semibold text-slate-300 hover:bg-slate-800 transition">⚽ Sports</button>
@@ -106,7 +106,7 @@
                 <button @click="openAuth('login');mobileMenuOpen=false"
                   class="flex-1 py-2.5 text-sm font-bold text-slate-300 border border-slate-700 rounded-lg hover:bg-slate-800 transition">Login</button>
                 <button @click="openAuth('register');mobileMenuOpen=false"
-                  class="flex-1 py-2.5 text-sm font-bold text-amber-400 bg-slate-800 border border-slate-700 rounded-lg hover:bg-slate-700 transition">Register</button>
+                  class="flex-1 py-2.5 text-sm font-bold text-primary bg-slate-800 border border-slate-700 rounded-lg hover:bg-slate-700 transition">Register</button>
               </div>
             </template>
           </div>
@@ -124,7 +124,7 @@
         <div class="p-3 border-b border-slate-800">
           <div class="relative">
             <input v-model="sidebarSearch" placeholder="Search matches…"
-              class="w-full bg-slate-800 border border-slate-700 rounded-lg pl-8 pr-3 py-2 text-xs text-slate-200 placeholder-slate-500 focus:outline-none focus:border-amber-500 transition"/>
+              class="w-full bg-slate-800 border border-slate-700 rounded-lg pl-8 pr-3 py-2 text-xs text-slate-200 placeholder-slate-500 focus:outline-none focus:border-primary transition"/>
             <svg class="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0"/>
             </svg>
@@ -135,7 +135,7 @@
         <div class="p-3 border-b border-slate-800">
           <div class="flex gap-2">
             <button @click="goToSports()"
-              class="flex-1 flex items-center justify-center gap-1.5 bg-slate-800 hover:bg-slate-700 border border-slate-700 rounded-lg py-2 text-[10px] font-black text-amber-400 uppercase tracking-wide transition">
+              class="flex-1 flex items-center justify-center gap-1.5 bg-slate-800 hover:bg-slate-700 border border-slate-700 rounded-lg py-2 text-[10px] font-black text-primary uppercase tracking-wide transition">
               ⭐ Top Matchess
             </button>
             <button @click="goToLive()"
@@ -149,13 +149,13 @@
         <div class="border-b border-slate-800">
           <div class="px-3 pt-3 pb-1 flex items-center justify-between">
             <p class="text-[10px] font-black text-slate-500 uppercase tracking-widest">Top Leagues</p>
-            <span v-if="loadingTopLeagues" class="text-[9px] text-amber-400 animate-pulse">…</span>
+            <span v-if="loadingTopLeagues" class="text-[9px] text-primary animate-pulse">…</span>
           </div>
           <ul class="pb-2">
             <li v-for="lg in topLeagues" :key="lg.key">
               <button @click="selectLeague(lg.key)"
                 :class="selectedSportKey===lg.key && ['sports','live'].includes(currentView)
-                  ? 'bg-amber-500/10 text-amber-400 border-l-2 border-amber-500'
+                  ? 'bg-primary/10 text-primary border-l-2 border-primary'
                   : 'text-slate-300 hover:bg-slate-800 hover:text-white'"
                 class="w-full text-left px-3 py-2 text-xs font-semibold flex items-center gap-2 transition">
                 <span class="flex-shrink-0 text-sm">{{ leagueFlag(lg.key) }}</span>
@@ -214,7 +214,7 @@
                       <li v-for="league in leagues" :key="league.sportKey">
                         <button @click="selectLeague(league.sportKey)"
                           :class="selectedSportKey===league.sportKey && ['sports','live'].includes(currentView)
-                            ? 'text-amber-400 font-black'
+                            ? 'text-primary font-black'
                             : 'text-slate-500 hover:text-slate-200'"
                           class="w-full text-left pl-10 pr-3 py-2 text-[11px] transition flex items-center gap-2">
                           <span class="w-1 h-1 rounded-full bg-current flex-shrink-0"></span>
@@ -236,7 +236,7 @@
         <!-- ── HOME VIEW ── -->
         <div v-if="currentView==='home'" class="p-3 md:p-4 space-y-5">
           <!-- Hero Banner -->
-          <div class="relative bg-gradient-to-r from-amber-600 via-amber-700 to-slate-900 rounded-xl p-5 md:p-6 overflow-hidden shadow-xl">
+          <div class="relative bg-gradient-to-r from-primary-dense via-amber-700 to-slate-900 rounded-xl p-5 md:p-6 overflow-hidden shadow-xl">
             <div class="absolute right-0 top-0 w-48 h-full opacity-10">
               <svg viewBox="0 0 100 100" fill="currentColor" class="text-white w-full h-full">
                 <circle cx="75" cy="25" r="40"/><circle cx="30" cy="70" r="30"/>
@@ -247,7 +247,7 @@
               <h1 class="text-xl md:text-3xl font-black text-white leading-tight">100% First Deposit Bonus</h1>
               <p class="text-amber-200 text-sm mt-1">Up to <span class="font-black text-white">5,000 ETB</span></p>
               <button @click="openAuth('register')"
-                class="mt-4 inline-flex items-center gap-2 bg-black hover:bg-slate-900 text-amber-400 font-black px-5 py-2.5 rounded-lg text-sm transition border border-amber-500/30">
+                class="mt-4 inline-flex items-center gap-2 bg-black hover:bg-slate-900 text-primary font-black px-5 py-2.5 rounded-lg text-sm transition border border-primary/30">
                 Claim Bonus →
               </button>
             </div>
@@ -258,9 +258,9 @@
             <div class="flex items-center justify-between mb-3">
               <h2 class="text-sm font-black text-white uppercase tracking-wide flex items-center gap-2">
                 🔥 Featured Matches
-                <span v-if="loadingTopMatches" class="text-[10px] text-amber-400 font-normal animate-pulse">Loading…</span>
+                <span v-if="loadingTopMatches" class="text-[10px] text-primary font-normal animate-pulse">Loading…</span>
               </h2>
-              <button @click="goToSports()" class="text-xs text-amber-400 hover:text-amber-300 font-bold">View All →</button>
+              <button @click="goToSports()" class="text-xs text-primary hover:text-amber-300 font-bold">View All →</button>
             </div>
             <div v-if="!loadingTopMatches && topMatches.length===0"
               class="bg-slate-900 border border-slate-800 rounded-lg p-6 text-center text-slate-500 text-sm">
@@ -268,7 +268,7 @@
             </div>
             <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-3">
               <div v-for="match in topMatches" :key="match.id"
-                class="bg-slate-900 border border-slate-800 hover:border-amber-500/30 rounded-xl p-3.5 transition cursor-pointer"
+                class="bg-slate-900 border border-slate-800 hover:border-primary/30 rounded-xl p-3.5 transition cursor-pointer"
                 @click="selectLeague(match.sport_key)">
                 <div class="flex justify-between items-center text-[10px] text-slate-500 mb-2.5">
                   <span class="font-bold uppercase tracking-wider flex items-center gap-1">
@@ -288,7 +288,7 @@
                   <button v-for="(btn,i) in h2hBtns(match)" :key="i"
                     v-if="btn.odd"
                     @click.stop="toggleBet(match, btn.sel, btn.odd)"
-                    :class="isSelectionActive(match.id,btn.sel) ? 'bg-amber-500 text-black':'bg-slate-800 hover:bg-slate-700 text-slate-200'"
+                    :class="isSelectionActive(match.id,btn.sel) ? 'bg-primary text-black':'bg-slate-800 hover:bg-slate-700 text-slate-200'"
                     class="rounded-lg p-1.5 text-center transition flex flex-col items-center">
                     <span class="text-[9px] text-slate-400 font-bold uppercase">{{ btn.label }}</span>
                     <span class="font-black text-xs">{{ btn.odd.toFixed(2) }}</span>
@@ -305,9 +305,9 @@
             <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-2">
               <button v-for="lg in topLeagues" :key="lg.key"
                 @click="selectLeague(lg.key)"
-                class="bg-slate-900 hover:bg-slate-800 border border-slate-800 hover:border-amber-500/40 rounded-xl p-3 text-center transition group">
+                class="bg-slate-900 hover:bg-slate-800 border border-slate-800 hover:border-primary/40 rounded-xl p-3 text-center transition group">
                 <div class="text-2xl mb-1">{{ leagueFlag(lg.key) }}</div>
-                <p class="text-xs font-bold text-slate-300 group-hover:text-amber-400 transition leading-tight truncate">{{ lg.title }}</p>
+                <p class="text-xs font-bold text-slate-300 group-hover:text-primary transition leading-tight truncate">{{ lg.title }}</p>
               </button>
             </div>
           </div>
@@ -318,13 +318,13 @@
 
           <!-- Breadcrumb -->
           <div class="flex items-center gap-2 text-xs text-slate-500 mb-1">
-            <button @click="resetToHome" class="hover:text-amber-400 transition">Home</button>
+            <button @click="resetToHome" class="hover:text-primary transition">Home</button>
             <span>/</span>
             <span v-if="expandedSportType" class="text-slate-400">{{ sportTypeName(expandedSportType) }}</span>
             <template v-if="expandedSportType"><span>/</span></template>
             <span v-if="expandedCountry" class="text-slate-400">{{ countryNameFor(expandedCountry) }}</span>
             <template v-if="expandedCountry"><span>/</span></template>
-            <span class="text-amber-400 font-bold truncate">{{ currentLeagueTitle || selectedSportKey }}</span>
+            <span class="text-primary font-bold truncate">{{ currentLeagueTitle || selectedSportKey }}</span>
           </div>
 
           <!-- Toolbar -->
@@ -333,11 +333,11 @@
               <h2 class="text-sm font-black text-white uppercase tracking-wide truncate max-w-xs">
                 {{ currentLeagueTitle || selectedSportKey.replace(/_/g,' ').toUpperCase() }}
               </h2>
-              <span v-if="loadingOdds" class="text-xs text-amber-400 animate-pulse">Loading…</span>
+              <span v-if="loadingOdds" class="text-xs text-primary animate-pulse">Loading…</span>
             </div>
             <div class="flex gap-1.5 flex-wrap">
               <button @click="filterLive=false; currentView='sports'"
-                :class="!filterLive ? 'bg-amber-500 text-black':'bg-slate-800 text-slate-300 hover:bg-slate-700'"
+                :class="!filterLive ? 'bg-primary text-black':'bg-slate-800 text-slate-300 hover:bg-slate-700'"
                 class="text-xs font-bold px-3 py-1.5 rounded-lg transition">All</button>
               <button @click="filterLive=true; currentView='live'"
                 :class="filterLive ? 'bg-red-600 text-white':'bg-slate-800 text-slate-300 hover:bg-slate-700'"
@@ -345,7 +345,7 @@
                 <span class="w-1.5 h-1.5 rounded-full bg-red-400 animate-pulse"></span>Live
               </button>
               <select v-model="selectedMarket"
-                class="bg-slate-800 border border-slate-700 text-xs text-slate-200 rounded-lg px-2 py-1.5 focus:outline-none focus:border-amber-500 transition">
+                class="bg-slate-800 border border-slate-700 text-xs text-slate-200 rounded-lg px-2 py-1.5 focus:outline-none focus:border-primary transition">
                 <option value="1x2">1X2</option>
                 <option value="ou">Over/Under</option>
                 <option value="btts">BTTS</option>
@@ -411,7 +411,7 @@
                     ]" :key="i"
                       @click="btn.odd && toggleBet(match, btn.sel, btn.odd)"
                       :class="[
-                        isSelectionActive(match.id, btn.sel) ? 'bg-amber-500 text-black border-amber-400' : 'bg-slate-800 hover:bg-slate-700 text-slate-200 border-slate-700',
+                        isSelectionActive(match.id, btn.sel) ? 'bg-primary text-black border-primary' : 'bg-slate-800 hover:bg-slate-700 text-slate-200 border-slate-700',
                         !btn.odd ? 'opacity-40 cursor-default' : 'cursor-pointer'
                       ]"
                       class="border rounded-lg w-14 h-12 flex flex-col items-center justify-center transition flex-shrink-0">
@@ -429,7 +429,7 @@
                       {label:'U 2.5', sel:'Under 2.5', odd:match.odds.under||1.95},
                     ]" :key="i"
                       @click="toggleBet(match, btn.sel, btn.odd)"
-                      :class="isSelectionActive(match.id,btn.sel) ? 'bg-amber-500 text-black border-amber-400':'bg-slate-800 hover:bg-slate-700 text-slate-200 border-slate-700'"
+                      :class="isSelectionActive(match.id,btn.sel) ? 'bg-primary text-black border-primary':'bg-slate-800 hover:bg-slate-700 text-slate-200 border-slate-700'"
                       class="border rounded-lg w-14 h-12 flex flex-col items-center justify-center transition flex-shrink-0 cursor-pointer">
                       <span class="text-[9px] font-black uppercase" :class="isSelectionActive(match.id,btn.sel)?'text-black':'text-slate-500'">{{ btn.label }}</span>
                       <span class="font-black text-sm leading-none">{{ btn.odd.toFixed(2) }}</span>
@@ -445,7 +445,7 @@
                       {label:'No',  sel:'BTTS - No',  odd:match.odds.bttsNo||2.05},
                     ]" :key="i"
                       @click="toggleBet(match, btn.sel, btn.odd)"
-                      :class="isSelectionActive(match.id,btn.sel) ? 'bg-amber-500 text-black border-amber-400':'bg-slate-800 hover:bg-slate-700 text-slate-200 border-slate-700'"
+                      :class="isSelectionActive(match.id,btn.sel) ? 'bg-primary text-black border-primary':'bg-slate-800 hover:bg-slate-700 text-slate-200 border-slate-700'"
                       class="border rounded-lg w-14 h-12 flex flex-col items-center justify-center transition flex-shrink-0 cursor-pointer">
                       <span class="text-[9px] font-black uppercase" :class="isSelectionActive(match.id,btn.sel)?'text-black':'text-slate-500'">{{ btn.label }}</span>
                       <span class="font-black text-sm leading-none">{{ btn.odd.toFixed(2) }}</span>
@@ -455,17 +455,17 @@
 
                 <!-- N+ markets button — count fetched lazily on click -->
                 <button @click="openMatchDetail(match)"
-                  class="flex flex-col items-center justify-center w-14 h-12 rounded-lg border border-slate-700 bg-slate-800 hover:bg-slate-700 hover:border-amber-500/50 transition flex-shrink-0 group"
+                  class="flex flex-col items-center justify-center w-14 h-12 rounded-lg border border-slate-700 bg-slate-800 hover:bg-slate-700 hover:border-primary/50 transition flex-shrink-0 group"
                   :title="getMarketCount(match.id) !== null ? getMarketCount(match.id) + ' markets available' : 'View all markets'">
                   <template v-if="getMarketCount(match.id) !== null && getMarketCount(match.id) > 0">
                     <!-- Real count shown after user has visited the detail once -->
-                    <span class="text-amber-400 font-black text-sm leading-none group-hover:text-amber-300">
+                    <span class="text-primary font-black text-sm leading-none group-hover:text-amber-300">
                       {{ getMarketCount(match.id) }}+
                     </span>
                   </template>
                   <template v-else>
                     <!-- Not yet fetched — show chevron to indicate clickable -->
-                    <svg class="w-4 h-4 text-amber-400 group-hover:text-amber-300 transition" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <svg class="w-4 h-4 text-primary group-hover:text-amber-300 transition" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5l7 7-7 7"/>
                     </svg>
                   </template>
@@ -492,12 +492,12 @@
               </button>
               <div class="flex-1 relative">
                 <input v-model="detailSearch" placeholder="Search market…"
-                  class="w-full bg-slate-800 border border-slate-700 rounded-lg pl-8 pr-3 py-2 text-xs text-slate-200 placeholder-slate-500 focus:outline-none focus:border-amber-500 transition"/>
+                  class="w-full bg-slate-800 border border-slate-700 rounded-lg pl-8 pr-3 py-2 text-xs text-slate-200 placeholder-slate-500 focus:outline-none focus:border-primary transition"/>
                 <svg class="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0"/>
                 </svg>
               </div>
-              <button class="px-3 py-2 bg-amber-500 hover:bg-amber-400 text-black font-black text-xs rounded-lg transition">Search</button>
+              <button class="px-3 py-2 bg-primary hover:bg-primary text-black font-black text-xs rounded-lg transition">Search</button>
             </div>
             <!-- Match info -->
             <div class="bg-slate-800/60 rounded-xl px-4 py-3">
@@ -525,7 +525,7 @@
                   ]" :key="i"
                     v-if="btn.odd"
                     @click="toggleBet(detailMatch, btn.sel, btn.odd)"
-                    :class="isSelectionActive(detailMatch.id,btn.sel) ? 'bg-amber-500 text-black border-amber-400':'bg-slate-700 hover:bg-slate-600 text-slate-200 border-slate-600'"
+                    :class="isSelectionActive(detailMatch.id,btn.sel) ? 'bg-primary text-black border-primary':'bg-slate-700 hover:bg-slate-600 text-slate-200 border-slate-600'"
                     class="border rounded-lg w-12 h-10 flex flex-col items-center justify-center transition">
                     <span class="text-[8px] font-black uppercase" :class="isSelectionActive(detailMatch.id,btn.sel)?'text-black':'text-slate-500'">{{ btn.label }}</span>
                     <span class="font-black text-xs leading-none">{{ btn.odd.toFixed(2) }}</span>
@@ -579,13 +579,13 @@
                   <button v-for="(outcome, oi) in group.outcomes" :key="oi"
                     @click="toggleBet(detailMatch, outcome.name + (outcome.point ? ' '+outcome.point : ''), outcome.price)"
                     :class="isSelectionActive(detailMatch.id, outcome.name + (outcome.point ? ' '+outcome.point : ''))
-                      ? 'bg-amber-500 text-black border-amber-400'
+                      ? 'bg-primary text-black border-primary'
                       : 'bg-slate-800 hover:bg-slate-700 text-slate-200 border-slate-700'"
                     class="border rounded-lg px-3 py-2.5 flex items-center justify-between transition">
                     <span class="text-xs font-semibold truncate pr-2" :class="isSelectionActive(detailMatch.id, outcome.name+(outcome.point?' '+outcome.point:''))?'text-black':'text-slate-300'">
                       {{ outcome.name }}{{ outcome.point ? ' ' + outcome.point : '' }}
                     </span>
-                    <span class="font-black text-sm flex-shrink-0" :class="isSelectionActive(detailMatch.id, outcome.name+(outcome.point?' '+outcome.point:''))?'text-black':'text-amber-400'">
+                    <span class="font-black text-sm flex-shrink-0" :class="isSelectionActive(detailMatch.id, outcome.name+(outcome.point?' '+outcome.point:''))?'text-black':'text-primary'">
                       {{ outcome.price.toFixed(2) }}
                     </span>
                   </button>
@@ -600,9 +600,9 @@
       <!-- ════ RIGHT BET SLIP ════ -->
       <aside class="w-80 bg-slate-900 border-l border-slate-800 hidden lg:flex flex-col flex-shrink-0" style="height:calc(100vh - 56px);position:sticky;top:56px;">
         <div class="px-4 py-3 bg-slate-800/80 border-b border-slate-700 flex justify-between items-center flex-shrink-0">
-          <h3 class="font-black text-sm uppercase tracking-wide text-amber-400">📋 Bet Slip</h3>
+          <h3 class="font-black text-sm uppercase tracking-wide text-primary">📋 Bet Slip</h3>
           <div class="flex items-center gap-2">
-            <span class="bg-amber-500 text-black font-black text-xs px-2 py-0.5 rounded-full">{{ betSlip.length }}</span>
+            <span class="bg-primary text-black font-black text-xs px-2 py-0.5 rounded-full">{{ betSlip.length }}</span>
             <button v-if="betSlip.length>0" @click="betSlip=[]"
               class="text-[10px] text-slate-500 hover:text-red-400 font-bold uppercase tracking-wide transition">Clear</button>
           </div>
@@ -620,7 +620,7 @@
             <button @click="removeBet(idx)"
               class="absolute top-2 right-2 w-5 h-5 flex items-center justify-center rounded text-slate-600 hover:text-red-400 hover:bg-slate-800 transition text-xs font-black">✕</button>
             <p class="text-[10px] text-slate-500 font-bold uppercase tracking-wider truncate pr-5">{{ item.matchTitle }}</p>
-            <p class="text-amber-400 font-black text-sm mt-1 truncate">{{ item.selection }}</p>
+            <p class="text-primary font-black text-sm mt-1 truncate">{{ item.selection }}</p>
             <div class="flex justify-between items-center mt-1.5">
               <span class="text-[10px] text-slate-500">Odds</span>
               <span class="text-white font-black text-sm">{{ item.odd.toFixed(2) }}</span>
@@ -630,18 +630,18 @@
         <div v-if="betSlip.length>0" class="p-4 bg-slate-950 border-t border-slate-800 space-y-3 flex-shrink-0">
           <div class="flex justify-between text-xs">
             <span class="text-slate-400 font-bold uppercase tracking-wide">Total Odds</span>
-            <span class="text-amber-400 font-black text-base">{{ totalOdds.toFixed(2) }}</span>
+            <span class="text-primary font-black text-base">{{ totalOdds.toFixed(2) }}</span>
           </div>
           <div>
             <label class="text-[10px] text-slate-500 font-black uppercase tracking-widest block mb-1.5">Stake (ETB)</label>
             <div class="relative">
               <input v-model.number="stakeAmount" type="number" min="10" step="10"
-                class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2.5 text-sm text-white font-bold focus:outline-none focus:border-amber-500 transition pr-12"/>
+                class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2.5 text-sm text-white font-bold focus:outline-none focus:border-primary transition pr-12"/>
               <span class="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-slate-500 font-bold">ETB</span>
             </div>
             <div class="flex gap-1.5 mt-2">
               <button v-for="q in [50,100,200,500]" :key="q" @click="stakeAmount=q"
-                class="flex-1 text-[10px] font-black bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-amber-400 rounded py-1 transition">{{ q }}</button>
+                class="flex-1 text-[10px] font-black bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-primary rounded py-1 transition">{{ q }}</button>
             </div>
           </div>
           <div class="bg-slate-900 rounded-lg px-3 py-2.5 flex justify-between items-center border border-slate-800">
@@ -649,7 +649,7 @@
             <span class="text-emerald-400 font-black text-lg">{{ potentialPayout.toFixed(2) }} <span class="text-xs font-bold">ETB</span></span>
           </div>
           <button @click="placeBet" :disabled="stakeAmount<=0||isSubmitting"
-            class="w-full bg-amber-500 hover:bg-amber-400 active:scale-[0.98] disabled:opacity-50 text-black font-black py-3 rounded-xl text-sm transition uppercase tracking-wider shadow-lg shadow-amber-500/20 flex items-center justify-center gap-2">
+            class="w-full bg-primary hover:bg-primary active:scale-[0.98] disabled:opacity-50 text-black font-black py-3 rounded-xl text-sm transition uppercase tracking-wider shadow-lg shadow-primary/20 flex items-center justify-center gap-2">
             <svg v-if="isSubmitting" class="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
               <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/>
               <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"/>
@@ -662,20 +662,20 @@
 
     <!-- ════ MOBILE BOTTOM NAV ════ -->
     <nav class="lg:hidden fixed bottom-0 left-0 right-0 bg-slate-900 border-t border-slate-800 flex justify-around items-center h-14 z-40">
-      <button @click="resetToHome" :class="currentView==='home'?'text-amber-400':'text-slate-500'"
+      <button @click="resetToHome" :class="currentView==='home'?'text-primary':'text-slate-500'"
         class="flex flex-col items-center gap-0.5 text-[10px] font-bold transition">
         <span class="text-lg">🏠</span><span>Home</span>
       </button>
-      <button @click="mobileDrawer='categories'" class="flex flex-col items-center gap-0.5 text-[10px] font-bold text-slate-500 hover:text-amber-400 transition">
+      <button @click="mobileDrawer='categories'" class="flex flex-col items-center gap-0.5 text-[10px] font-bold text-slate-500 hover:text-primary transition">
         <span class="text-lg">⚽</span><span>Sports</span>
       </button>
       <button @click="goToLive()" :class="currentView==='live'?'text-red-400':'text-slate-500'"
         class="flex flex-col items-center gap-0.5 text-[10px] font-bold transition">
         <span class="text-lg">🔴</span><span>Live</span>
       </button>
-      <button @click="mobileDrawer='betslip'" class="flex flex-col items-center gap-0.5 text-[10px] font-bold text-slate-500 hover:text-amber-400 transition relative">
+      <button @click="mobileDrawer='betslip'" class="flex flex-col items-center gap-0.5 text-[10px] font-bold text-slate-500 hover:text-primary transition relative">
         <span class="text-lg">📋</span><span>Slip</span>
-        <span v-if="betSlip.length>0" class="absolute -top-1 right-1 bg-amber-500 text-black font-black rounded-full w-4 h-4 text-[9px] flex items-center justify-center">{{ betSlip.length }}</span>
+        <span v-if="betSlip.length>0" class="absolute -top-1 right-1 bg-primary text-black font-black rounded-full w-4 h-4 text-[9px] flex items-center justify-center">{{ betSlip.length }}</span>
       </button>
     </nav>
 
@@ -687,7 +687,7 @@
         <div class="flex-1 bg-black/60" @click="mobileDrawer=null"></div>
         <div class="bg-slate-900 rounded-t-2xl max-h-[82vh] flex flex-col">
           <div class="px-4 py-3 border-b border-slate-800 flex justify-between items-center flex-shrink-0">
-            <h3 class="font-black text-amber-400 text-sm uppercase tracking-wide">Select Sport / League</h3>
+            <h3 class="font-black text-primary text-sm uppercase tracking-wide">Select Sport / League</h3>
             <button @click="mobileDrawer=null" class="text-slate-400 hover:text-white text-xl font-bold">✕</button>
           </div>
           <div class="overflow-y-auto p-4 space-y-4">
@@ -696,7 +696,7 @@
               <div class="space-y-1">
                 <button v-for="lg in topLeagues" :key="lg.key"
                   @click="selectLeague(lg.key); mobileDrawer=null"
-                  class="w-full text-left p-3 rounded-lg bg-slate-800 border border-slate-700 text-sm font-semibold text-slate-200 flex items-center gap-2 hover:border-amber-500/40 transition">
+                  class="w-full text-left p-3 rounded-lg bg-slate-800 border border-slate-700 text-sm font-semibold text-slate-200 flex items-center gap-2 hover:border-primary/40 transition">
                   {{ leagueFlag(lg.key) }} {{ lg.title }}
                 </button>
               </div>
@@ -706,7 +706,7 @@
               <div class="grid grid-cols-2 gap-2">
                 <button v-for="type in sportTypes" :key="type.key"
                   @click="toggleSportType(type); mobileDrawer=null"
-                  class="p-3 rounded-lg bg-slate-800 border border-slate-700 text-sm font-semibold text-slate-200 text-center hover:border-amber-500/40 transition">
+                  class="p-3 rounded-lg bg-slate-800 border border-slate-700 text-sm font-semibold text-slate-200 text-center hover:border-primary/40 transition">
                   {{ sportTypeIcon(type.key) }} {{ type.name }}
                 </button>
               </div>
@@ -724,7 +724,7 @@
         <div class="flex-1 bg-black/60" @click="mobileDrawer=null"></div>
         <div class="bg-slate-900 rounded-t-2xl max-h-[85vh] flex flex-col">
           <div class="px-4 py-3 border-b border-slate-800 flex justify-between items-center flex-shrink-0">
-            <h3 class="font-black text-amber-400 text-sm uppercase tracking-wide">Bet Slip ({{ betSlip.length }})</h3>
+            <h3 class="font-black text-primary text-sm uppercase tracking-wide">Bet Slip ({{ betSlip.length }})</h3>
             <button @click="mobileDrawer=null" class="text-slate-400 hover:text-white text-xl font-bold">✕</button>
           </div>
           <div v-if="betSlip.length===0" class="flex-1 flex items-center justify-center text-slate-600 p-8 text-sm font-bold text-center">
@@ -735,7 +735,7 @@
               class="bg-slate-950 border border-slate-800 rounded-lg p-3 relative">
               <button @click="removeBet(idx)" class="absolute top-2 right-2 text-slate-500 hover:text-red-400 font-black">✕</button>
               <p class="text-[10px] text-slate-500 font-bold uppercase truncate pr-4">{{ item.matchTitle }}</p>
-              <p class="text-amber-400 font-black text-sm mt-1 truncate">{{ item.selection }}</p>
+              <p class="text-primary font-black text-sm mt-1 truncate">{{ item.selection }}</p>
               <div class="flex justify-between mt-1.5">
                 <span class="text-[10px] text-slate-500">Odds</span>
                 <span class="text-white font-black">{{ item.odd.toFixed(2) }}</span>
@@ -745,20 +745,20 @@
           <div v-if="betSlip.length>0" class="p-4 bg-slate-950 border-t border-slate-800 space-y-3 flex-shrink-0">
             <div class="flex justify-between text-xs">
               <span class="text-slate-400 font-bold">Total Odds</span>
-              <span class="text-amber-400 font-black text-base">{{ totalOdds.toFixed(2) }}</span>
+              <span class="text-primary font-black text-base">{{ totalOdds.toFixed(2) }}</span>
             </div>
             <input v-model.number="stakeAmount" type="number" min="10"
-              class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2.5 text-sm text-white font-bold focus:outline-none focus:border-amber-500"/>
+              class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2.5 text-sm text-white font-bold focus:outline-none focus:border-primary"/>
             <div class="flex gap-1.5">
               <button v-for="q in [50,100,200,500]" :key="q" @click="stakeAmount=q"
-                class="flex-1 text-[10px] font-black bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-amber-400 rounded py-1.5 transition">{{ q }}</button>
+                class="flex-1 text-[10px] font-black bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-primary rounded py-1.5 transition">{{ q }}</button>
             </div>
             <div class="bg-slate-900 rounded-lg px-3 py-2.5 flex justify-between border border-slate-800">
               <span class="text-xs text-slate-400 font-bold">Payout</span>
               <span class="text-emerald-400 font-black text-base">{{ potentialPayout.toFixed(2) }} ETB</span>
             </div>
             <button @click="placeBet();mobileDrawer=null" :disabled="stakeAmount<=0||isSubmitting"
-              class="w-full bg-amber-500 hover:bg-amber-400 disabled:opacity-50 text-black font-black py-3.5 rounded-xl text-sm uppercase tracking-wider transition flex items-center justify-center gap-2">
+              class="w-full bg-primary hover:bg-primary disabled:opacity-50 text-black font-black py-3.5 rounded-xl text-sm uppercase tracking-wider transition flex items-center justify-center gap-2">
               🎲 {{ isSubmitting ? 'Placing…' : 'Book Bet →' }}
             </button>
           </div>
