@@ -1,14 +1,14 @@
 'use strict';
 const { sequelize, Bet, BetSelection, OddsCurrent, Event } = require('../Models');
-const { adjustBalance } = require('../services/walletService');
 
 /**
  * POST /api/bets
  * Body: { userId, stake, selections: [{ eventId, marketKey, outcomeName, point? }] }
  *
  * Re-reads CURRENT price from odds_current for each selection (never trusts
- * a client-supplied price), locks it as odds_at_bet, and debits the stake —
- * all inside one DB transaction so a failure anywhere rolls back cleanly.
+ * a client-supplied price) and locks it as odds_at_bet. The bet is created
+ * with status=pending without requiring or debiting wallet balance; funding
+ * and payment approval are handled separately.
  */
 async function placeBet(req, res) {
   const { userId, stake, selections } = req.body;
@@ -65,9 +65,6 @@ async function placeBet(req, res) {
       { transaction: t }
     );
 
-    // Debit stake — throws if insufficient balance, rolling back the whole tx
-    await adjustBalance(userId, -stake, 'bet_stake', 'bet', bet.betId, t);
-
     for (const sel of resolved) {
       await BetSelection.create({
         betId:       bet.betId,
@@ -82,7 +79,7 @@ async function placeBet(req, res) {
     return bet;
   });
 
-  res.status(201).json({ success: true, message: 'Bet placed successfully.', data: result });
+  res.status(201).json({ success: true, message: 'Bet saved as pending. Payment is not confirmed.', data: result });
 }
 
 /** GET /api/bets/:userId — bet history for a user */
