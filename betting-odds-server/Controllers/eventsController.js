@@ -19,7 +19,16 @@ async function listEvents(req, res) {
 
   const events = await Event.findAll({
     where,
-    include: [{ model: Sport, attributes: ['title', 'country'] }],
+    include: [
+      { model: Sport, attributes: ['title', 'country'] },
+      {
+        model: OddsCurrent,
+        as: 'odds',
+        attributes: ['marketKey', 'outcomeName', 'point', 'displayPrice', 'suspended'],
+        where: { suspended: false },
+        required: false,
+      },
+    ],
     order:   [['commenceTime', 'ASC']],
   });
   res.json({ success: true, sportKey, count: events.length, data: events });
