@@ -29,7 +29,7 @@
   </section>
 </template>
 <script>
-import { DEFAULT_BRAND, getBrand, saveBrand, resetBrand } from '@/utils/brand';
+import { DEFAULT_BRAND, getBrand, saveBrandToServer, resetBrandOnServer } from '@/utils/brand';
 export default {
   name: 'BrandView',
   data() { return { draft: getBrand(), message: '', messageType: 'success', colorFields: [
@@ -39,11 +39,11 @@ export default {
   ]}; },
   mounted() { if (this.$checkRole() !== 'admin') { this.$router.push('/'); } },
   methods: {
-    save() {
+    async save() {
       if (!['primary','secondary','tertiary'].every(key => /^#[0-9a-f]{6}$/i.test(this.draft[key]))) { this.messageType='error'; this.message='Please use valid 6-digit hex colors, for example #F59E0B.'; return; }
-      this.draft = saveBrand(this.draft); this.messageType='success'; this.message='Brand colors saved and applied across the app.';
+      this.draft = await saveBrandToServer(this.draft, this.$apiClient); this.messageType='success'; this.message='Brand colors saved to the server and applied across the app.';
     },
-    restoreDefaults() { this.draft={...DEFAULT_BRAND}; resetBrand(); this.messageType='success'; this.message='Default Tailwind brand colors restored.'; },
+    async restoreDefaults() { try { this.draft = await resetBrandOnServer(this.$apiClient); this.messageType='success'; this.message='Default brand colors restored on the server and across the app.'; } catch (error) { this.messageType='error'; this.message=error?.message || 'Could not restore default brand colors.'; } },
   },
 };
 </script>
