@@ -111,7 +111,7 @@
           <div class="flex gap-2">
             <button @click="goToSports()"
               class="flex-1 flex items-center justify-center gap-1.5 bg-slate-800 hover:bg-slate-700 border border-slate-700 rounded-lg py-2 text-[10px] font-black text-amber-400 uppercase tracking-wide transition">
-              ⭐ Top Matches
+              ⭐ Top Matchess
             </button>
             <button @click="goToLive()"
               class="flex-1 flex items-center justify-center gap-1.5 bg-slate-800 hover:bg-slate-700 border border-slate-700 rounded-lg py-2 text-[10px] font-black text-slate-400 hover:text-white uppercase tracking-wide transition">
@@ -902,6 +902,7 @@ export default {
       this.loadingCountries  = true;
       try {
         const r = await fetch(`${this.api}/sports/${type.key}/countries`);
+        //alert("hi");
         const d = await r.json();
         if (d.success) this.countries = d.data;
       } catch (e) { console.error('toggleSportType', e); }
