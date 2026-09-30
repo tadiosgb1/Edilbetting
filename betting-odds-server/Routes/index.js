@@ -11,5 +11,6 @@ router.use('/bets', require('./betsRoutes'));
 router.use('/admin', require('./adminRoutes'));
 router.use('/health', require('./Healthroutes'));
 router.use('/users', require('./usersRoutes'));
+router.use('/brands', require('./brandRoutes'));
 
 module.exports = router;
