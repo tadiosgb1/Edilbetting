@@ -43,6 +43,10 @@
             <span class="text-amber-400 font-black text-xs sm:text-sm">{{ userBalance.toFixed(2) }}</span>
             <span class="text-slate-500 text-[10px] hidden sm:inline">ETB</span>
           </div>
+          <button v-if="isLoggedIn" @click="showBetHistoryModal = true"
+            class="hidden sm:inline-flex bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-300 hover:text-amber-400 font-bold text-xs sm:text-sm px-2.5 sm:px-3 py-1.5 sm:py-2 rounded-lg transition">
+            Bet History
+          </button>
           <button @click="showDepositModal = true"
             class="bg-amber-500 hover:bg-amber-400 active:scale-95 text-black font-black text-xs sm:text-sm px-2.5 sm:px-4 py-1.5 sm:py-2 rounded-lg transition shadow-md shadow-amber-500/20">
             <span class="hidden sm:inline">Deposit</span>
@@ -76,6 +80,8 @@
             <button @click="goToLive(); mobileMenuOpen=false"
               class="w-full text-left px-4 py-2.5 rounded text-sm font-semibold text-slate-300 hover:bg-slate-800 transition flex items-center gap-2">
               <span class="w-2 h-2 rounded-full bg-red-500 animate-pulse"></span>Live</button>
+            <button v-if="isLoggedIn" @click="showBetHistoryModal=true; mobileMenuOpen=false"
+              class="w-full text-left px-4 py-2.5 rounded text-sm font-semibold text-slate-300 hover:bg-slate-800 transition">📜 Bet History</button>
             <template v-if="!isLoggedIn">
               <div class="border-t border-slate-800 mt-1 pt-2 flex gap-2">
                 <button @click="openAuth('login');mobileMenuOpen=false"
@@ -805,6 +811,12 @@
       </div>
     </div>
 
+    <BetHistoryModal
+      :is-open="showBetHistoryModal"
+      :user-id="currentUserId"
+      :api="api"
+      @close="showBetHistoryModal=false"
+    />
     <AuthModal :is-open="showAuthModal" :initial-mode="authMode" @close="showAuthModal=false" @success="handleAuthSuccess"/>
     <DepositModal :is-open="showDepositModal" @close="showDepositModal=false" @depositSuccess="handleDepositSuccess"/>
   </div>
@@ -813,10 +825,11 @@
 <script>
 import AuthModal    from '../../../components/AuthModal.vue';
 import DepositModal from '../../../components/DepositModal.vue';
+import BetHistoryModal from './BetHistoryModal.vue';
 
 export default {
   name: 'HomeView',
-  components: { AuthModal, DepositModal },
+  components: { AuthModal, DepositModal, BetHistoryModal },
 
   data() {
     return {
@@ -837,6 +850,7 @@ export default {
       showAuthModal:    false,
       authMode:         'login',
       showDepositModal: false,
+      showBetHistoryModal: false,
 
       // Sidebar navigation state
       sportTypes:          [],
@@ -909,6 +923,13 @@ export default {
       if (!this.detailSearch.trim()) return this.detailMarkets;
       const q = this.detailSearch.toLowerCase();
       return this.detailMarkets.filter(m => m.label.toLowerCase().includes(q));
+    },
+    currentUserId() {
+      try {
+        return JSON.parse(localStorage.getItem('user') || 'null')?.userId || '';
+      } catch {
+        return '';
+      }
     },
   },
 
@@ -1297,7 +1318,7 @@ export default {
 
           this.betSlip = [];
           this.showPaymentProofModal = true;
-          this.showToast('✅ Bet booked. Please submit your payment proof.', 'success');
+          this.showToast('✅ Bet saved as pending. No wallet balance was required.', 'success');
         } else {
           this.showToast(data.error || 'Bet booking failed', 'error');
         }
