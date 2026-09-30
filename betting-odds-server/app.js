@@ -1,4 +1,5 @@
 const express = require('express');
+const path = require('path');
 const cors = require('cors');
 const swaggerUi = require('swagger-ui-express');
 
@@ -11,6 +12,9 @@ const app = express();
 app.use(cors());
 app.use(express.json({ limit: '2mb' }));
 app.use(express.urlencoded({ extended: true }));
+
+// Serve persisted payment screenshots.
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 // ── Swagger UI ──────────────────────────────────────────────────────────
 if (process.env.SWAGGER_ENABLED === 'true') {
