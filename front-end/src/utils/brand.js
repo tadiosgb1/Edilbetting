@@ -23,6 +23,8 @@ export function getBrand() {
   }
 }
 
+import { getApiClient } from './utils';
+
 function getApiBaseUrl() {
   const isProduction = import.meta.env.MODE === 'production';
   return (
@@ -72,14 +74,14 @@ export async function loadBrandFromServer() {
   }
 }
 
-export async function saveBrandToServer(brand, apiClient) {
+export async function saveBrandToServer(brand) {
   const normalized = normalizeBrand(brand);
-  const response = await apiClient.put('/brands', normalized);
+  const response = await getApiClient().put('/brands', normalized);
   return cacheBrand(response?.data?.data || normalized);
 }
 
-export async function resetBrandOnServer(apiClient) {
-  return saveBrandToServer(DEFAULT_BRAND, apiClient);
+export async function resetBrandOnServer() {
+  return saveBrandToServer(DEFAULT_BRAND);
 }
 
 export function resetBrand() {
