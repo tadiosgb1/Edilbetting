@@ -109,6 +109,113 @@ async function getBetById(req, res) {
 }
 
 /**
+ * PUT /api/bets/:userId/:betId
+ *
+ * A player may edit only their own pending bet, and only while every event
+ * in the bet is still before its commence time. The transaction locks the
+ * bet while validating and replacing its selections.
+ */
+async function updateBet(req, res) {
+  const { userId, betId } = req.params;
+  const { stake, selections } = req.body;
+
+  if (!Number.isFinite(Number(stake)) || Number(stake) <= 0 || !Array.isArray(selections) || !selections.length) {
+    return res.status(400).json({
+      success: false,
+      error: 'A positive stake and at least one selection are required.',
+    });
+  }
+
+  const updatedBet = await sequelize.transaction(async (t) => {
+    const bet = await Bet.findOne({
+      where: { betId, userId },
+      include: [{ association: 'selections' }],
+      transaction: t,
+      lock: t.LOCK.UPDATE,
+    });
+
+    if (!bet) throw Object.assign(new Error('Bet not found.'), { statusCode: 404 });
+    if (bet.status !== 'pending') {
+      throw Object.assign(new Error('Only pending bets can be edited.'), { statusCode: 409 });
+    }
+    if (selections.length !== bet.selections.length) {
+      throw Object.assign(new Error('The number of selections cannot be changed.'), { statusCode: 400 });
+    }
+
+    let totalOdds = 1;
+    const resolved = [];
+
+    for (const sel of selections) {
+      const event = await Event.findByPk(sel.eventId, { transaction: t, lock: t.LOCK.UPDATE });
+      if (!event) throw Object.assign(new Error(`Event ${sel.eventId} not found`), { statusCode: 404 });
+      if (event.status !== 'upcoming' || new Date() >= new Date(event.commenceTime)) {
+        throw Object.assign(
+          new Error(`Event ${sel.eventId} can no longer be edited because its commence time has passed`),
+          { statusCode: 409 }
+        );
+      }
+
+      const odds = await OddsCurrent.findOne({
+        where: {
+          eventId: sel.eventId,
+          marketKey: sel.marketKey,
+          outcomeName: sel.outcomeName,
+          point: sel.point ?? null,
+          suspended: false,
+        },
+        transaction: t,
+      });
+      if (!odds) {
+        throw Object.assign(
+          new Error(`No active odds for ${sel.marketKey}/${sel.outcomeName} on event ${sel.eventId}`),
+          { statusCode: 400 }
+        );
+      }
+
+      const price = parseFloat(odds.displayPrice);
+      totalOdds *= price;
+      resolved.push({ ...sel, oddsAtBet: price });
+    }
+
+    totalOdds = Math.round(totalOdds * 10000) / 10000;
+    const payout = Math.round(Number(stake) * totalOdds * 100) / 100;
+
+    for (let i = 0; i < bet.selections.length; i += 1) {
+      await bet.selections[i].update({
+        eventId: resolved[i].eventId,
+        marketKey: resolved[i].marketKey,
+        outcomeName: resolved[i].outcomeName,
+        point: resolved[i].point ?? null,
+        oddsAtBet: resolved[i].oddsAtBet,
+        result: 'pending',
+      }, { transaction: t });
+    }
+
+    bet.stake = Number(stake);
+    bet.totalOdds = totalOdds;
+    bet.potentialPayout = payout;
+    await bet.save({ transaction: t });
+
+    return bet;
+  });
+
+  const refreshed = await Bet.findOne({
+    where: { betId, userId },
+    include: [{
+      association: 'selections',
+      include: [{ model: Event, attributes: ['eventId', 'homeTeam', 'awayTeam', 'commenceTime', 'sportKey'] }],
+    }],
+    transaction: null,
+  });
+
+  res.json({
+    success: true,
+    message: 'Bet updated successfully.',
+    data: refreshed,
+  });
+}
+
+/**
  * POST /api/bets/:userId/:betId/cancel
  *
  * A player may cancel only their own pending bet. The row is locked inside
@@ -151,4 +258,4 @@ async function cancelBet(req, res) {
   });
 }
 
-module.exports = { placeBet, getBetsForUser, getBetById, cancelBet };
+module.exports = { placeBet, getBetsForUser, getBetById, updateBet, cancelBet };
