@@ -5,31 +5,31 @@
       <h3 class="text-lg font-bold text-white mb-1"><i class="fa-solid fa-credit-card mr-2"></i>Deposit for Your Bet</h3>
       <p class="text-xs text-slate-400 mb-4">
         Your bet requires
-        <span class="text-amber-400 font-black">{{ amount.toFixed(2) }} ETB</span>.
+        <span class="text-primary font-black">{{ amount.toFixed(2) }} ETB</span>.
         Send the payment and upload the receipt so it can be reviewed.
       </p>
       <form @submit.prevent="submitPaymentProof" class="space-y-3">
         <div>
           <label class="block text-[10px] text-slate-400 uppercase font-bold mb-1">Payment Method</label>
-          <select v-model="paymentProof.method" required class="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2.5 text-sm text-white focus:outline-none focus:border-amber-500">
+          <select v-model="paymentProof.method" required class="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2.5 text-sm text-white focus:outline-none focus:border-primary">
             <option value="telebirr">Telebirr</option><option value="cbe">CBE</option><option value="other">Other / Bank Transfer</option>
           </select>
         </div>
         <div>
           <label class="block text-[10px] text-slate-400 uppercase font-bold mb-1">Transaction Reference</label>
-          <input v-model.trim="paymentProof.txReference" type="text" class="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2.5 text-sm text-white focus:outline-none focus:border-amber-500" placeholder="Transaction / receipt number"/>
+          <input v-model.trim="paymentProof.txReference" type="text" class="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2.5 text-sm text-white focus:outline-none focus:border-primary" placeholder="Transaction / receipt number"/>
         </div>
         <div class="grid grid-cols-2 gap-2">
-          <input v-model.trim="paymentProof.senderName" type="text" class="bg-slate-950 border border-slate-700 rounded-lg px-3 py-2.5 text-sm text-white focus:outline-none focus:border-amber-500" placeholder="Sender name"/>
-          <input v-model.trim="paymentProof.senderPhone" type="tel" class="bg-slate-950 border border-slate-700 rounded-lg px-3 py-2.5 text-sm text-white focus:outline-none focus:border-amber-500" placeholder="Sender phone"/>
+          <input v-model.trim="paymentProof.senderName" type="text" class="bg-slate-950 border border-slate-700 rounded-lg px-3 py-2.5 text-sm text-white focus:outline-none focus:border-primary" placeholder="Sender name"/>
+          <input v-model.trim="paymentProof.senderPhone" type="tel" class="bg-slate-950 border border-slate-700 rounded-lg px-3 py-2.5 text-sm text-white focus:outline-none focus:border-primary" placeholder="Sender phone"/>
         </div>
         <div>
           <label class="block text-[10px] text-slate-400 uppercase font-bold mb-1">Payment Screenshot *</label>
-          <input @change="handlePaymentScreenshot" type="file" accept="image/*" required class="w-full text-xs text-slate-400 file:mr-3 file:rounded-lg file:border-0 file:bg-slate-800 file:px-3 file:py-2 file:text-xs file:font-bold file:text-amber-400 hover:file:bg-slate-700"/>
+          <input @change="handlePaymentScreenshot" type="file" accept="image/*" required class="w-full text-xs text-slate-400 file:mr-3 file:rounded-lg file:border-0 file:bg-slate-800 file:px-3 file:py-2 file:text-xs file:font-bold file:text-primary hover:file:bg-slate-700"/>
           <p class="text-[9px] text-slate-600 mt-1">Upload the Telebirr/CBE receipt screenshot.</p>
         </div>
         <p v-if="error" class="text-xs text-red-400 bg-red-500/10 border border-red-500/20 rounded-lg px-3 py-2">{{ error }}</p>
-        <button type="submit" :disabled="isSubmitting || !paymentProof.screenshotUrl" class="w-full bg-amber-500 hover:bg-amber-400 disabled:opacity-50 text-black font-black py-3 rounded-xl text-sm uppercase tracking-wider transition">
+        <button type="submit" :disabled="isSubmitting || !paymentProof.screenshotUrl" class="w-full bg-primary hover:bg-primary disabled:opacity-50 text-black font-black py-3 rounded-xl text-sm uppercase tracking-wider transition">
           {{ isSubmitting ? 'Submitting…' : 'Submit Payment Proof' }}
         </button>
       </form>
