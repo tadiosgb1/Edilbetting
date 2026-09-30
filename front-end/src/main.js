@@ -1,5 +1,7 @@
-import { applyBrand } from './utils/brand';
-applyBrand();
+import { loadBrandFromServer } from './utils/brand';
+
+// Load the server-managed brand before mounting the app so Tailwind semantic colors use it.
+await loadBrandFromServer();
 import './style.css';
 import { createApp } from 'vue';
 import App from './App.vue';
