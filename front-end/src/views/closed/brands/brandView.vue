@@ -2,7 +2,7 @@
   <section class="p-4 sm:p-6 lg:p-8">
     <div class="max-w-6xl mx-auto">
       <div class="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4 mb-6">
-        <div><p class="text-xs font-black text-primary uppercase tracking-widest">Administration</p><h1 class="text-2xl font-black text-slate-900 mt-1">Brand Colors</h1><p class="text-sm text-slate-500 mt-1">Change the platform theme at runtime. Settings are stored locally for now.</p></div>
+        <div><p class="text-xs font-black text-primary uppercase tracking-widest">Administration</p><h1 class="text-2xl font-black text-slate-900 mt-1">Brand Colors</h1><p class="text-sm text-slate-500 mt-1">Change the platform theme at runtime. Settings are saved securely on the server.</p></div>
         <button @click="restoreDefaults" class="inline-flex items-center gap-2 px-4 py-2.5 rounded-lg border border-slate-200 bg-white text-slate-700 text-sm font-bold hover:bg-slate-50 transition"><i class="fas fa-undo"></i> Restore defaults</button>
       </div>
       <div class="grid lg:grid-cols-[1fr_360px] gap-6">
@@ -41,9 +41,9 @@ export default {
   methods: {
     async save() {
       if (!['primary','secondary','tertiary'].every(key => /^#[0-9a-f]{6}$/i.test(this.draft[key]))) { this.messageType='error'; this.message='Please use valid 6-digit hex colors, for example #F59E0B.'; return; }
-      this.draft = await saveBrandToServer(this.draft, this.$apiClient); this.messageType='success'; this.message='Brand colors saved to the server and applied across the app.';
+      this.draft = await saveBrandToServer(this.draft); this.messageType='success'; this.message='Brand colors saved to the server and applied across the app.';
     },
-    async restoreDefaults() { try { this.draft = await resetBrandOnServer(this.$apiClient); this.messageType='success'; this.message='Default brand colors restored on the server and across the app.'; } catch (error) { this.messageType='error'; this.message=error?.message || 'Could not restore default brand colors.'; } },
+    async restoreDefaults() { try { this.draft = await resetBrandOnServer(); this.messageType='success'; this.message='Default brand colors restored on the server and across the app.'; } catch (error) { this.messageType='error'; this.message=error?.message || 'Could not restore default brand colors.'; } },
   },
 };
 </script>
