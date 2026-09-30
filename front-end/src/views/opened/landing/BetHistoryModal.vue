@@ -1,4 +1,14 @@
 <template>
+  <ConfirmModal
+    :open="confirmCancelBet !== null"
+    title="Cancel pending bet"
+    message="Are you sure you want to cancel this pending bet? This action cannot be undone."
+    cancel-text="Keep Bet"
+    confirm-text="Yes, Cancel Bet"
+    @cancel="confirmCancelBet = null"
+    @confirm="confirmCancellation"
+  />
+
   <div v-if="isOpen" class="fixed inset-0 z-[80] flex items-center justify-center p-3 sm:p-4 bg-black/70 backdrop-blur-sm">
     <div class="bg-slate-900 border border-slate-800 rounded-xl w-full max-w-6xl max-h-[90vh] flex flex-col shadow-2xl">
       <div class="px-5 py-4 border-b border-slate-800 flex items-center justify-between flex-shrink-0">
@@ -199,6 +209,8 @@
 </template>
 
 <script>
+import ConfirmModal from '@/components/ConfirmModal.vue';
+
 export default {
   name: 'BetHistoryModal',
   props: {
@@ -206,6 +218,7 @@ export default {
     userId: { type: String, default: '' },
     api: { type: String, default: 'http://localhost:3000/api' },
   },
+  components: { ConfirmModal },
   emits: ['close'],
   data() {
     return {
@@ -213,6 +226,7 @@ export default {
       loading: false,
       error: '',
       cancellingBetId: null,
+      confirmCancelBet: null,
       savingBetId: null,
       expandedBetIds: [],
       editingBetId: null,
@@ -314,9 +328,14 @@ export default {
         this.savingBetId = null;
       }
     },
-    async cancelBet(bet) {
+    cancelBet(bet) {
       if (!this.userId || !bet?.betId || !this.isPending(bet) || this.cancellingBetId) return;
-      if (!window.confirm('Cancel this pending bet? This cannot be undone.')) return;
+      this.confirmCancelBet = bet;
+    },
+    async confirmCancellation() {
+      const bet = this.confirmCancelBet;
+      this.confirmCancelBet = null;
+      if (!bet || !this.userId || !bet?.betId || !this.isPending(bet) || this.cancellingBetId) return;
 
       this.cancellingBetId = bet.betId;
       this.error = '';
