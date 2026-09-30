@@ -50,7 +50,7 @@ export default {
   async mounted(){await this.fetchPayments()},
   methods:{
     baseUrl(){return(import.meta.env.VITE_BACKEND_URL||'http://localhost:3000/api').replace(/\/$/,'')},
-    authHeaders(){return{'Content-Type':'application/json',Authorization:'Bearer '+localStorage.getItem('token')}},
+    authHeaders(){return{'Content-Type':'application/json',Authorization:'Bearer '+(localStorage.getItem('access')||localStorage.getItem('token'))}},
     async fetchPayments(){
       if(this.$checkRole()!=='admin'){this.$router.push('/');return}
       this.loading=true;this.error='';
