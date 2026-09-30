@@ -13,25 +13,25 @@ export default {
       colors: {
         // ── Primary — Indigo (dashboard nav, buttons, focus rings) ─────
         primary: {
-          DEFAULT: '#4F46E5',   // indigo-600  → bg-primary, text-primary
-          dense:   '#3730A3',   // indigo-800  → text-primary-dense, hover:text-primary-dense
+          DEFAULT: 'rgb(var(--brand-primary-rgb) / <alpha-value>)',
+          dense:   'rgb(var(--brand-primary-rgb) / <alpha-value>)',   // indigo-800  → text-primary-dense, hover:text-primary-dense
         },
 
         // ── Secondary — Amber/Orange (action buttons, highlights) ──────
         secondary: {
-          DEFAULT: '#FF6B00',   // orange      → bg-secondary, text-secondary
+          DEFAULT: 'rgb(var(--brand-secondary-rgb) / <alpha-value>)',
         },
 
         // ── dprimary — deep indigo (headings in dashboard topbar) ──────
-        dprimary: '#3730A3',    // → text-dprimary
+        dprimary: 'rgb(var(--brand-secondary-rgb) / <alpha-value>)',    // → text-dprimary
 
         // ── Betting accent — gold/amber (odds buttons, bet slip) ───────
         // Home.vue, AuthModal, DepositModal all use Tailwind's built-in
         // amber-* scale directly, so no alias needed there.
 
         // ── Legacy / utility tokens ────────────────────────────────────
-        icon:            '#FF6B00',
-        tertiary:        '#c7d2fe',
+        icon:            'rgb(var(--brand-primary-rgb) / <alpha-value>)',
+        tertiary:        'rgb(var(--brand-tertiary-rgb) / <alpha-value>)',
         background:      '#f0f4f8',
         default:         '#fff',
         darkBackground:  '#1a202c',
