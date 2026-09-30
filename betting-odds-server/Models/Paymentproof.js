@@ -5,6 +5,7 @@ const sequelize = require('../config/database');
 const PaymentProof = sequelize.define('PaymentProof', {
   id:               { type: DataTypes.BIGINT,      primaryKey: true, autoIncrement: true },
   userId:           { type: DataTypes.CHAR(36),    allowNull: false, field: 'user_id' },
+  betId:            { type: DataTypes.CHAR(36),    allowNull: true, field: 'bet_id' },
   direction:        { type: DataTypes.ENUM('deposit', 'withdrawal'), allowNull: false },
   method:           { type: DataTypes.ENUM('telebirr', 'cbe', 'other'), allowNull: false },
   amount:           { type: DataTypes.DECIMAL(14,2), allowNull: false },

@@ -1,98 +1,78 @@
 'use strict';
-const { PaymentProof, AuditLog } = require('../Models');
+const { sequelize, PaymentProof, AuditLog, User, Bet } = require('../Models');
 const { adjustBalance, getOrCreateWallet } = require('../services/walletService');
 
-/**
- * POST /api/payments/deposit-request
- * User submits screenshot + tx reference. Stored as 'pending' — wallet
- * balance is NOT credited until an admin approves it.
- * Body: { userId, method, amount, txReference, senderName, senderPhone,
- *         screenshotUrl, imageHash }
- */
+async function requireAdmin(adminUserId, res) {
+  if (!adminUserId) { res.status(401).json({ success: false, error: 'adminUserId is required.' }); return false; }
+  const admin = await User.findByPk(adminUserId);
+  if (!admin || !admin.isAdmin) { res.status(403).json({ success: false, error: 'Admin access is required.' }); return false; }
+  return true;
+}
+
 async function submitDepositRequest(req, res) {
-  const { userId, method, amount, txReference, senderName, senderPhone, screenshotUrl, imageHash } = req.body;
-
-  if (!userId || !method || !amount || !screenshotUrl) {
-    return res.status(400).json({
-      success: false,
-      error:   'userId, method, amount and screenshotUrl are required.',
-    });
-  }
-
-  await getOrCreateWallet(userId); // ensure wallet row exists
-
-  const proof = await PaymentProof.create({
-    userId, direction: 'deposit', method, amount,
-    txReference, senderName, senderPhone, screenshotUrl, imageHash,
-    status: 'pending',
-  });
-
+  const { userId, betId, method, amount, txReference, senderName, senderPhone, screenshotUrl, imageHash } = req.body;
+  if (!userId || !betId || !method || !amount || !screenshotUrl) return res.status(400).json({ success: false, error: 'userId, betId, method, amount and screenshotUrl are required.' });
+  const bet = await Bet.findOne({ where: { betId, userId } });
+  if (!bet) return res.status(404).json({ success: false, error: 'Bet not found for this user.' });
+  if (bet.status !== 'pending') return res.status(409).json({ success: false, error: 'Only pending bets can receive payment proof.' });
+  const existingProof = await PaymentProof.findOne({ where: { betId, status: 'pending' } });
+  if (existingProof) return res.status(409).json({ success: false, error: 'This bet already has a payment proof awaiting review.' });
+  await getOrCreateWallet(userId);
+  const proof = await PaymentProof.create({ userId, betId, direction: 'deposit', method, amount, txReference, senderName, senderPhone, screenshotUrl, imageHash, status: 'pending' });
   res.status(201).json({ success: true, message: 'Deposit request submitted for review.', data: proof });
 }
 
-/** GET /api/payments/pending — admin queue of unreviewed screenshots */
+async function listPayments(req, res) {
+  if (!(await requireAdmin(req.query.adminUserId, res))) return;
+  const payments = await PaymentProof.findAll({ order: [['createdAt', 'DESC']] });
+  res.json({ success: true, count: payments.length, data: payments });
+}
+
 async function listPending(req, res) {
-  const pending = await PaymentProof.findAll({
-    where: { status: 'pending' },
-    order: [['createdAt', 'ASC']],
-  });
+  if (!(await requireAdmin(req.query.adminUserId, res))) return;
+  const pending = await PaymentProof.findAll({ where: { status: 'pending' }, order: [['createdAt', 'ASC']] });
   res.json({ success: true, count: pending.length, data: pending });
 }
 
-/**
- * POST /api/payments/:id/approve
- * Admin confirms the screenshot matches the bank/Telebirr statement.
- * ONLY here does the wallet balance actually increase.
- * Body: { adminUserId }
- */
 async function approvePayment(req, res) {
-  const proof = await PaymentProof.findByPk(req.params.id);
-  if (!proof)              return res.status(404).json({ success: false, error: 'Payment proof not found.' });
-  if (proof.status !== 'pending') return res.status(400).json({ success: false, error: `Already ${proof.status}.` });
-
-  const delta = proof.direction === 'deposit' ? parseFloat(proof.amount) : -parseFloat(proof.amount);
-  await adjustBalance(proof.userId, delta, proof.direction, 'payment_proof', String(proof.id));
-
-  proof.status     = 'approved';
-  proof.reviewedBy = req.body.adminUserId;
-  proof.reviewedAt = new Date();
-  await proof.save();
-
-  await AuditLog.create({
-    adminUserId:  req.body.adminUserId,
-    action:       'approve_payment',
-    targetType:   'payment_proof',
-    targetId:     String(proof.id),
-    detailsJson:  { amount: proof.amount, direction: proof.direction, userId: proof.userId },
+  const { adminUserId } = req.body;
+  if (!(await requireAdmin(adminUserId, res))) return;
+  const result = await sequelize.transaction(async (t) => {
+    const proof = await PaymentProof.findByPk(req.params.id, { transaction: t, lock: t.LOCK.UPDATE });
+    if (!proof) throw Object.assign(new Error('Payment proof not found.'), { statusCode: 404 });
+    if (proof.status !== 'pending') throw Object.assign(new Error('Already ' + proof.status + '.'), { statusCode: 409 });
+    const delta = proof.direction === 'deposit' ? parseFloat(proof.amount) : -parseFloat(proof.amount);
+    await adjustBalance(proof.userId, delta, proof.direction, 'payment_proof', String(proof.id), t);
+    proof.status = 'approved'; proof.reviewedBy = adminUserId; proof.reviewedAt = new Date();
+    await proof.save({ transaction: t });
+    let bet = null;
+    if (proof.betId) {
+      bet = await Bet.findOne({ where: { betId: proof.betId, userId: proof.userId }, transaction: t, lock: t.LOCK.UPDATE });
+      if (!bet) throw Object.assign(new Error('Linked bet not found.'), { statusCode: 404 });
+      if (bet.status !== 'pending') throw Object.assign(new Error('Linked bet is already ' + bet.status + '.'), { statusCode: 409 });
+      bet.status = 'completed'; bet.settledAt = new Date(); await bet.save({ transaction: t });
+    }
+    await AuditLog.create({ adminUserId, action: 'approve_payment', targetType: 'payment_proof', targetId: String(proof.id), detailsJson: { amount: proof.amount, direction: proof.direction, userId: proof.userId, betId: proof.betId || null } }, { transaction: t });
+    return { proof, bet };
   });
-
-  res.json({ success: true, message: 'Payment approved and wallet updated.', data: proof });
+  res.json({ success: true, message: 'Payment approved, wallet updated, and linked bet completed.', data: result.proof, bet: result.bet });
 }
 
-/**
- * POST /api/payments/:id/reject
- * Body: { adminUserId, reason }
- */
 async function rejectPayment(req, res) {
-  const proof = await PaymentProof.findByPk(req.params.id);
-  if (!proof)              return res.status(404).json({ success: false, error: 'Payment proof not found.' });
-  if (proof.status !== 'pending') return res.status(400).json({ success: false, error: `Already ${proof.status}.` });
-
-  proof.status          = 'rejected';
-  proof.reviewedBy      = req.body.adminUserId;
-  proof.reviewedAt      = new Date();
-  proof.rejectionReason = req.body.reason || 'Not specified';
-  await proof.save();
-
-  await AuditLog.create({
-    adminUserId: req.body.adminUserId,
-    action:      'reject_payment',
-    targetType:  'payment_proof',
-    targetId:    String(proof.id),
-    detailsJson: { reason: proof.rejectionReason, userId: proof.userId },
+  const { adminUserId, reason } = req.body;
+  if (!(await requireAdmin(adminUserId, res))) return;
+  const rejectionReason = String(reason || '').trim();
+  if (!rejectionReason) return res.status(400).json({ success: false, error: 'A rejection reason is required.' });
+  const result = await sequelize.transaction(async (t) => {
+    const proof = await PaymentProof.findByPk(req.params.id, { transaction: t, lock: t.LOCK.UPDATE });
+    if (!proof) throw Object.assign(new Error('Payment proof not found.'), { statusCode: 404 });
+    if (proof.status !== 'pending') throw Object.assign(new Error('Already ' + proof.status + '.'), { statusCode: 409 });
+    proof.status = 'rejected'; proof.reviewedBy = adminUserId; proof.reviewedAt = new Date(); proof.rejectionReason = rejectionReason;
+    await proof.save({ transaction: t });
+    await AuditLog.create({ adminUserId, action: 'reject_payment', targetType: 'payment_proof', targetId: String(proof.id), detailsJson: { reason: rejectionReason, userId: proof.userId, betId: proof.betId || null } }, { transaction: t });
+    return proof;
   });
-
-  res.json({ success: true, message: 'Payment rejected.', data: proof });
+  res.json({ success: true, message: 'Payment rejected.', data: result });
 }
 
-module.exports = { submitDepositRequest, listPending, approvePayment, rejectPayment };
+module.exports = { submitDepositRequest, listPayments, listPending, approvePayment, rejectPayment };

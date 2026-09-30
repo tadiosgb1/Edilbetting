@@ -28,6 +28,19 @@
           </router-link>
         </div>
 
+        <!-- Payment Proofs — admin only -->
+        <div v-if="isAdmin" class="px-3 mb-2">
+          <router-link
+            :to="{ name: 'payment-proofs' }"
+            class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors"
+            :class="$route.name === 'payment-proofs' ? 'bg-green-50 text-green-700' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'"
+          >
+            <i class="fas fa-file-invoice-dollar w-4 text-center"
+              :class="$route.name === 'payment-proofs' ? 'text-green-600' : 'text-gray-400'"></i>
+            Payment Proofs
+          </router-link>
+        </div>
+
         <!-- Sports — admin only -->
         <div v-if="isAdmin" class="px-3 mb-2">
           <router-link
