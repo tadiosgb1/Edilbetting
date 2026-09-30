@@ -1,3 +1,5 @@
+import { applyBrand } from './utils/brand';
+applyBrand();
 import './style.css';
 import { createApp } from 'vue';
 import App from './App.vue';
