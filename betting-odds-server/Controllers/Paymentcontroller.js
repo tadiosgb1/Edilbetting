@@ -8,7 +8,7 @@ const UPLOADS_DIR = path.join(__dirname, '..', 'uploads');
 const PUBLIC_BASE_URL = (process.env.PUBLIC_BASE_URL || 'http://localhost:3000').replace(/\/$/, '');
 
 function persistScreenshot(dataUrl, proofId) {
-  const match = String(dataUrl || '').match(/^data:(image\\/(?:jpeg|jpg|png|webp|gif));base64,(.+)$/i);
+  const match = String(dataUrl || '').match(/^data:(image\/(?:jpeg|jpg|png|webp|gif));base64,(.+)$/i);
   if (!match) throw Object.assign(new Error('Payment screenshot must be a supported image.'), { statusCode: 400 });
   fs.mkdirSync(UPLOADS_DIR, { recursive: true });
   const ext = match[1].toLowerCase() === 'image/jpeg' || match[1].toLowerCase() === 'image/jpg' ? 'jpg' : match[1].split('/')[1];
