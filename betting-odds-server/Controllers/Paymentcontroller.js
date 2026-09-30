@@ -44,10 +44,19 @@ async function submitDepositRequest(req, res) {
   res.status(201).json({ success: true, message: 'Deposit request submitted for review.', data: proof });
 }
 
+async function normalizeScreenshot(proof) {
+  if (typeof proof.screenshotUrl === 'string' && proof.screenshotUrl.startsWith('data:image/')) {
+    proof.screenshotUrl = persistScreenshot(proof.screenshotUrl, proof.id);
+    await proof.save();
+  }
+  return proof;
+}
+
 async function listPayments(req, res) {
   const adminUserId = await requireAdmin(req, res, req.query.adminUserId);
   if (!adminUserId) return;
   const payments = await PaymentProof.findAll({ order: [['createdAt', 'DESC']] });
+  await Promise.all(payments.map(normalizeScreenshot));
   res.json({ success: true, count: payments.length, data: payments });
 }
 
@@ -55,6 +64,7 @@ async function listPending(req, res) {
   const adminUserId = await requireAdmin(req, res, req.query.adminUserId);
   if (!adminUserId) return;
   const pending = await PaymentProof.findAll({ where: { status: 'pending' }, order: [['createdAt', 'ASC']] });
+  await Promise.all(pending.map(normalizeScreenshot));
   res.json({ success: true, count: pending.length, data: pending });
 }
 
