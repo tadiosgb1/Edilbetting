@@ -59,11 +59,14 @@ const routes = [
     path: "/dashboard",
     name: "dashboard",
     component: dashboard,
+    meta: { requiresAuth: true },
+    redirect: { name: "first-dash" },
     children: [
       {
         path: "first-dash",
         name: "first-dash",
         component: first_dash,
+        meta: { requiresAuth: true },
       },
       {
         path: "users",
