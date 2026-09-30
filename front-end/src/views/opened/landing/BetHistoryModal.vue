@@ -61,19 +61,24 @@
                 </div>
               </div>
 
-              <div class="space-y-2">
+              <div class="space-y-3">
                 <div v-for="selection in (bet.selections || [])" :key="selection.id"
-                  class="bg-slate-900 border border-slate-800 rounded-lg px-3 py-2.5 flex items-center justify-between gap-3">
-                  <div class="min-w-0">
-                    <p class="text-xs font-bold text-white truncate">{{ selection.outcomeName }}</p>
-                    <p class="text-[10px] text-slate-500 mt-0.5">
-                      {{ selection.marketKey || 'h2h' }}
-                      <span v-if="selection.point !== null && selection.point !== undefined"> · {{ selection.point }}</span>
+                  class="bg-slate-900 border border-slate-800 rounded-lg overflow-hidden">
+                  <div class="px-3 py-2 border-b border-slate-800">
+                    <p class="text-xs font-black text-white truncate">
+                      {{ selection.Event?.homeTeam || selection.outcomeName }} vs {{ selection.Event?.awayTeam || 'Opponent' }}
                     </p>
+                    <p class="text-[10px] text-slate-500 mt-0.5">{{ formatDate(selection.Event?.commenceTime) }}</p>
                   </div>
-                  <div class="text-right flex-shrink-0">
-                    <p class="text-[9px] text-slate-600 uppercase font-black">Odds</p>
-                    <p class="text-xs font-black text-amber-400">{{ Number(selection.oddsAtBet || 0).toFixed(2) }}</p>
+                  <div class="grid grid-cols-3 gap-1 p-2">
+                    <div v-for="option in matchOptions(selection)" :key="option.key"
+                      :class="option.selected ? 'bg-amber-500 text-black border-amber-400' : 'bg-slate-950 text-slate-400 border-slate-800'"
+                      class="border rounded-lg px-2 py-2.5 text-center">
+                      <p class="text-[9px] font-black uppercase">{{ option.label }}</p>
+                      <p class="text-[10px] font-bold truncate mt-0.5">{{ option.name }}</p>
+                      <p v-if="option.selected" class="text-[9px] font-black mt-1">✓ SELECTED</p>
+                      <p v-else class="text-[9px] text-slate-600 mt-1">Not selected</p>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -143,6 +148,16 @@ export default {
         year: 'numeric', month: 'short', day: 'numeric',
         hour: '2-digit', minute: '2-digit',
       });
+    },
+    matchOptions(selection) {
+      const home = selection.Event?.homeTeam || 'Home';
+      const away = selection.Event?.awayTeam || 'Away';
+      const selected = selection.outcomeName;
+      return [
+        { key: 'home', label: '1', name: home, selected: selected === home },
+        { key: 'draw', label: 'X', name: 'Draw', selected: selected === 'Draw' },
+        { key: 'away', label: '2', name: away, selected: selected === away },
+      ];
     },
     statusClass(status) {
       return {

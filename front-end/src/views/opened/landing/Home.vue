@@ -63,7 +63,26 @@
               </svg>
             </button>
           </template>
-          <div v-else class="w-9 h-9 rounded-lg bg-amber-500 flex items-center justify-center text-black font-black text-sm cursor-pointer">U</div>
+          <div v-else class="relative">
+            <button @click="profileMenuOpen = !profileMenuOpen"
+              class="flex items-center gap-2 bg-slate-800 hover:bg-slate-700 border border-slate-700 rounded-lg px-2 py-1.5 transition">
+              <span class="w-7 h-7 rounded-md bg-amber-500 flex items-center justify-center text-black font-black text-xs">
+                {{ userInitial }}
+              </span>
+              <span class="hidden sm:block text-xs font-bold text-slate-200 max-w-24 truncate">{{ currentUser?.fullName || currentUser?.phoneNumber }}</span>
+              <svg class="w-3 h-3 text-slate-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+            </button>
+            <div v-if="profileMenuOpen" class="absolute right-0 top-full mt-2 w-52 bg-slate-900 border border-slate-700 rounded-xl shadow-2xl overflow-hidden z-[60]">
+              <div class="px-4 py-3 border-b border-slate-800">
+                <p class="text-xs font-black text-white truncate">{{ currentUser?.fullName || 'User' }}</p>
+                <p class="text-[10px] text-slate-500 mt-0.5 truncate">{{ currentUser?.phoneNumber || '' }}</p>
+              </div>
+              <button @click="showBetHistoryModal=true; profileMenuOpen=false"
+                class="w-full text-left px-4 py-3 text-xs font-bold text-slate-300 hover:bg-slate-800 hover:text-amber-400 transition">📜 Bet History</button>
+              <button @click="logout"
+                class="w-full text-left px-4 py-3 text-xs font-bold text-red-400 hover:bg-slate-800 transition border-t border-slate-800">↪ Logout</button>
+            </div>
+          </div>
         </div>
       </div>
       <!-- Mobile dropdown -->
@@ -851,6 +870,7 @@ export default {
       authMode:         'login',
       showDepositModal: false,
       showBetHistoryModal: false,
+      profileMenuOpen: false,
 
       // Sidebar navigation state
       sportTypes:          [],
@@ -924,6 +944,13 @@ export default {
       const q = this.detailSearch.toLowerCase();
       return this.detailMarkets.filter(m => m.label.toLowerCase().includes(q));
     },
+    currentUser() {
+      try { return JSON.parse(localStorage.getItem('user') || 'null'); } catch { return null; }
+    },
+    userInitial() {
+      const name = this.currentUser?.fullName || this.currentUser?.phoneNumber || 'U';
+      return name.charAt(0).toUpperCase();
+    },
     currentUserId() {
       try {
         return JSON.parse(localStorage.getItem('user') || 'null')?.userId || '';
@@ -933,10 +960,20 @@ export default {
     },
   },
 
-  mounted() { this.init(); },
+  mounted() { this.restoreSession(); this.init(); },
 
   methods: {
     // ── Init ──────────────────────────────────────────────────────────────
+    restoreSession() {
+      try {
+        const user = JSON.parse(localStorage.getItem('user') || 'null');
+        const token = localStorage.getItem('token');
+        this.isLoggedIn = !!(user?.userId && token);
+      } catch {
+        this.isLoggedIn = false;
+      }
+    },
+
     async init() {
       await Promise.all([
         this.fetchBalance(),
@@ -1398,9 +1435,24 @@ export default {
     // ── Auth / deposit ────────────────────────────────────────────────────
     openAuth(mode) { this.authMode = mode; this.showAuthModal = true; },
     handleAuthSuccess(data) {
-      this.isLoggedIn = true;
+      if (data?.token) localStorage.setItem('token', data.token);
+      if (data?.user) localStorage.setItem('user', JSON.stringify(data.user));
+      localStorage.setItem('role', data?.isAdmin ? 'admin' : 'user');
+      this.isLoggedIn = !!data?.user?.userId;
+      this.profileMenuOpen = false;
       this.showToast(`Welcome! ${data.mode==='login'?'Logged in':'Registered'} successfully`, 'success');
     },
+    logout() {
+      localStorage.removeItem('token');
+      localStorage.removeItem('user');
+      localStorage.removeItem('role');
+      this.isLoggedIn = false;
+      this.userBalance = null;
+      this.showBetHistoryModal = false;
+      this.profileMenuOpen = false;
+      this.showToast('Logged out successfully', 'success');
+    },
+
     handleDepositSuccess(amount) {
       this.userBalance += amount;
       this.showToast(`Deposited ${amount.toFixed(2)} ETB`, 'success');
