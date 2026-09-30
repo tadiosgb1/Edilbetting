@@ -1,5 +1,6 @@
 import axios from "axios";
 import { Logger } from "../utils/logger";
+import checkRole from "../utils/checkRole";
 import {
   reloadPage, apiGet, apiGetById, apiPost, apiPut,
   apiPatch, apiDelete, isStrongPassword,convertImageToBase64, getFullNameById,  hasPermission, hasRole,getFileUrl
@@ -76,7 +77,7 @@ export default {
       $convertImageToBase64: convertImageToBase64,
       $hasPermission: hasPermission,
       $hasRole: hasRole,
-      $checkRole: () => localStorage.getItem("role")?.trim().toLowerCase() || null,
+      $checkRole: checkRole,
      
       $getFileUrl: getFileUrl
     };
