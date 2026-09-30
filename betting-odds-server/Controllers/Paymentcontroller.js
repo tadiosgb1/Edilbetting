@@ -1,6 +1,7 @@
 'use strict';
 const fs = require('fs');
 const path = require('path');
+const crypto = require('crypto');
 const { sequelize, PaymentProof, AuditLog, User, Bet } = require('../Models');
 const { adjustBalance, getOrCreateWallet } = require('../services/walletService');
 
@@ -12,7 +13,7 @@ function persistScreenshot(dataUrl, proofId) {
   if (!match) throw Object.assign(new Error('Payment screenshot must be a supported image.'), { statusCode: 400 });
   fs.mkdirSync(UPLOADS_DIR, { recursive: true });
   const ext = match[1].toLowerCase() === 'image/jpeg' || match[1].toLowerCase() === 'image/jpg' ? 'jpg' : match[1].split('/')[1];
-  const filename = 'payment-proof-' + proofId + '.' + ext;
+  const filename = 'payment-proof-' + (proofId || crypto.randomUUID()) + '.' + ext;
   fs.writeFileSync(path.join(UPLOADS_DIR, filename), Buffer.from(match[2], 'base64'));
   return PUBLIC_BASE_URL + '/uploads/' + filename;
 }
@@ -33,12 +34,25 @@ async function submitDepositRequest(req, res) {
   const existingProof = await PaymentProof.findOne({ where: { betId, status: 'pending' } });
   if (existingProof) return res.status(409).json({ success: false, error: 'This bet already has a payment proof awaiting review.' });
   await getOrCreateWallet(userId);
-  const proof = await PaymentProof.create({ userId, betId, direction: 'deposit', method, amount, txReference, senderName, senderPhone, screenshotUrl: null, imageHash, status: 'pending' });
+
+  // screenshot_url is NOT NULL, so persist the file before inserting the proof row.
+  let persistedScreenshotUrl;
   try {
-    proof.screenshotUrl = persistScreenshot(screenshotUrl, proof.id);
-    await proof.save();
+    persistedScreenshotUrl = persistScreenshot(screenshotUrl);
   } catch (error) {
-    await proof.destroy();
+    return res.status(error.statusCode || 400).json({ success: false, error: error.message || 'Could not save payment screenshot.' });
+  }
+
+  try {
+    var proof = await PaymentProof.create({
+      userId, betId, direction: 'deposit', method, amount, txReference,
+      senderName, senderPhone, screenshotUrl: persistedScreenshotUrl, imageHash, status: 'pending'
+    });
+  } catch (error) {
+    try {
+      const filename = persistedScreenshotUrl.split('/').pop();
+      if (filename) fs.unlinkSync(path.join(UPLOADS_DIR, filename));
+    } catch (_) {}
     throw error;
   }
   res.status(201).json({ success: true, message: 'Deposit request submitted for review.', data: proof });
@@ -55,7 +69,23 @@ async function normalizeScreenshot(proof) {
 async function listPayments(req, res) {
   const adminUserId = await requireAdmin(req, res, req.query.adminUserId);
   if (!adminUserId) return;
-  const payments = await PaymentProof.findAll({ order: [['createdAt', 'DESC']] });
+  const payments = await PaymentProof.findAll({
+    include: [
+      { model: User, attributes: ['userId', 'fullName', 'phoneNumber'] },
+      {
+        model: Bet,
+        as: 'Bet',
+        include: [
+          { model: User, attributes: ['userId', 'fullName', 'phoneNumber'] },
+          {
+            model: require('../Models/BetSelection'),
+            as: 'selections',
+            include: [{ model: require('../Models/Event'), attributes: ['eventId', 'homeTeam', 'awayTeam', 'commenceTime', 'status'] }]
+          }
+        ]
+      }
+    ],
+    order: [['createdAt', 'DESC']] });
   await Promise.all(payments.map(normalizeScreenshot));
   res.json({ success: true, count: payments.length, data: payments });
 }
@@ -63,7 +93,24 @@ async function listPayments(req, res) {
 async function listPending(req, res) {
   const adminUserId = await requireAdmin(req, res, req.query.adminUserId);
   if (!adminUserId) return;
-  const pending = await PaymentProof.findAll({ where: { status: 'pending' }, order: [['createdAt', 'ASC']] });
+  const pending = await PaymentProof.findAll({
+    where: { status: 'pending' },
+    include: [
+      { model: User, attributes: ['userId', 'fullName', 'phoneNumber'] },
+      {
+        model: Bet,
+        as: 'Bet',
+        include: [
+          { model: User, attributes: ['userId', 'fullName', 'phoneNumber'] },
+          {
+            model: require('../Models/BetSelection'),
+            as: 'selections',
+            include: [{ model: require('../Models/Event'), attributes: ['eventId', 'homeTeam', 'awayTeam', 'commenceTime', 'status'] }]
+          }
+        ]
+      }
+    ],
+    order: [['createdAt', 'ASC']] });
   await Promise.all(pending.map(normalizeScreenshot));
   res.json({ success: true, count: pending.length, data: pending });
 }
