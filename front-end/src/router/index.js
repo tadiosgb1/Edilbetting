@@ -13,6 +13,7 @@ import SportsView from '../views/closed/Sports/SportsView.vue';
 import EventsView from '../views/closed/Events/EventsView.vue';
 import checkRole from "../utils/checkRole";
 import PaymentProofView from '../views/closed/PaymentProofs/paymentProofView.vue';
+import BrandView from '../views/closed/brands/brandView.vue';
 
 const routes = [
   // ── Public / Landing ──────────────────────────────────────────────────
@@ -80,6 +81,12 @@ const routes = [
         path: "payment-proofs",
         name: "payment-proofs",
         component: PaymentProofView,
+        meta: { requiresAuth: true, role: "admin" },
+      },
+      {
+        path: "brands",
+        name: "brands",
+        component: BrandView,
         meta: { requiresAuth: true, role: "admin" },
       },
       {
