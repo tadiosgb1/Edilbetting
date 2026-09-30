@@ -5,7 +5,7 @@
       <button @click="$emit('close')" class="absolute top-4 right-4 text-slate-400 hover:text-white font-bold">✕</button>
 
       <h3 class="text-lg font-bold text-white mb-4 flex items-center gap-2">
-        <span class="text-amber-400">💳</span> Deposit Funds
+        <span class="text-primary">💳</span> Deposit Funds
       </h3>
 
       <form @submit.prevent="handleDeposit" class="space-y-4">
@@ -16,14 +16,14 @@
             type="number" 
             min="50" 
             required 
-            class="w-full bg-slate-950 border border-slate-700 rounded px-3 py-2 text-sm text-white focus:outline-none focus:border-amber-400" 
+            class="w-full bg-slate-950 border border-slate-700 rounded px-3 py-2 text-sm text-white focus:outline-none focus:border-primary" 
             placeholder="Enter amount in ETB" 
           />
         </div>
 
         <div>
           <label class="block text-xs text-slate-400 uppercase font-bold mb-1">Payment Method</label>
-          <select v-model="paymentMethod" class="w-full bg-slate-950 border border-slate-700 rounded px-3 py-2 text-sm text-white focus:outline-none focus:border-amber-400">
+          <select v-model="paymentMethod" class="w-full bg-slate-950 border border-slate-700 rounded px-3 py-2 text-sm text-white focus:outline-none focus:border-primary">
             <option value="telebirr">Telebirr</option>
             <option value="cbe_birr">CBE Birr</option>
             <option value="bank_transfer">Bank Transfer</option>
@@ -35,7 +35,7 @@
           <span class="text-emerald-400 font-bold">0.00 ETB</span>
         </div>
 
-        <button type="submit" class="w-full bg-amber-500 hover:bg-amber-400 text-black font-bold py-2.5 rounded text-sm uppercase transition tracking-wide">
+        <button type="submit" class="w-full bg-primary hover:bg-primary text-black font-bold py-2.5 rounded text-sm uppercase transition tracking-wide">
           Confirm Deposit
         </button>
       </form>
