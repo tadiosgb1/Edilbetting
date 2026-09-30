@@ -41,31 +41,9 @@
           </router-link>
         </div>
 
-        <!-- Brands — admin only -->
-        <div v-if="isAdmin" class="px-3 mb-2">
-          <router-link :to="{ name: 'brands' }" class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors"
-            :class="$route.name === 'brands' ? 'bg-primary/10 text-primary-dense' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'">
-            <i class="fas fa-palette w-4 text-center" :class="$route.name === 'brands' ? 'text-primary' : 'text-gray-400'"></i>
-            Brands
-          </router-link>
-        </div>
+   
 
-        <!-- Brands — admin only -->
-        <div v-if="isAdmin" class="px-3 mb-2">
-          <router-link
-            :to="{ name: 'brands' }"
-            class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors"
-            :class="$route.name === 'brands'
-              ? 'bg-primary/10 text-primary-dense'
-              : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'"
-          >
-            <i
-              class="fas fa-palette w-4 text-center"
-              :class="$route.name === 'brands' ? 'text-primary' : 'text-gray-400'"
-            ></i>
-            Brands
-          </router-link>
-        </div>
+      
 
         <!-- Sports — admin only -->
         <div v-if="isAdmin" class="px-3 mb-2">
@@ -90,6 +68,14 @@
             <i class="fas fa-users w-4 text-center"
               :class="$route.name === 'users' ? 'text-green-600' : 'text-gray-400'"></i>
             Users
+          </router-link>
+        </div>
+             <!-- Brands — admin only -->
+        <div v-if="isAdmin" class="px-3 mb-2">
+          <router-link :to="{ name: 'brands' }" class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors"
+            :class="$route.name === 'brands' ? 'bg-primary/10 text-primary-dense' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'">
+            <i class="fas fa-palette w-4 text-center" :class="$route.name === 'brands' ? 'text-primary' : 'text-gray-400'"></i>
+            Brands
           </router-link>
         </div>
       </nav>
