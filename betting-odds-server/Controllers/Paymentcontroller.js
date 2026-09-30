@@ -2,11 +2,11 @@
 const { sequelize, PaymentProof, AuditLog, User, Bet } = require('../Models');
 const { adjustBalance, getOrCreateWallet } = require('../services/walletService');
 
-async function requireAdmin(adminUserId, res) {
-  if (!adminUserId) { res.status(401).json({ success: false, error: 'adminUserId is required.' }); return false; }
-  const admin = await User.findByPk(adminUserId);
-  if (!admin || !admin.isAdmin) { res.status(403).json({ success: false, error: 'Admin access is required.' }); return false; }
-  return true;
+async function requireAdmin(req, res, suppliedAdminUserId) {
+  if (!req.auth) { res.status(401).json({ success: false, error: 'Authentication required.' }); return false; }
+  const adminUserId = req.auth.userId || req.auth.id || suppliedAdminUserId;
+  if (!adminUserId) { res.status(401).json({ success: false, error: 'Authenticated admin user id is missing.' }); return false; }
+  return adminUserId;
 }
 
 async function submitDepositRequest(req, res) {
@@ -23,7 +23,8 @@ async function submitDepositRequest(req, res) {
 }
 
 async function listPayments(req, res) {
-  if (!(await requireAdmin(req.query.adminUserId, res))) return;
+  const adminUserId = await requireAdmin(req, res, req.query.adminUserId);
+  if (!adminUserId) return;
   const payments = await PaymentProof.findAll({ order: [['createdAt', 'DESC']] });
   res.json({ success: true, count: payments.length, data: payments });
 }
@@ -35,8 +36,9 @@ async function listPending(req, res) {
 }
 
 async function approvePayment(req, res) {
-  const { adminUserId } = req.body;
-  if (!(await requireAdmin(adminUserId, res))) return;
+  const suppliedAdminUserId = req.body.adminUserId;
+  const adminUserId = await requireAdmin(req, res, suppliedAdminUserId);
+  if (!adminUserId) return;
   const result = await sequelize.transaction(async (t) => {
     const proof = await PaymentProof.findByPk(req.params.id, { transaction: t, lock: t.LOCK.UPDATE });
     if (!proof) throw Object.assign(new Error('Payment proof not found.'), { statusCode: 404 });
@@ -59,8 +61,9 @@ async function approvePayment(req, res) {
 }
 
 async function rejectPayment(req, res) {
-  const { adminUserId, reason } = req.body;
-  if (!(await requireAdmin(adminUserId, res))) return;
+  const suppliedAdminUserId = req.body.adminUserId;
+  const adminUserId = await requireAdmin(req, res, suppliedAdminUserId);
+  if (!adminUserId) return;
   const rejectionReason = String(reason || '').trim();
   if (!rejectionReason) return res.status(400).json({ success: false, error: 'A rejection reason is required.' });
   const result = await sequelize.transaction(async (t) => {
