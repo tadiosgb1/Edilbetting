@@ -30,7 +30,8 @@ async function listPayments(req, res) {
 }
 
 async function listPending(req, res) {
-  if (!(await requireAdmin(req.query.adminUserId, res))) return;
+  const adminUserId = await requireAdmin(req, res, req.query.adminUserId);
+  if (!adminUserId) return;
   const pending = await PaymentProof.findAll({ where: { status: 'pending' }, order: [['createdAt', 'ASC']] });
   res.json({ success: true, count: pending.length, data: pending });
 }
