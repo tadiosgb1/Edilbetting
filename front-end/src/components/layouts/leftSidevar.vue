@@ -62,7 +62,8 @@ export default {
   name: 'LeftSidebar',
   computed: {
     isAdmin() {
-      return localStorage.getItem('role') === 'admin';
+      return true
+      //return localStorage.getItem('role') === 'admin';
     },
   },
 };
