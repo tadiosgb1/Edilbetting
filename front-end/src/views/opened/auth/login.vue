@@ -168,9 +168,9 @@ export default {
         localStorage.setItem("permissions", JSON.stringify(response.permissions || []));
         this.$refs.toast?.showSuccessToastMessage("Secure Session Initialized.");
     
-        setTimeout(() => {
-          this.$router.push({ path: "/dashboard/first-dash" });
-        }, 1200);
+        // Every authenticated user enters the dashboard shell first.
+        // The dashboard route redirects to first-dash, so there is no empty shell.
+        await this.$router.replace({ name: "first-dash" });
       } catch (err) {
         console.error("Login error:", err);
         this.error = err.response?.data?.error || err.response?.data?.detail || err.response?.data?.message || "Invalid Session Credentials.";
