@@ -961,7 +961,7 @@ export default {
       try {
         const r = await fetch(`${this.api}/sports/top-leagues`);
         const d = await r.json();
-        if (d.success) this.topLeagues = d.data;
+        if (d.success) this.topLeagues = d.data.map(lg => ({ ...lg, key: lg.sportKey }));
       } catch (e) { console.error('fetchTopLeagues', e); }
       finally { this.loadingTopLeagues = false; }
     },
@@ -1016,19 +1016,9 @@ export default {
       // current odds as ev.odds. The h2h market supplies 1X2 prices.
       const homeTeam = ev.homeTeam ?? '';
       const awayTeam = ev.awayTeam ?? '';
-      const oddsRows = Array.isArray(ev.odds) ? ev.odds : [];
-      const h2hRows  = oddsRows.filter(o => o.marketKey === 'h2h' && !o.suspended);
-
-      const priceFor = (outcomeName) => {
-        const row = h2hRows.find(o => o.outcomeName === outcomeName);
-        if (!row) return null;
-        const price = Number(row.displayPrice);
-        return Number.isFinite(price) ? price : null;
-      };
-
-      const home = priceFor(homeTeam);
-      const draw = priceFor('Draw');
-      const away = priceFor(awayTeam);
+      const home = Number.isFinite(Number(ev.odds?.home)) ? Number(ev.odds.home) : null;
+      const draw = Number.isFinite(Number(ev.odds?.draw)) ? Number(ev.odds.draw) : null;
+      const away = Number.isFinite(Number(ev.odds?.away)) ? Number(ev.odds.away) : null;
 
       return {
         id:           ev.eventId,
