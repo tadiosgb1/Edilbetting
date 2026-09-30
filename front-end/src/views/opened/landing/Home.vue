@@ -778,63 +778,22 @@
       </div>
     </transition>
 
-    <!-- Payment proof modal: shown after a successful bet booking -->
-    <div v-if="showPaymentProofModal" class="fixed inset-0 z-[70] flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm">
-      <div class="bg-slate-900 border border-slate-800 rounded-xl w-full max-w-md p-6 relative shadow-2xl">
-        <button @click="showPaymentProofModal=false" class="absolute top-4 right-4 text-slate-400 hover:text-white font-bold">✕</button>
-        <h3 class="text-lg font-bold text-white mb-1">💳 Deposit for Your Bet</h3>
-        <p class="text-xs text-slate-400 mb-4">
-          Your bet has been booked. Please send <span class="text-amber-400 font-black">{{ pendingBetAmount.toFixed(2) }} ETB</span>
-          and upload the payment screenshot so it can be reviewed.
-        </p>
-
-        <form @submit.prevent="submitPaymentProof" class="space-y-3">
-          <div>
-            <label class="block text-[10px] text-slate-400 uppercase font-bold mb-1">Payment Method</label>
-            <select v-model="paymentProof.method" required
-              class="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2.5 text-sm text-white focus:outline-none focus:border-amber-500">
-              <option value="telebirr">Telebirr</option>
-              <option value="cbe">CBE</option>
-              <option value="other">Other / Bank Transfer</option>
-            </select>
-          </div>
-
-          <div>
-            <label class="block text-[10px] text-slate-400 uppercase font-bold mb-1">Transaction Reference</label>
-            <input v-model.trim="paymentProof.txReference" type="text"
-              class="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2.5 text-sm text-white focus:outline-none focus:border-amber-500"
-              placeholder="Transaction / receipt number"/>
-          </div>
-
-          <div class="grid grid-cols-2 gap-2">
-            <input v-model.trim="paymentProof.senderName" type="text"
-              class="bg-slate-950 border border-slate-700 rounded-lg px-3 py-2.5 text-sm text-white focus:outline-none focus:border-amber-500"
-              placeholder="Sender name"/>
-            <input v-model.trim="paymentProof.senderPhone" type="tel"
-              class="bg-slate-950 border border-slate-700 rounded-lg px-3 py-2.5 text-sm text-white focus:outline-none focus:border-amber-500"
-              placeholder="Sender phone"/>
-          </div>
-
-          <div>
-            <label class="block text-[10px] text-slate-400 uppercase font-bold mb-1">Payment Screenshot *</label>
-            <input @change="handlePaymentScreenshot" type="file" accept="image/*" required
-              class="w-full text-xs text-slate-400 file:mr-3 file:rounded-lg file:border-0 file:bg-slate-800 file:px-3 file:py-2 file:text-xs file:font-bold file:text-amber-400 hover:file:bg-slate-700"/>
-            <p class="text-[9px] text-slate-600 mt-1">Upload the Telebirr/CBE receipt screenshot.</p>
-          </div>
-
-          <button type="submit" :disabled="isSubmittingProof || !paymentProof.screenshotUrl"
-            class="w-full bg-amber-500 hover:bg-amber-400 disabled:opacity-50 text-black font-black py-3 rounded-xl text-sm uppercase tracking-wider transition">
-            {{ isSubmittingProof ? 'Submitting…' : 'Submit Payment Proof →' }}
-          </button>
-        </form>
-      </div>
-    </div>
+    <BetPaymentModal
+      :is-open="showBetPaymentModal"
+      :api="api"
+      :user-id="currentUserId"
+      :bet-id="pendingBetId"
+      :amount="pendingBetAmount"
+      @close="closeBetPaymentModal"
+      @success="handleBetPaymentSuccess"
+    />
 
     <BetHistoryModal
       :is-open="showBetHistoryModal"
       :user-id="currentUserId"
       :api="api"
       @close="showBetHistoryModal=false"
+      @pay-bet="openBetPayment"
     />
     <AuthModal :is-open="showAuthModal" :initial-mode="authMode" @close="showAuthModal=false" @success="handleAuthSuccess"/>
     <DepositModal :is-open="showDepositModal" @close="showDepositModal=false" @depositSuccess="handleDepositSuccess"/>
@@ -845,10 +804,11 @@
 import AuthModal    from '../../../components/AuthModal.vue';
 import DepositModal from '../../../components/DepositModal.vue';
 import BetHistoryModal from './BetHistoryModal.vue';
+import BetPaymentModal from './BetPaymentModal.vue';
 
 export default {
   name: 'HomeView',
-  components: { AuthModal, DepositModal, BetHistoryModal },
+  components: { AuthModal, DepositModal, BetHistoryModal, BetPaymentModal },
 
   data() {
     return {
@@ -870,6 +830,7 @@ export default {
       authMode:         'login',
       showDepositModal: false,
       showBetHistoryModal: false,
+      showBetPaymentModal: false,
       profileMenuOpen: false,
 
       // Sidebar navigation state
@@ -911,19 +872,8 @@ export default {
       isSubmitting:  false,
 
       // Payment proof — opened after the bet is successfully booked
-      showPaymentProofModal: false,
       pendingBetId:      null,
       pendingBetAmount:  0,
-      isSubmittingProof: false,
-      paymentProof: {
-        method: 'telebirr',
-        txReference: '',
-        senderName: '',
-        senderPhone: '',
-        screenshotUrl: '',
-        imageHash: '',
-      },
-
       // Toast
       toast: { show: false, message: '', type: 'success' },
     };
@@ -1353,7 +1303,7 @@ export default {
           this.pendingBetAmount = Number(this.stakeAmount);
 
           this.betSlip = [];
-          this.showPaymentProofModal = true;
+          this.showBetPaymentModal = true;
           this.showToast('✅ Bet saved as pending. No wallet balance was required.', 'success');
         } else {
           this.showToast(data.error || 'Bet booking failed', 'error');
@@ -1366,69 +1316,21 @@ export default {
       }
     },
 
-    handlePaymentScreenshot(event) {
-      const file = event.target.files?.[0];
-      if (!file) return;
 
-      // PaymentProof stores screenshotUrl as a string. Use a compressed data URL
-      // so Home.vue can submit the screenshot directly without another upload service.
-      const reader = new FileReader();
-      reader.onload = () => {
-        this.paymentProof.screenshotUrl = reader.result;
-      };
-      reader.readAsDataURL(file);
+    closeBetPaymentModal() {
+      this.showBetPaymentModal = false;
+      this.pendingBetId = null;
+      this.pendingBetAmount = 0;
     },
-
-    async submitPaymentProof() {
-      const sessionUser = JSON.parse(localStorage.getItem('user') || 'null');
-      const userId = sessionUser?.userId;
-      if (!userId) {
-        this.openAuth('login');
-        return;
-      }
-      if (!this.paymentProof.screenshotUrl) {
-        this.showToast('Please upload the payment screenshot', 'error');
-        return;
-      }
-
-      this.isSubmittingProof = true;
-      try {
-        const res = await fetch(`${this.api}/payments/deposit-request`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            userId,
-            method: this.paymentProof.method,
-            amount: this.pendingBetAmount,
-            txReference: this.paymentProof.txReference || null,
-            senderName: this.paymentProof.senderName || null,
-            senderPhone: this.paymentProof.senderPhone || null,
-            screenshotUrl: this.paymentProof.screenshotUrl,
-            imageHash: this.paymentProof.imageHash || null,
-          }),
-        });
-
-        const data = await res.json();
-        if (res.ok && data.success) {
-          this.showPaymentProofModal = false;
-          this.paymentProof = {
-            method: 'telebirr',
-            txReference: '',
-            senderName: '',
-            senderPhone: '',
-            screenshotUrl: '',
-            imageHash: '',
-          };
-          this.showToast('✅ Payment proof submitted. It is now pending review.', 'success', 5000);
-        } else {
-          this.showToast(data.error || 'Could not submit payment proof', 'error');
-        }
-      } catch (e) {
-        console.error('submitPaymentProof', e);
-        this.showToast('Network error — could not submit payment proof', 'error');
-      } finally {
-        this.isSubmittingProof = false;
-      }
+    handleBetPaymentSuccess() {
+      this.closeBetPaymentModal();
+      this.showToast('✅ Payment proof submitted. It is now pending review.', 'success', 5000);
+    },
+    openBetPayment(bet) {
+      if (!bet?.betId) return;
+      this.pendingBetId = bet.betId;
+      this.pendingBetAmount = Number(bet.stake || 0);
+      this.showBetPaymentModal = true;
     },
 
     // ── Auth / deposit ────────────────────────────────────────────────────
