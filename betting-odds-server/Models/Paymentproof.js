@@ -1,4 +1,33 @@
 'use strict';
-const { DataTypes }=require('sequelize'); const sequelize=require('../config/database');
-const PaymentProof=sequelize.define('PaymentProof',{ id:{type:DataTypes.BIGINT,primaryKey:true,autoIncrement:true}, userId:{type:DataTypes.CHAR(36),allowNull:false,field:'user_id'}, betId:{type:DataTypes.CHAR(36),allowNull:true,field:'bet_id'}, direction:{type:DataTypes.ENUM('deposit','withdrawal'),allowNull:false}, method:{type:DataTypes.ENUM('telebirr','cbe','other'),allowNull:false}, amount:{type:DataTypes.DECIMAL(14,2),allowNull:false}, txReference:{type:DataTypes.STRING(100),field:'tx_reference'}, senderName:{type:DataTypes.STRING(150),field:'sender_name'}, senderPhone:{type:DataTypes.STRING(20),field:'sender_phone'}, screenshotUrl:{type:DataTypes.STRING(500),allowNull:false,field:'screenshot_url'}, imageHash:{type:DataTypes.STRING(64),field:'image_hash'}, status:{type:DataTypes.ENUM('pending','approved','rejected'),defaultValue:'pending'}, reviewedBy:{type:DataTypes.CHAR(36),field:'reviewed_by'}, reviewedAt:{type:DataTypes.DATE,field:'reviewed_at'}, rejectionReason:{type:DataTypes.STRING(255),field:'rejection_reason'} },{tableName:'payment_proofs',updatedAt:false,indexes:[{fields:['status','created_at']},{unique:true,fields:['method','tx_reference'],name:'uniq_method_tx_reference'}]});
-module.exports=PaymentProof;
+const { DataTypes } = require('sequelize');
+const sequelize = require('../config/database');
+
+const PaymentProof = sequelize.define('PaymentProof', {
+  id:               { type: DataTypes.BIGINT,      primaryKey: true, autoIncrement: true },
+  userId:           { type: DataTypes.CHAR(36),    allowNull: false, field: 'user_id' },
+  betId:            { type: DataTypes.CHAR(36),    allowNull: true, field: 'bet_id' },
+  direction:        { type: DataTypes.ENUM('deposit', 'withdrawal'), allowNull: false },
+  method:           { type: DataTypes.ENUM('telebirr', 'cbe', 'other'), allowNull: false },
+  amount:           { type: DataTypes.DECIMAL(14,2), allowNull: false },
+  txReference:      { type: DataTypes.STRING(100), field: 'tx_reference' },
+  senderName:       { type: DataTypes.STRING(150), field: 'sender_name' },
+  senderPhone:      { type: DataTypes.STRING(20),  field: 'sender_phone' },
+  screenshotUrl:    { type: DataTypes.STRING(500), allowNull: false, field: 'screenshot_url' },
+  imageHash:        { type: DataTypes.STRING(64),  field: 'image_hash' },
+  status: {
+    type: DataTypes.ENUM('pending', 'approved', 'rejected'),
+    defaultValue: 'pending',
+  },
+  reviewedBy:       { type: DataTypes.CHAR(36),    field: 'reviewed_by' },
+  reviewedAt:       { type: DataTypes.DATE,        field: 'reviewed_at' },
+  rejectionReason:  { type: DataTypes.STRING(255), field: 'rejection_reason' },
+}, {
+  tableName:  'payment_proofs',
+  updatedAt:  false,
+  indexes: [
+    { fields: ['status', 'created_at'] },
+    { unique: true, fields: ['method', 'tx_reference'], name: 'uniq_method_tx_reference' },
+  ],
+});
+
+module.exports = PaymentProof;
