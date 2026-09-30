@@ -31,25 +31,57 @@ async function listEvents(req, res) {
     ],
     order:   [['commenceTime', 'ASC']],
   });
-  const data = events.map((event) => {
+  const data = await Promise.all(events.map(async (event) => {
     const json = event.toJSON();
     const rows = Array.isArray(json.odds) ? json.odds : [];
     const h2h = rows.filter((row) => row.marketKey === 'h2h' && !row.suspended);
-    const homeRow = h2h.find((row) => row.outcomeName === json.homeTeam || row.outcomeName === 'Home');
-    const drawRow = h2h.find((row) => row.outcomeName === 'Draw');
-    const awayRow = h2h.find((row) => row.outcomeName === json.awayTeam || row.outcomeName === 'Away');
+
+    const findOutcome = (teamName, fallbackName) =>
+      h2h.find((row) => row.outcomeName === teamName || row.outcomeName === fallbackName);
+
+    let homeRow = findOutcome(json.homeTeam, 'Home');
+    let drawRow = findOutcome(null, 'Draw');
+    let awayRow = findOutcome(json.awayTeam, 'Away');
+
+    // Temporary odds fallback: persist generated 1X2 prices in odds_current so
+    // the /bets endpoint can lock the exact same odds when the player books.
     const randomOdd = () => Number((1.01 + Math.random() * (6 - 1.01)).toFixed(2));
+    const createFallback = async (outcomeName) => {
+      const price = randomOdd();
+      return OddsCurrent.create({
+        eventId: json.eventId,
+        marketKey: 'h2h',
+        outcomeName,
+        point: null,
+        description: null,
+        sourcePrice: price,
+        displayPrice: price,
+        bookmakerKey: 'temporary_random',
+        suspended: false,
+        lastUpdate: new Date(),
+        fetchedAt: new Date(),
+      });
+    };
+
+    if (!homeRow) {
+      homeRow = await createFallback(json.homeTeam);
+    }
+    if (!drawRow) {
+      drawRow = await createFallback('Draw');
+    }
+    if (!awayRow) {
+      awayRow = await createFallback(json.awayTeam);
+    }
 
     return {
       ...json,
       odds: {
-        // Temporary fallback odds until the bet/market source is wired in.
-        home: homeRow ? Number(homeRow.displayPrice) : randomOdd(),
-        draw: drawRow ? Number(drawRow.displayPrice) : randomOdd(),
-        away: awayRow ? Number(awayRow.displayPrice) : randomOdd(),
+        home: Number(homeRow.displayPrice),
+        draw: Number(drawRow.displayPrice),
+        away: Number(awayRow.displayPrice),
       },
     };
-  });
+  }));
   res.json({ success: true, sportKey, count: data.length, data });
 }
 
