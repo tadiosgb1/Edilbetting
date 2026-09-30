@@ -65,7 +65,7 @@
                   >
                     <span class="w-10 h-10 rounded-lg bg-slate-100 border border-slate-200 flex items-center justify-center overflow-hidden">
                       <img
-                        v-if="proof.screenshotUrl"
+                        v-if="proof.screenshotUrl && !imageErrors[proof.id]"
                         :src="proof.screenshotUrl"
                         :alt="'Proof ' + proof.id"
                         class="w-full h-full object-cover"
@@ -80,7 +80,7 @@
                   </button>
                 </td>
                 <td class="px-4 py-4">
-                  <p class="text-xs font-bold text-slate-700 max-w-[190px] truncate" :title="proof.userId">{{ proof.userId }}</p>
+                  <p class="text-xs font-bold text-slate-700 max-w-[190px] truncate" :title="proof.User?.fullName || proof.userId">{{ proof.User?.fullName || 'Unknown player' }}</p>
                   <p class="text-[10px] text-slate-400 mt-1 max-w-[190px] truncate" :title="proof.betId || ''">
                     Bet: {{ proof.betId || '—' }}
                   </p>
@@ -201,8 +201,17 @@
               </div>
 
               <div class="rounded-xl border border-slate-200 p-4 space-y-3">
-                <div><p class="text-[9px] font-black uppercase text-slate-400">User ID</p><p class="text-xs font-bold text-slate-700 break-all mt-1">{{ selectedProof.userId }}</p></div>
-                <div><p class="text-[9px] font-black uppercase text-slate-400">Bet ID</p><p class="text-xs font-bold text-slate-700 break-all mt-1">{{ selectedProof.betId || '—' }}</p></div>
+                <div><p class="text-[9px] font-black uppercase text-slate-400">Player</p><p class="text-xs font-bold text-slate-700 mt-1">{{ selectedProof.User?.fullName || 'Unknown player' }}</p><p class="text-[10px] text-slate-400 break-all mt-0.5">{{ selectedProof.User?.phoneNumber || selectedProof.userId }}</p></div>
+                <div>
+                  <p class="text-[9px] font-black uppercase text-slate-400">Bet</p>
+                  <p class="text-xs font-bold text-slate-700 mt-1">{{ betSummary(selectedProof) }}</p>
+                  <p class="text-[10px] text-slate-400 break-all mt-0.5">{{ selectedProof.betId || '—' }}</p>
+                  <div v-if="selectedProof.Bet?.selections?.length" class="mt-2 space-y-1">
+                    <p v-for="selection in selectedProof.Bet.selections" :key="selection.id" class="text-[10px] text-slate-600">
+                      {{ selection.Event?.homeTeam || selection.eventId }} vs {{ selection.Event?.awayTeam || '' }} · {{ selection.outcomeName }} @ {{ selection.oddsAtBet }}
+                    </p>
+                  </div>
+                </div>
                 <div><p class="text-[9px] font-black uppercase text-slate-400">Transaction Reference</p><p class="text-xs font-bold text-slate-700 break-all mt-1">{{ selectedProof.txReference || '—' }}</p></div>
                 <div><p class="text-[9px] font-black uppercase text-slate-400">Sender</p><p class="text-xs font-bold text-slate-700 mt-1">{{ selectedProof.senderName || '—' }}</p><p class="text-xs text-slate-500 mt-0.5">{{ selectedProof.senderPhone || '—' }}</p></div>
                 <div><p class="text-[9px] font-black uppercase text-slate-400">Submitted</p><p class="text-xs font-bold text-slate-700 mt-1">{{ formatDate(selectedProof.createdAt) }}</p></div>
@@ -377,6 +386,17 @@ export default {
       } finally {
         this.processingId = null;
       }
+    },
+    betSummary(proof) {
+      const selections = proof?.Bet?.selections || [];
+      if (selections.length) {
+        return selections.map(s => {
+          const home = s.Event?.homeTeam || '';
+          const away = s.Event?.awayTeam || '';
+          return home && away ? home + ' vs ' + away : (s.outcomeName || proof.betId || '—');
+        }).join(' • ');
+      }
+      return proof?.betId ? 'Bet #' + String(proof.betId).slice(0, 8) : '—';
     },
     money(value) {
       return Number(value).toLocaleString('en-US', {
