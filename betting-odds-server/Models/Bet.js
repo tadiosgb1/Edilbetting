@@ -10,7 +10,7 @@ const Bet = sequelize.define('Bet', {
   totalOdds:       { type: DataTypes.DECIMAL(10,4), allowNull: false, field: 'total_odds' },
   potentialPayout: { type: DataTypes.DECIMAL(14,2), allowNull: false, field: 'potential_payout' },
   status: {
-    type: DataTypes.ENUM('pending', 'won', 'lost', 'void', 'cancelled'),
+    type: DataTypes.ENUM('pending', 'completed', 'won', 'lost', 'void', 'cancelled'),
     defaultValue: 'pending',
   },
   placedAt:   { type: DataTypes.DATE, defaultValue: DataTypes.NOW, field: 'placed_at' },

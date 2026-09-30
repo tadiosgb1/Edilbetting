@@ -35,6 +35,8 @@ if (!User.associations.WalletTransactions) User.hasMany(WalletTransaction, { for
 
 if (!PaymentProof.associations.User) PaymentProof.belongsTo(User, { foreignKey: 'userId', targetKey: 'userId' });
 if (!User.associations.PaymentProofs) User.hasMany(PaymentProof, { foreignKey: 'userId', sourceKey: 'userId' });
+if (!PaymentProof.associations.Bet) PaymentProof.belongsTo(Bet, { foreignKey: 'betId', targetKey: 'betId', as: 'Bet' });
+if (!Bet.associations.PaymentProofs) Bet.hasMany(PaymentProof, { foreignKey: 'betId', sourceKey: 'betId', as: 'PaymentProofs' });
 
 if (!Bet.associations.User) Bet.belongsTo(User, { foreignKey: 'userId', targetKey: 'userId' });
 if (!User.associations.Bets) User.hasMany(Bet, { foreignKey: 'userId', sourceKey: 'userId' });

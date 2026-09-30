@@ -1,7 +1,7 @@
 'use strict';
 const express      = require('express');
 const router       = express.Router();
-const ctrl         = require('../controllers/paymentController');
+const ctrl         = require('../controllers/Paymentcontroller');
 const asyncHandler = require('../middleware/asyncHandler');
 
 /**
@@ -40,6 +40,17 @@ router.post('/deposit-request', asyncHandler(ctrl.submitDepositRequest));
 
 /**
  * @swagger
+ * /payments:
+ *   get:
+ *     summary: List payment proofs for admin review
+ *     tags: [Payments]
+ *     responses:
+ *       200: { description: List of payment proofs }
+ */
+router.get('/', asyncHandler(ctrl.listPayments));
+
+/**
+ * @swagger
  * /payments/pending:
  *   get:
  *     summary: Admin queue of unreviewed payment screenshots
@@ -53,7 +64,7 @@ router.get('/pending', asyncHandler(ctrl.listPending));
  * @swagger
  * /payments/{id}/approve:
  *   post:
- *     summary: Approve a payment — credits the wallet
+ *     summary: Approve a payment — credits the wallet and completes linked bet
  *     tags: [Payments]
  *     parameters:
  *       - in: path
@@ -68,7 +79,7 @@ router.get('/pending', asyncHandler(ctrl.listPending));
  *             properties:
  *               adminUserId: { type: string, format: uuid }
  *     responses:
- *       200: { description: Approved and wallet updated }
+ *       200: { description: Approved, wallet updated, linked bet completed }
  */
 router.post('/:id/approve', asyncHandler(ctrl.approvePayment));
 
