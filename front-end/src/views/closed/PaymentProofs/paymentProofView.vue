@@ -52,7 +52,7 @@ export default {
     baseUrl(){return(import.meta.env.VITE_BACKEND_URL||'http://localhost:3000/api').replace(/\/$/,'')},
     authHeaders(){return{'Content-Type':'application/json',Authorization:'Bearer '+localStorage.getItem('token')}},
     async fetchPayments(){
-      if(localStorage.getItem('role')!=='admin'){this.$router.push('/');return}
+      if(this.$checkRole()!=='admin'){this.$router.push('/');return}
       this.loading=true;this.error='';
       try{const adminUserId=localStorage.getItem('userId');const response=await fetch(this.baseUrl()+'/payments?adminUserId='+encodeURIComponent(adminUserId),{headers:this.authHeaders()});const data=await response.json().catch(()=>({}));if(!response.ok||data.success===false)throw new Error(data.error||'Failed to load payment proofs.');this.payments=data.data||[]}catch(error){this.error=error?.message||'Failed to load payment proofs.'}finally{this.loading=false}
     },

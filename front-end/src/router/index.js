@@ -11,6 +11,7 @@ import UsersView from '../views/closed/Users/UsersView.vue';
 import BetsView from '../views/closed/Bets/BetsView.vue';
 import SportsView from '../views/closed/Sports/SportsView.vue';
 import EventsView from '../views/closed/Events/EventsView.vue';
+import checkRole from "../utils/checkRole";
 import PaymentProofView from '../views/closed/PaymentProofs/paymentProofView.vue';
 
 const routes = [
@@ -112,7 +113,7 @@ const router = createRouter({
 
 router.beforeEach((to, from, next) => {
   const isAuthenticated = localStorage.getItem("token");
-  const userRole = localStorage.getItem("role");
+  const userRole = checkRole();
 
   const requiresAuth = to.matched.some(record => record.meta.requiresAuth);
   const requiredRole = to.meta.role;
