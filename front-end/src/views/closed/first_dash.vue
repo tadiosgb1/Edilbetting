@@ -149,6 +149,7 @@
 import VueApexCharts from "vue3-apexcharts";
 import AdminDashboard from "./dashboards/admindashboard.vue";
 import UserDashboard from "./dashboards/userdashboard.vue";
+import checkRole from "@/utils/checkRole";
 
 export default {
   name: "FirstDash",
@@ -188,16 +189,10 @@ export default {
   },
   computed: {
     role() {
-      try {
-        const roles = JSON.parse(localStorage.getItem("roles") || "[]");
-        const names = roles.map(r => (r.name || r).toLowerCase());
-        if (names.includes("admin")) return "admin";
-        if (names.includes("super_admin")) return "super_admin";
-        if (names.includes("organization")) return "organization";
-        if (names.includes("tester")) return "tester";
-      } catch (_) {}
-      const role = (localStorage.getItem("role") || "").toLowerCase();
-      if (role === "admin" || role === "super_admin" || role === "organization") return role;
+      const role = checkRole();
+      if (role === "admin" || role === "super_admin" || role === "organization" || role === "tester") {
+        return role;
+      }
       return "tester";
     },
     activityOptions() {
