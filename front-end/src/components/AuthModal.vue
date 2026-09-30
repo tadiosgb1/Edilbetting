@@ -8,14 +8,14 @@
       <div class="flex border-b border-slate-800 mb-6">
         <button
           @click="mode = 'login'"
-          :class="mode === 'login' ? 'text-amber-400 border-b-2 border-amber-400 font-bold' : 'text-slate-400'"
+          :class="mode === 'login' ? 'text-primary border-b-2 border-primary font-bold' : 'text-slate-400'"
           class="flex-1 pb-2 text-center text-sm transition"
         >
           Login
         </button>
         <button
           @click="mode = 'register'"
-          :class="mode === 'register' ? 'text-amber-400 border-b-2 border-amber-400 font-bold' : 'text-slate-400'"
+          :class="mode === 'register' ? 'text-primary border-b-2 border-primary font-bold' : 'text-slate-400'"
           class="flex-1 pb-2 text-center text-sm transition"
         >
           Register
@@ -31,13 +31,13 @@
       <form v-if="mode === 'login'" @submit.prevent="handleAuth" class="space-y-4">
         <div>
           <label class="block text-xs text-slate-400 uppercase font-bold mb-1">Phone or Email</label>
-          <input v-model="form.identifier" type="text" required class="w-full bg-slate-950 border border-slate-700 rounded px-3 py-2 text-sm text-white focus:outline-none focus:border-amber-400" placeholder="Phone number or email" />
+          <input v-model="form.identifier" type="text" required class="w-full bg-slate-950 border border-slate-700 rounded px-3 py-2 text-sm text-white focus:outline-none focus:border-primary" placeholder="Phone number or email" />
         </div>
         <div>
           <label class="block text-xs text-slate-400 uppercase font-bold mb-1">Password</label>
-          <input v-model="form.password" type="password" required class="w-full bg-slate-950 border border-slate-700 rounded px-3 py-2 text-sm text-white focus:outline-none focus:border-amber-400" placeholder="••••••••" />
+          <input v-model="form.password" type="password" required class="w-full bg-slate-950 border border-slate-700 rounded px-3 py-2 text-sm text-white focus:outline-none focus:border-primary" placeholder="••••••••" />
         </div>
-        <button :disabled="loading" type="submit" class="w-full bg-amber-500 hover:bg-amber-400 disabled:opacity-60 disabled:cursor-not-allowed text-black font-bold py-2.5 rounded text-sm uppercase transition tracking-wide">
+        <button :disabled="loading" type="submit" class="w-full bg-primary hover:bg-primary disabled:opacity-60 disabled:cursor-not-allowed text-black font-bold py-2.5 rounded text-sm uppercase transition tracking-wide">
           {{ loading ? 'Logging In...' : 'Log In' }}
         </button>
       </form>
@@ -46,21 +46,21 @@
       <form v-else @submit.prevent="handleAuth" class="space-y-4">
         <div>
           <label class="block text-xs text-slate-400 uppercase font-bold mb-1">Full Name</label>
-          <input v-model="form.fullName" type="text" required class="w-full bg-slate-950 border border-slate-700 rounded px-3 py-2 text-sm text-white focus:outline-none focus:border-amber-400" placeholder="John Doe" />
+          <input v-model="form.fullName" type="text" required class="w-full bg-slate-950 border border-slate-700 rounded px-3 py-2 text-sm text-white focus:outline-none focus:border-primary" placeholder="John Doe" />
         </div>
         <div>
           <label class="block text-xs text-slate-400 uppercase font-bold mb-1">Phone Number</label>
-          <input v-model="form.phoneNumber" type="tel" required class="w-full bg-slate-950 border border-slate-700 rounded px-3 py-2 text-sm text-white focus:outline-none focus:border-amber-400" placeholder="+251..." />
+          <input v-model="form.phoneNumber" type="tel" required class="w-full bg-slate-950 border border-slate-700 rounded px-3 py-2 text-sm text-white focus:outline-none focus:border-primary" placeholder="+251..." />
         </div>
         <div>
           <label class="block text-xs text-slate-400 uppercase font-bold mb-1">Date of Birth</label>
-          <input v-model="form.dateOfBirth" type="date" class="w-full bg-slate-950 border border-slate-700 rounded px-3 py-2 text-sm text-white focus:outline-none focus:border-amber-400" />
+          <input v-model="form.dateOfBirth" type="date" class="w-full bg-slate-950 border border-slate-700 rounded px-3 py-2 text-sm text-white focus:outline-none focus:border-primary" />
         </div>
         <div>
           <label class="block text-xs text-slate-400 uppercase font-bold mb-1">Password</label>
-          <input v-model="form.password" type="password" required minlength="6" class="w-full bg-slate-950 border border-slate-700 rounded px-3 py-2 text-sm text-white focus:outline-none focus:border-amber-400" placeholder="••••••••" />
+          <input v-model="form.password" type="password" required minlength="6" class="w-full bg-slate-950 border border-slate-700 rounded px-3 py-2 text-sm text-white focus:outline-none focus:border-primary" placeholder="••••••••" />
         </div>
-        <button :disabled="loading" type="submit" class="w-full bg-amber-500 hover:bg-amber-400 disabled:opacity-60 disabled:cursor-not-allowed text-black font-bold py-2.5 rounded text-sm uppercase transition tracking-wide">
+        <button :disabled="loading" type="submit" class="w-full bg-primary hover:bg-primary disabled:opacity-60 disabled:cursor-not-allowed text-black font-bold py-2.5 rounded text-sm uppercase transition tracking-wide">
           {{ loading ? 'Creating Account...' : 'Create Account' }}
         </button>
       </form>
