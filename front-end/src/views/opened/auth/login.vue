@@ -162,8 +162,9 @@ export default {
         localStorage.setItem("organizationId",response.organization_id || "");
         localStorage.setItem("email",         response.email);
         localStorage.setItem("name",          `${response.first_name || ""} ${response.last_name || ""}`.trim() || response.email);
-        const roleNames = (response.roles || []).map(r => r.name || r);
+        const roleNames = (response.roles || []).map(r => String(r.name || r).trim().toLowerCase());
         localStorage.setItem("roles",       JSON.stringify(roleNames));
+        localStorage.setItem("role",         roleNames.includes("admin") ? "admin" : (roleNames[0] || "user"));
         localStorage.setItem("permissions", JSON.stringify(response.permissions || []));
         this.$refs.toast?.showSuccessToastMessage("Secure Session Initialized.");
     
