@@ -3,6 +3,7 @@ const express      = require('express');
 const router       = express.Router();
 const ctrl         = require('../controllers/Paymentcontroller');
 const asyncHandler = require('../middleware/asyncHandler');
+const adminAuth   = require('../middleware/adminAuth');
 
 /**
  * @swagger
@@ -47,7 +48,7 @@ router.post('/deposit-request', asyncHandler(ctrl.submitDepositRequest));
  *     responses:
  *       200: { description: List of payment proofs }
  */
-router.get('/', asyncHandler(ctrl.listPayments));
+router.get('/', adminAuth, asyncHandler(ctrl.listPayments));
 
 /**
  * @swagger
@@ -58,7 +59,7 @@ router.get('/', asyncHandler(ctrl.listPayments));
  *     responses:
  *       200: { description: List of pending payment proofs }
  */
-router.get('/pending', asyncHandler(ctrl.listPending));
+router.get('/pending', adminAuth, asyncHandler(ctrl.listPending));
 
 /**
  * @swagger
@@ -81,7 +82,7 @@ router.get('/pending', asyncHandler(ctrl.listPending));
  *     responses:
  *       200: { description: Approved, wallet updated, linked bet completed }
  */
-router.post('/:id/approve', asyncHandler(ctrl.approvePayment));
+router.post('/:id/approve', adminAuth, asyncHandler(ctrl.approvePayment));
 
 /**
  * @swagger
@@ -105,6 +106,6 @@ router.post('/:id/approve', asyncHandler(ctrl.approvePayment));
  *     responses:
  *       200: { description: Payment rejected }
  */
-router.post('/:id/reject', asyncHandler(ctrl.rejectPayment));
+router.post('/:id/reject', adminAuth, asyncHandler(ctrl.rejectPayment));
 
 module.exports = router;
