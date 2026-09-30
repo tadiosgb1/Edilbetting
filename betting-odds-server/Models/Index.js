@@ -16,6 +16,7 @@ const Bet = require('./Bet');
 const BetSelection = require('./BetSelection');
 const ApiUsageLog = require('./Apiusagelog');
 const AuditLog = require('./Auditlog');
+const Brand = require('./Brand');
 
 if (!Event.associations.sport) Event.belongsTo(Sport, { foreignKey: 'sportKey', targetKey: 'sportKey' });
 if (!Sport.associations.events) Sport.hasMany(Event, { foreignKey: 'sportKey', sourceKey: 'sportKey' });
@@ -48,6 +49,7 @@ if (!BetSelection.associations.Event) BetSelection.belongsTo(Event, { foreignKey
 async function initDatabase() {
   await sequelize.authenticate();
   await sequelize.sync({ alter: true });
+  await Brand.findOrCreate({ where: { id: 1 }, defaults: { id: 1, primary: '#F59E0B', secondary: '#0F172A', tertiary: '#1E293B' } });
 }
 
-module.exports = { sequelize, initDatabase, Sport, MarketCatalog, Event, OddsCurrent, OddsHistory, Result, User, Wallet, WalletTransaction, PaymentProof, Bet, BetSelection, ApiUsageLog, AuditLog };
+module.exports = { sequelize, initDatabase, Sport, MarketCatalog, Event, OddsCurrent, OddsHistory, Result, User, Wallet, WalletTransaction, PaymentProof, Bet, BetSelection, ApiUsageLog, AuditLog, Brand };
