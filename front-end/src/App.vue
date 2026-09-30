@@ -113,9 +113,4 @@ export default {
   background-color: #e2e8f0;
 }
 
-:root {
-  --color-primary: #FA7118;   /* Default Orange */
-  --color-dprimary: #ea580c;
-  --color-secondary: #A6093D;
-}
 </style>
