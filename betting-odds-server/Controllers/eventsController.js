@@ -38,12 +38,15 @@ async function listEvents(req, res) {
     const homeRow = h2h.find((row) => row.outcomeName === json.homeTeam || row.outcomeName === 'Home');
     const drawRow = h2h.find((row) => row.outcomeName === 'Draw');
     const awayRow = h2h.find((row) => row.outcomeName === json.awayTeam || row.outcomeName === 'Away');
+    const randomOdd = () => Number((1.01 + Math.random() * (6 - 1.01)).toFixed(2));
+
     return {
       ...json,
       odds: {
-        home: homeRow ? Number(homeRow.displayPrice) : null,
-        draw: drawRow ? Number(drawRow.displayPrice) : null,
-        away: awayRow ? Number(awayRow.displayPrice) : null,
+        // Temporary fallback odds until the bet/market source is wired in.
+        home: homeRow ? Number(homeRow.displayPrice) : randomOdd(),
+        draw: drawRow ? Number(drawRow.displayPrice) : randomOdd(),
+        away: awayRow ? Number(awayRow.displayPrice) : randomOdd(),
       },
     };
   });
