@@ -86,7 +86,10 @@ async function placeBet(req, res) {
 async function getBetsForUser(req, res) {
   const bets = await Bet.findAll({
     where:   { userId: req.params.userId },
-    include: [{ association: 'selections' }],
+    include: [{
+      association: 'selections',
+      include: [{ model: Event, attributes: ['eventId', 'homeTeam', 'awayTeam', 'commenceTime', 'sportKey'] }],
+    }],
     order:   [['placedAt', 'DESC']],
   });
   res.json({ success: true, count: bets.length, data: bets });
@@ -96,7 +99,10 @@ async function getBetsForUser(req, res) {
 async function getBetById(req, res) {
   const bet = await Bet.findOne({
     where:   { betId: req.params.betId, userId: req.params.userId },
-    include: [{ association: 'selections' }],
+    include: [{
+      association: 'selections',
+      include: [{ model: Event, attributes: ['eventId', 'homeTeam', 'awayTeam', 'commenceTime', 'sportKey'] }],
+    }],
   });
   if (!bet) return res.status(404).json({ success: false, error: 'Bet not found.' });
   res.json({ success: true, data: bet });
