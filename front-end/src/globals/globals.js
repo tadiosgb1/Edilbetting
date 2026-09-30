@@ -76,6 +76,7 @@ export default {
       $convertImageToBase64: convertImageToBase64,
       $hasPermission: hasPermission,
       $hasRole: hasRole,
+      $checkRole: () => localStorage.getItem("role")?.trim().toLowerCase() || null,
      
       $getFileUrl: getFileUrl
     };
