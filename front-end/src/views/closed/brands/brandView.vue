@@ -29,7 +29,7 @@
   </section>
 </template>
 <script>
-import { DEFAULT_BRAND, getBrand, saveBrand, resetBrand, applyBrand } from '@/utils/brand';
+import { DEFAULT_BRAND, getBrand, saveBrand, resetBrand } from '@/utils/brand';
 export default {
   name: 'BrandView',
   data() { return { draft: getBrand(), message: '', messageType: 'success', colorFields: [
@@ -37,7 +37,7 @@ export default {
     { key: 'secondary', label: 'Secondary', description: 'Dark surfaces, secondary actions and navigation accents.' },
     { key: 'tertiary', label: 'Tertiary', description: 'Supporting brand surfaces and visual depth.' },
   ]}; },
-  mounted() { if (this.$checkRole() !== 'admin') { this.$router.push('/'); return; } this.draft = getBrand(); applyBrand(this.draft); },
+  mounted() { if (this.$checkRole() !== 'admin') { this.$router.push('/'); } },
   methods: {
     save() {
       if (!['primary','secondary','tertiary'].every(key => /^#[0-9a-f]{6}$/i.test(this.draft[key]))) { this.messageType='error'; this.message='Please use valid 6-digit hex colors, for example #F59E0B.'; return; }
