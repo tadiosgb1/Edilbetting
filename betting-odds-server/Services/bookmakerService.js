@@ -36,19 +36,27 @@ function resolveBestOdds(eventData, sportKey, marginPct) {
   const priority = getBookmakerPriority(sportKey);
   const resolved = {};
 
-  for (const bookKey of priority) {
-    const book = (eventData.bookmakers || []).find(b => b.key === bookKey);
-    if (!book) continue;
+  const bookmakers = eventData.bookmakers || [];
+  const ordered = [
+    ...priority.map(key => bookmakers.find(b => b.key === key)).filter(Boolean),
+    ...bookmakers.filter(book => !priority.includes(book.key)),
+  ];
+
+  for (const book of ordered) {
     for (const market of book.markets || []) {
-      if (resolved[market.key]) continue; // already filled by higher-priority book
+      if (resolved[market.key]) continue;
+      if (!Array.isArray(market.outcomes) || !market.outcomes.length) continue;
+
       resolved[market.key] = {
-        source:     bookKey,
+        source:     book.key,
         lastUpdate: market.last_update,
-        outcomes:   (market.outcomes || []).map(o => ({
-          ...o,
-          price:    applyMargin(o.price, marginPct),
-          rawPrice: o.price,
-        })),
+        outcomes:   market.outcomes
+          .filter(o => o && o.name != null && Number.isFinite(Number(o.price)))
+          .map(o => ({
+            ...o,
+            price:    applyMargin(Number(o.price), marginPct),
+            rawPrice: Number(o.price),
+          })),
       };
     }
   }
