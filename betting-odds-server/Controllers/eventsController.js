@@ -1,6 +1,7 @@
 'use strict';
 const { Op }    = require('sequelize');
-const { Event, Sport, OddsCurrent } = require('../Models');
+const { Event, Sport, EventMarket, OddsCurrent } = require('../Models');
+const { syncOddsForEvent, syncEvents } = require('../Services/Syncservice');
 
 /**
  * GET /api/events/:sportKey
@@ -43,42 +44,16 @@ async function listEvents(req, res) {
     let drawRow = findOutcome(null, 'Draw');
     let awayRow = findOutcome(json.awayTeam, 'Away');
 
-    // Temporary odds fallback: persist generated 1X2 prices in odds_current so
-    // the /bets endpoint can lock the exact same odds when the player books.
-    const randomOdd = () => Number((1.01 + Math.random() * (6 - 1.01)).toFixed(2));
-    const createFallback = async (outcomeName) => {
-      const price = randomOdd();
-      return OddsCurrent.create({
-        eventId: json.eventId,
-        marketKey: 'h2h',
-        outcomeName,
-        point: null,
-        description: null,
-        sourcePrice: price,
-        displayPrice: price,
-        bookmakerKey: 'temporary_random',
-        suspended: false,
-        lastUpdate: new Date(),
-        fetchedAt: new Date(),
-      });
-    };
-
-    if (!homeRow) {
-      homeRow = await createFallback(json.homeTeam);
-    }
-    if (!drawRow) {
-      drawRow = await createFallback('Draw');
-    }
-    if (!awayRow) {
-      awayRow = await createFallback(json.awayTeam);
-    }
+    const homeOdd = homeRow ? Number(homeRow.displayPrice) : null;
+    const drawOdd = drawRow ? Number(drawRow.displayPrice) : null;
+    const awayOdd = awayRow ? Number(awayRow.displayPrice) : null;
 
     return {
       ...json,
       odds: {
-        home: Number(homeRow.displayPrice),
-        draw: Number(drawRow.displayPrice),
-        away: Number(awayRow.displayPrice),
+        home: homeOdd,
+        draw: drawOdd,
+        away: awayOdd,
       },
     };
   }));
@@ -121,6 +96,93 @@ async function listLiveEvents(req, res) {
   res.json({ success: true, sportKey, count: events.length, data: events });
 }
 
+
+
+
+/**
+ * POST /api/events/:sportKey/sync-events
+ * Refresh the local event list from the free upstream events endpoint.
+ */
+async function syncSportEventsNow(req, res) {
+  if (String(process.env.ODDS_MANUAL_SYNC || '').toLowerCase() !== 'true') {
+    return res.status(403).json({
+      success: false,
+      error: 'Manual odds sync is disabled. Set ODDS_MANUAL_SYNC=true for controlled testing.',
+    });
+  }
+
+  const { sportKey } = req.params;
+  try {
+    const count = await syncEvents([sportKey]);
+    const events = await Event.findAll({
+      where: { sportKey },
+      order: [['commenceTime', 'ASC']],
+    });
+    res.json({ success: true, sportKey, synced: count, count: events.length, data: events });
+  } finally {
+    // no process-wide environment mutation
+  }
+}
+
+/**
+ * POST /api/events/:sportKey/:eventId/sync
+ * One-event manual sync for controlled Postman/sandbox testing.
+ * Disabled unless ODDS_MANUAL_SYNC=true.
+ */
+async function syncEventNow(req, res) {
+  if (String(process.env.ODDS_MANUAL_SYNC || '').toLowerCase() !== 'true') {
+    return res.status(403).json({
+      success: false,
+      error: 'Manual odds sync is disabled. Set ODDS_MANUAL_SYNC=true for controlled testing.',
+    });
+  }
+
+  const { sportKey, eventId } = req.params;
+  let event = await Event.findOne({ where: { eventId, sportKey } });
+  if (!event) {
+    // /events is a free upstream endpoint, so this does not spend odds quota.
+    await syncEvents();
+    event = await Event.findOne({ where: { eventId, sportKey } });
+  }
+  if (!event) return res.status(404).json({ success: false, error: 'Event not found after refreshing events.' });
+
+  const result = await syncOddsForEvent(event);
+  res.json({ success: true, data: result });
+}
+
+/**
+ * GET /api/events/:sportKey/:eventId/markets
+ * Market keys discovered and persisted for this event.
+ */
+async function getEventMarkets(req, res) {
+  const { sportKey, eventId } = req.params;
+  const event = await Event.findOne({ where: { eventId, sportKey } });
+  if (!event) return res.status(404).json({ success: false, error: 'Event not found.' });
+
+  const markets = await EventMarket.findAll({
+    where: { eventId, isAvailable: true },
+    order: [['marketKey', 'ASC'], ['bookmakerKey', 'ASC']],
+  });
+
+  const grouped = {};
+  for (const row of markets) {
+    if (!grouped[row.marketKey]) grouped[row.marketKey] = [];
+    grouped[row.marketKey].push({
+      bookmakerKey: row.bookmakerKey,
+      lastUpdate: row.lastUpdate,
+      lastSeenAt: row.lastSeenAt,
+    });
+  }
+
+  res.json({
+    success: true,
+    eventId,
+    sportKey,
+    count: Object.keys(grouped).length,
+    markets: grouped,
+  });
+}
+
 /**
  * GET /api/events/:sportKey/:eventId
  * Single event by ID with its current odds.
@@ -138,4 +200,4 @@ async function getEvent(req, res) {
   res.json({ success: true, data: event });
 }
 
-module.exports = { listEvents, listTodayEvents, listLiveEvents, getEvent };
+module.exports = { listEvents, listTodayEvents, listLiveEvents, syncSportEventsNow, syncEventNow, getEventMarkets, getEvent };
