@@ -118,11 +118,10 @@ async function listLiveEvents(req, res) {
  */
 async function listUpcomingEvents(req, res) {
   const now = new Date();
-  const days = Math.min(Math.max(Number(req.query.days) || 7, 1), 14);
+  const days = Math.min(Math.max(Number(req.query.days) || 30, 1), 30);
   const limit = Math.min(Math.max(Number(req.query.limit) || 100, 1), 250);
   const to = new Date(now.getTime() + days * 24 * 60 * 60 * 1000);
   const where = {
-    status: 'upcoming',
     commenceTime: { [Op.gte]: now, [Op.lte]: to },
   };
   if (req.query.sportKey) where.sportKey = req.query.sportKey;
