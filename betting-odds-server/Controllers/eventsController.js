@@ -98,6 +98,36 @@ async function listLiveEvents(req, res) {
 
 
 
+
+/**
+ * POST /api/events/:sportKey/sync-events
+ * Refresh the local event list from the free upstream events endpoint.
+ */
+async function syncSportEventsNow(req, res) {
+  if (String(process.env.ODDS_MANUAL_SYNC || '').toLowerCase() !== 'true') {
+    return res.status(403).json({
+      success: false,
+      error: 'Manual odds sync is disabled. Set ODDS_MANUAL_SYNC=true for controlled testing.',
+    });
+  }
+
+  const { sportKey } = req.params;
+  const previous = process.env.ENABLED_SPORTS;
+  if (!previous) process.env.ENABLED_SPORTS = sportKey;
+
+  try {
+    const count = await syncEvents();
+    const events = await Event.findAll({
+      where: { sportKey },
+      order: [['commenceTime', 'ASC']],
+    });
+    res.json({ success: true, sportKey, synced: count, count: events.length, data: events });
+  } finally {
+    if (previous === undefined) delete process.env.ENABLED_SPORTS;
+    else process.env.ENABLED_SPORTS = previous;
+  }
+}
+
 /**
  * POST /api/events/:sportKey/:eventId/sync
  * One-event manual sync for controlled Postman/sandbox testing.
@@ -174,4 +204,4 @@ async function getEvent(req, res) {
   res.json({ success: true, data: event });
 }
 
-module.exports = { listEvents, listTodayEvents, listLiveEvents, syncEventNow, getEventMarkets, getEvent };
+module.exports = { listEvents, listTodayEvents, listLiveEvents, syncSportEventsNow, syncEventNow, getEventMarkets, getEvent };
