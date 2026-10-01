@@ -113,9 +113,9 @@ function start() {
   logger.info(`  scores: ${scoresSchedule}`);
   logger.info(`  sports enabled: ${ENABLED_SPORTS.join(',')}`);
 
-  if (String(process.env.CRON_RUN_ON_START || '').toLowerCase() === 'true') {
-    void syncAll().catch(err => logger.error(`CRON startup sync failed: ${err.message}`));
-  }
+  // CRON_RUN=true also performs one synchronization immediately when server.js starts.
+  // Set CRON_RUN=false in sandbox/dev to avoid any upstream quota usage.
+  void syncAll().catch(err => logger.error(`CRON startup sync failed: ${err.message}`));
 }
 
 function stop() {
