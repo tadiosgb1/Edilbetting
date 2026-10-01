@@ -31,6 +31,9 @@ const asyncHandler = require('../middleware/asyncHandler');
  *       - in: query
  *         name: status
  *         schema: { type: string, enum: [upcoming,live,finished,cancelled,postponed] }
+ *       - in: query
+ *         name: search
+ *         schema: { type: string }
  *     responses:
  *       200: { description: List of events }
  */
