@@ -69,11 +69,10 @@ async function syncEvents(sports = ENABLED_SPORTS) {
  * closer.
  */
 async function discoverEventMarkets(event) {
-  const bookmakers = getBookmakerPriority(event.sportKey);
   const data = await callOddsApi(
     `/sports/${event.sportKey}/events/${event.eventId}/markets`,
     {
-      bookmakers: bookmakers.join(','),
+      regions: ODDS_REGIONS,
       dateFormat: 'iso',
     },
   );
@@ -138,7 +137,7 @@ async function syncOddsForEvent(event) {
       `/sports/${event.sportKey}/events/${event.eventId}/odds`,
       {
         markets: markets.join(','),
-        bookmakers: getBookmakerPriority(event.sportKey).join(','),
+        regions: ODDS_REGIONS,
         oddsFormat: 'decimal',
         dateFormat: 'iso',
       },
@@ -150,6 +149,18 @@ async function syncOddsForEvent(event) {
 
   const resolved = resolveBestOdds(raw, event.sportKey);
   let updated = 0;
+
+  if (!Object.keys(resolved).length) {
+    logger.warn(
+      `syncOddsForEvent: upstream returned no usable bookmaker markets for ${event.eventId}`,
+    );
+    return {
+      eventId: event.eventId,
+      marketCount: markets.length,
+      returnedMarketCount: 0,
+      oddsCount: 0,
+    };
+  }
 
   // Anything not returned by the latest upstream snapshot is no longer
   // selectable. This prevents stale markets/odds from leaking to the UI.
