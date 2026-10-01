@@ -444,7 +444,7 @@
                       {label:'Yes', sel:'BTTS - Yes', odd:match.odds.bttsYes},
                       {label:'No',  sel:'BTTS - No',  odd:match.odds.bttsNo},
                     ]" :key="i"
-                      @click="toggleBet(match, btn.sel, btn.odd)"
+                      @click="btn.odd && toggleBet(match, btn.sel, btn.odd)"
                       :class="isSelectionActive(match.id,btn.sel) ? 'bg-primary text-black border-primary':'bg-slate-800 hover:bg-slate-700 text-slate-200 border-slate-700'"
                       class="border rounded-lg w-14 h-12 flex flex-col items-center justify-center transition flex-shrink-0 cursor-pointer">
                       <span class="text-[9px] font-black uppercase" :class="isSelectionActive(match.id,btn.sel)?'text-black':'text-slate-500'">{{ btn.label }}</span>
