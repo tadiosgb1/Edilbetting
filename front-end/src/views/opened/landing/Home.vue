@@ -240,6 +240,12 @@
               <button @click="goToUpcoming" class="text-xs text-primary hover:text-amber-300 font-bold">View All →</button>
             </div>
             <div class="flex gap-2 overflow-x-auto pb-1">
+              <button @click="selectedUpcomingDay=''; currentView=currentView==='upcoming'?'upcoming':'home'"
+                :class="!selectedUpcomingDay ? 'bg-primary text-black border-primary' : 'bg-slate-900 text-slate-300 border-slate-800 hover:border-slate-700'"
+                class="flex-shrink-0 border rounded-xl px-4 py-2.5 text-left transition">
+                <span class="block text-[10px] font-black uppercase tracking-wider">All</span>
+                <span class="block text-[9px] opacity-70 mt-0.5">{{ upcomingEvents.length }} events</span>
+              </button>
               <button v-for="day in upcomingDayTabs" :key="day.key" @click="selectUpcomingDay(day.key)"
                 :class="selectedUpcomingDay===day.key ? 'bg-primary text-black border-primary' : 'bg-slate-900 text-slate-300 border-slate-800 hover:border-slate-700'"
                 class="flex-shrink-0 border rounded-xl px-4 py-2.5 text-left transition">
@@ -316,7 +322,7 @@
                     class="rounded-lg px-2 py-1.5 text-center text-[10px] font-black">{{ btn.odd ? Number(btn.odd).toFixed(2) : '-' }}</button>
                 </div>
                 <button @click="openMatchDetail(match)" class="flex-shrink-0 bg-slate-800 hover:bg-slate-700 border border-slate-700 rounded-lg px-2.5 py-2 text-[10px] font-black text-primary transition">
-                  More · {{ formatCount(match.marketCount) }}
+                  More · {{ formatCount(match.selectionCount) }}
                 </button>
               </div>
             </div>
@@ -333,6 +339,12 @@
             <button @click="resetToHome" class="text-xs text-primary font-bold">← Home</button>
           </div>
           <div class="flex gap-2 overflow-x-auto pb-1">
+              <button @click="selectedUpcomingDay=''; currentView=currentView==='upcoming'?'upcoming':'home'"
+                :class="!selectedUpcomingDay ? 'bg-primary text-black border-primary' : 'bg-slate-900 text-slate-300 border-slate-800 hover:border-slate-700'"
+                class="flex-shrink-0 border rounded-xl px-4 py-2.5 text-left transition">
+                <span class="block text-[10px] font-black uppercase tracking-wider">All</span>
+                <span class="block text-[9px] opacity-70 mt-0.5">{{ upcomingEvents.length }} events</span>
+              </button>
             <button v-for="day in upcomingDayTabs" :key="day.key" @click="selectUpcomingDay(day.key)"
               :class="selectedUpcomingDay===day.key ? 'bg-primary text-black border-primary' : 'bg-slate-900 text-slate-300 border-slate-800 hover:border-slate-700'"
               class="flex-shrink-0 border rounded-xl px-4 py-2.5 text-left transition">
@@ -356,7 +368,7 @@
               <div class="flex-1 min-w-0 cursor-pointer" @click="openMatchDetail(match)">
                 <p class="text-[9px] text-slate-500 uppercase font-bold truncate">{{ match.sport_title }}</p>
                 <p class="text-sm font-black text-white truncate">{{ match.homeTeam }} <span class="text-slate-600">vs</span> {{ match.awayTeam }}</p>
-                <p class="text-[9px] text-slate-600 mt-1">{{ formatCount(match.marketCount) }} markets · {{ formatCount(match.selectionCount) }} selections</p>
+                <p class="text-[9px] text-slate-600 mt-1">{{ formatCount(match.marketCount) }} market types · {{ formatCount(match.selectionCount) }} selections</p>
               </div>
               <div class="hidden sm:grid grid-cols-3 gap-1.5 w-44">
                 <button v-for="(btn,i) in h2hBtnsForDb(match)" :key="i"
@@ -951,22 +963,24 @@ export default {
     },
     upcomingDayTabs() {
       const base = new Date();
-      const make = (d, label) => ({
-        key: this.dateKey(d),
-        label,
-        dateLabel: d.toLocaleDateString(undefined, { month: 'short', day: 'numeric' }),
-      });
-      const today = new Date(base);
-      const tomorrow = new Date(base); tomorrow.setDate(tomorrow.getDate() + 1);
-      const sat = new Date(base);
-      sat.setDate(sat.getDate() + ((6 - sat.getDay() + 7) % 7));
-      const sun = new Date(sat); sun.setDate(sun.getDate() + 1);
-      return [make(today,'Today'), make(tomorrow,'Tomorrow'), make(sat,'Saturday'), make(sun,'Sunday')];
+      const tabs = [];
+      for (let i = 0; i < 14; i++) {
+        const d = new Date(base);
+        d.setDate(d.getDate() + i);
+        const label = i === 0 ? 'Today' : i === 1 ? 'Tomorrow' : d.toLocaleDateString(undefined, { weekday: 'short' });
+        tabs.push({
+          key: this.dateKey(d),
+          label,
+          dateLabel: d.toLocaleDateString(undefined, { month: 'short', day: 'numeric' }),
+        });
+      }
+      return tabs;
     },
     selectedUpcomingDayLabel() {
       return this.upcomingDayTabs.find(d => d.key === this.selectedUpcomingDay)?.label || 'Upcoming';
     },
     upcomingDayEvents() {
+      if (!this.selectedUpcomingDay) return this.upcomingEvents;
       return this.upcomingEvents.filter(m => this.dateKey(new Date(m.commenceTime)) === this.selectedUpcomingDay);
     },
     featuredUpcoming() {
