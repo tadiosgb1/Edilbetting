@@ -53,6 +53,15 @@ async function syncAll() {
   logger.info(`cronScheduler: full sync completed for ${events.length} upcoming events`);
 }
 
+async function startupSyncIfNeeded() {
+  const existingEvents = await Event.count();
+  if (existingEvents > 0) {
+    logger.info(`startup sync skipped: database already contains ${existingEvents} events`);
+    return;
+  }
+  await syncAll();
+}
+
 function start() {
   const enabled = String(process.env.CRON_RUN || '').toLowerCase() === 'true';
 
@@ -60,7 +69,7 @@ function start() {
     logger.info('cronScheduler: recurring jobs disabled (CRON_RUN=false)');
     const startupSync = String(process.env.CRON_STARTUP_SYNC ?? 'true').toLowerCase() === 'true';
     if (startupSync) {
-      void syncAll().catch(err => logger.error(`startup sync failed: ${err.message}`));
+      void startupSyncIfNeeded().catch(err => logger.error(`startup sync failed: ${err.message}`));
     }
     return;
   }
@@ -123,7 +132,7 @@ function start() {
   // completely offline startup is required.
   const startupSync = String(process.env.CRON_STARTUP_SYNC ?? 'true').toLowerCase() === 'true';
   if (startupSync) {
-    void syncAll().catch(err => logger.error(`startup sync failed: ${err.message}`));
+    void startupSyncIfNeeded().catch(err => logger.error(`startup sync failed: ${err.message}`));
   }
 }
 
