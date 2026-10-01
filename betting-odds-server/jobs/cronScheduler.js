@@ -10,7 +10,7 @@ const {
   syncOddsForEvents,
   ENABLED_SPORTS,
 } = require('../Services/Syncservice');
-const { Event } = require('../Models');
+const { Event, EventMarket, OddsCurrent } = require('../Models');
 
 let jobs = [];
 
@@ -54,11 +54,22 @@ async function syncAll() {
 }
 
 async function startupSyncIfNeeded() {
-  const existingEvents = await Event.count();
-  if (existingEvents > 0) {
-    logger.info(`startup sync skipped: database already contains ${existingEvents} events`);
+  const [eventCount, marketCount, oddsCount] = await Promise.all([
+    Event.count(),
+    EventMarket.count(),
+    OddsCurrent.count(),
+  ]);
+
+  if (eventCount > 0 && marketCount > 0 && oddsCount > 0) {
+    logger.info(
+      `startup sync skipped: database already has events=${eventCount}, markets=${marketCount}, odds=${oddsCount}`,
+    );
     return;
   }
+
+  logger.info(
+    `startup sync required: events=${eventCount}, markets=${marketCount}, odds=${oddsCount}`,
+  );
   await syncAll();
 }
 
