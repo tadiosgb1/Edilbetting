@@ -43,42 +43,16 @@ async function listEvents(req, res) {
     let drawRow = findOutcome(null, 'Draw');
     let awayRow = findOutcome(json.awayTeam, 'Away');
 
-    // Temporary odds fallback: persist generated 1X2 prices in odds_current so
-    // the /bets endpoint can lock the exact same odds when the player books.
-    const randomOdd = () => Number((1.01 + Math.random() * (6 - 1.01)).toFixed(2));
-    const createFallback = async (outcomeName) => {
-      const price = randomOdd();
-      return OddsCurrent.create({
-        eventId: json.eventId,
-        marketKey: 'h2h',
-        outcomeName,
-        point: null,
-        description: null,
-        sourcePrice: price,
-        displayPrice: price,
-        bookmakerKey: 'temporary_random',
-        suspended: false,
-        lastUpdate: new Date(),
-        fetchedAt: new Date(),
-      });
-    };
-
-    if (!homeRow) {
-      homeRow = await createFallback(json.homeTeam);
-    }
-    if (!drawRow) {
-      drawRow = await createFallback('Draw');
-    }
-    if (!awayRow) {
-      awayRow = await createFallback(json.awayTeam);
-    }
+    const homeOdd = homeRow ? Number(homeRow.displayPrice) : null;
+    const drawOdd = drawRow ? Number(drawRow.displayPrice) : null;
+    const awayOdd = awayRow ? Number(awayRow.displayPrice) : null;
 
     return {
       ...json,
       odds: {
-        home: Number(homeRow.displayPrice),
-        draw: Number(drawRow.displayPrice),
-        away: Number(awayRow.displayPrice),
+        home: homeOdd,
+        draw: drawOdd,
+        away: awayOdd,
       },
     };
   }));
