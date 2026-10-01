@@ -1065,7 +1065,9 @@ export default {
 
     formatCount(value) {
       const n = Number(value) || 0;
-      return n >= 100 ? `${Math.floor(n / 100) * 100}+` : String(n);
+      if (n >= 100) return `${Math.floor(n / 100) * 100}+`;
+      if (n >= 5) return `${n}+`;
+      return String(n);
     },
 
     goToSports() {
