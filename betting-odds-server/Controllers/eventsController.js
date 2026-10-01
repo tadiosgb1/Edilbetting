@@ -112,19 +112,15 @@ async function syncSportEventsNow(req, res) {
   }
 
   const { sportKey } = req.params;
-  const previous = process.env.ENABLED_SPORTS;
-  if (!previous) process.env.ENABLED_SPORTS = sportKey;
-
   try {
-    const count = await syncEvents();
+    const count = await syncEvents([sportKey]);
     const events = await Event.findAll({
       where: { sportKey },
       order: [['commenceTime', 'ASC']],
     });
     res.json({ success: true, sportKey, synced: count, count: events.length, data: events });
   } finally {
-    if (previous === undefined) delete process.env.ENABLED_SPORTS;
-    else process.env.ENABLED_SPORTS = previous;
+    // no process-wide environment mutation
   }
 }
 
