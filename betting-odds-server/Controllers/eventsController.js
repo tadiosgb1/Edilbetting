@@ -184,6 +184,51 @@ async function getEventMarkets(req, res) {
 }
 
 /**
+ * GET /api/events/:sportKey/:eventId/markets-with-odds
+ * Available markets for one event plus the current DB odds for those markets.
+ * This endpoint never calls the upstream provider.
+ */
+async function getEventMarketsWithOdds(req, res) {
+  const { sportKey, eventId } = req.params;
+  const event = await Event.findOne({ where: { eventId, sportKey } });
+  if (!event) return res.status(404).json({ success: false, error: 'Event not found.' });
+
+  const [marketRows, oddsRows] = await Promise.all([
+    EventMarket.findAll({
+      where: { eventId, isAvailable: true },
+      order: [['marketKey', 'ASC'], ['bookmakerKey', 'ASC']],
+    }),
+    OddsCurrent.findAll({
+      where: { eventId, suspended: false },
+      order: [['marketKey', 'ASC'], ['outcomeName', 'ASC']],
+    }),
+  ]);
+
+  const available = new Set(marketRows.map(row => row.marketKey));
+  const grouped = {};
+  for (const row of oddsRows) {
+    if (!available.has(row.marketKey)) continue;
+    if (!grouped[row.marketKey]) grouped[row.marketKey] = [];
+    grouped[row.marketKey].push({
+      name: row.outcomeName,
+      price: Number(row.displayPrice),
+      point: row.point !== null ? Number(row.point) : null,
+      description: row.description || null,
+      source: row.bookmakerKey,
+      lastUpdate: row.lastUpdate,
+    });
+  }
+
+  res.json({
+    success: true,
+    eventId,
+    sportKey,
+    availableMarketCount: available.size,
+    markets: grouped,
+  });
+}
+
+/**
  * GET /api/events/:sportKey/:eventId
  * Single event by ID with its current odds.
  */
@@ -200,4 +245,4 @@ async function getEvent(req, res) {
   res.json({ success: true, data: event });
 }
 
-module.exports = { listEvents, listTodayEvents, listLiveEvents, syncSportEventsNow, syncEventNow, getEventMarkets, getEvent };
+module.exports = { listEvents, listTodayEvents, listLiveEvents, syncSportEventsNow, syncEventNow, getEventMarkets, getEventMarketsWithOdds, getEvent };
