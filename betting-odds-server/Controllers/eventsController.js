@@ -335,6 +335,7 @@ async function getEventMarketsWithOdds(req, res) {
     eventId,
     sportKey,
     availableMarketCount: available.size,
+    totalSelectionCount: Object.values(grouped).reduce((total, outcomes) => total + outcomes.length, 0),
     markets: grouped,
   });
 }
