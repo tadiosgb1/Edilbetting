@@ -618,7 +618,7 @@
             <div v-for="group in filteredDetailMarkets" :key="group.key"
               class="bg-slate-900 border border-slate-800 rounded-xl overflow-hidden">
               <!-- Group header (click to collapse) -->
-              <button @click="toggleMarketGroup(group.key)"
+              <button @click="group.key !== 'h2h' && toggleMarketGroup(group.key)"
                 class="w-full flex items-center justify-between px-4 py-3 hover:bg-slate-800/60 transition">
                 <div class="flex items-center gap-2">
                   <svg class="w-3.5 h-3.5 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -628,7 +628,7 @@
                   <span class="text-[9px] font-black bg-slate-800 text-primary border border-slate-700 rounded-full px-2 py-0.5">{{ group.outcomes.length }} selections</span>
                 </div>
                 <svg class="w-4 h-4 text-slate-500 transition-transform duration-200"
-                  :class="openMarketGroups[group.key] ? 'rotate-180':''"
+                   :class="(group.key === 'h2h' || openMarketGroups[group.key]) ? 'rotate-180':''"
                   fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
                 </svg>
@@ -637,8 +637,8 @@
               <div v-if="openMarketGroups[group.key]" class="px-4 pb-4">
                 <div :class="group.outcomes.length <= 2 ? 'grid grid-cols-2 gap-2' : group.outcomes.length === 3 ? 'grid grid-cols-3 gap-2' : 'grid grid-cols-2 gap-2'">
                   <button v-for="(outcome, oi) in group.outcomes" :key="oi"
-                    @click="toggleBet(detailMatch, outcome.name + (outcome.point ? ' '+outcome.point : ''), outcome.price)"
-                    :class="isSelectionActive(detailMatch.id, outcome.name + (outcome.point ? ' '+outcome.point : ''))
+                    @click="toggleBet(detailMatch, outcome.name + (outcome.point ? ' '+outcome.point : ''), outcome.price, group.key, outcome.point, outcome.description)"
+                    :class="isSelectionActive(detailMatch.id, outcome.name + (outcome.point ? ' '+outcome.point : ''), group.key, outcome.point)
                       ? 'bg-primary text-black border-primary'
                       : 'bg-slate-800 hover:bg-slate-700 text-slate-200 border-slate-700'"
                     class="border rounded-lg px-3 py-2.5 flex items-center justify-between transition">
@@ -973,7 +973,7 @@ export default {
       return this.upcomingEvents.filter(m => m.odds.home || m.odds.draw || m.odds.away).slice(0, 6);
     },
     topUpcoming() {
-      return this.upcomingEvents.slice(0, 8);
+      return this.upcomingEvents.filter(m => m.sport_key === 'soccer_epl').concat(this.upcomingEvents.filter(m => m.sport_key !== 'soccer_epl')).slice(0, 8);
     },
     totalOdds() {
       return this.betSlip.length ? this.betSlip.reduce((a, b) => a * b.odd, 1) : 0;
@@ -1169,7 +1169,7 @@ export default {
     async fetchUpcomingEvents() {
       this.loadingUpcoming = true;
       try {
-        const r = await fetch(`${this.api}/events/upcoming?days=7&limit=100`);
+        const r = await fetch(`${this.api}/events/upcoming?days=30&limit=250`);
         const d = await r.json();
         if (!r.ok || !d.success) throw new Error(d.error || `HTTP ${r.status}`);
         this.upcomingEvents = (d.data || []).map(this.transformUpcomingEvent);
@@ -1345,6 +1345,7 @@ export default {
         this.detailMarkets.slice(0, 3).forEach(m => {
           this.openMarketGroups[m.key] = true;
         });
+        this.openMarketGroups = { ...this.openMarketGroups, h2h: true };
       }
     },
 
@@ -1393,25 +1394,45 @@ export default {
     },
 
     // ── Bet slip ──────────────────────────────────────────────────────────
-    toggleBet(match, selection, odd) {
-      const id    = match.id;
+    toggleBet(match, selection, odd, marketKey='h2h', point=null, description=null) {
+      const id = match.id;
       const title = `${match.homeTeam ?? match.home_team} vs ${match.awayTeam ?? match.away_team}`;
-      const idx   = this.betSlip.findIndex(b => b.matchId===id && b.selection===selection);
-      if (idx > -1) { this.betSlip.splice(idx, 1); return; }
-      const existing = this.betSlip.findIndex(b => b.matchId===id);
-      if (existing > -1) this.betSlip.splice(existing, 1);
-
-      // Keep the UI selection label, but also retain the exact backend outcome name.
       let outcomeName = selection;
       if (selection === 'Home Win (1)') outcomeName = match.homeTeam ?? match.home_team;
       else if (selection === 'Draw (X)') outcomeName = 'Draw';
       else if (selection === 'Away Win (2)') outcomeName = match.awayTeam ?? match.away_team;
 
-      this.betSlip.push({ matchId:id, matchTitle:title, selection, outcomeName, odd });
+      const same = b =>
+        b.matchId === id &&
+        b.marketKey === marketKey &&
+        b.outcomeName === outcomeName &&
+        String(b.point ?? '') === String(point ?? '');
+
+      const idx = this.betSlip.findIndex(same);
+      if (idx > -1) {
+        this.betSlip.splice(idx, 1);
+        return;
+      }
+
+      this.betSlip.push({
+        matchId: id,
+        matchTitle: title,
+        selection,
+        outcomeName,
+        marketKey,
+        point,
+        description,
+        odd: Number(odd),
+      });
     },
 
-    isSelectionActive(matchId, selection) {
-      return this.betSlip.some(b => b.matchId===matchId && b.selection===selection);
+    isSelectionActive(matchId, selection, marketKey='h2h', point=null) {
+      return this.betSlip.some(b =>
+        b.matchId === matchId &&
+        b.marketKey === marketKey &&
+        b.selection === selection &&
+        String(b.point ?? '') === String(point ?? '')
+      );
     },
 
     removeBet(idx) { this.betSlip.splice(idx, 1); },
@@ -1432,9 +1453,10 @@ export default {
       try {
         const selections = this.betSlip.map(item => ({
           eventId: item.matchId,
-          marketKey: 'h2h',
+          marketKey: item.marketKey || 'h2h',
           outcomeName: item.outcomeName || item.selection,
-          point: null,
+          point: item.point ?? null,
+          description: item.description ?? null,
         }));
 
         const res = await fetch(`${this.api}/bets`, {
