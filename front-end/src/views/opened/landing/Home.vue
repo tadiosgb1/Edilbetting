@@ -518,7 +518,7 @@
                   <template v-if="getMarketCount(match.id) !== null && getMarketCount(match.id) > 0">
                     <!-- Real count shown after user has visited the detail once -->
                     <span class="text-primary font-black text-sm leading-none group-hover:text-amber-300">
-                      {{ getMarketCount(match.id) }}+
+                      {{ formatCount(getMarketCount(match.id)) }}
                     </span>
                   </template>
                   <template v-else>
@@ -1193,9 +1193,12 @@ export default {
       try {
         // Sport/league events come from the backend event endpoint.
         // Example: GET /api/events/soccer_epl
-        const r = await fetch(`${this.api}/events/${encodeURIComponent(sportKey)}`);
+        const r = await fetch(`${this.api}/events/${encodeURIComponent(sportKey)}?status=upcoming&from=${encodeURIComponent(new Date().toISOString())}`);
         const d = await r.json();
-        if (d.success) this.matches = d.data.map(ev => this.transformEvent(ev));
+        if (d.success) {
+          this.matches = d.data.map(ev => this.transformEvent(ev));
+          this.marketCounts = Object.fromEntries(this.matches.map(m => [m.id, m.marketCount]));
+        }
       } catch (e) { console.error('fetchOdds/events', e); }
       finally { this.loadingOdds = false; }
       // Additional markets are intentionally still fetched lazily from
@@ -1266,6 +1269,8 @@ export default {
         homeScore:    null,
         awayScore:    null,
         odds: { home, draw, away, over:null, under:null, bttsYes:null, bttsNo:null },
+        marketCount: Number(ev.marketCount) || 0,
+        selectionCount: Number(ev.selectionCount) || 0,
       };
     },
 
