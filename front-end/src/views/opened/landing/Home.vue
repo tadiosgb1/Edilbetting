@@ -26,7 +26,7 @@
               :class="currentView === 'home' ? 'bg-primary/10 text-primary' : 'text-slate-400 hover:text-white hover:bg-slate-800/60'"
               class="px-3 py-1.5 rounded text-sm font-semibold transition">🏠 Home</button>
             <button @click="goToSports"
-              :class="['sports','live','detail'].includes(currentView) ? 'bg-primary/10 text-primary' : 'text-slate-400 hover:text-white hover:bg-slate-800/60'"
+              :class="['sports','live','upcoming','detail'].includes(currentView) ? 'bg-primary/10 text-primary' : 'text-slate-400 hover:text-white hover:bg-slate-800/60'"
               class="px-3 py-1.5 rounded text-sm font-semibold transition">⚽ Sports</button>
             <button @click="goToLive"
               :class="currentView === 'live' ? 'bg-red-500/10 text-red-400' : 'text-slate-400 hover:text-white hover:bg-slate-800/60'"
@@ -131,20 +131,6 @@
           </div>
         </div>
 
-        <!-- Top Matches / Upcoming -->
-        <div class="p-3 border-b border-slate-800">
-          <div class="flex gap-2">
-            <button @click="goToSports()"
-              class="flex-1 flex items-center justify-center gap-1.5 bg-slate-800 hover:bg-slate-700 border border-slate-700 rounded-lg py-2 text-[10px] font-black text-primary uppercase tracking-wide transition">
-              ⭐ Top Matchess
-            </button>
-            <button @click="goToLive()"
-              class="flex-1 flex items-center justify-center gap-1.5 bg-slate-800 hover:bg-slate-700 border border-slate-700 rounded-lg py-2 text-[10px] font-black text-slate-400 hover:text-white uppercase tracking-wide transition">
-              <span class="w-1.5 h-1.5 rounded-full bg-red-500 animate-pulse"></span>Upcoming
-            </button>
-          </div>
-        </div>
-
         <!-- TOP LEAGUES (always visible above sport types) -->
         <div class="border-b border-slate-800">
           <div class="px-3 pt-3 pb-1 flex items-center justify-between">
@@ -235,79 +221,151 @@
 
         <!-- ── HOME VIEW ── -->
         <div v-if="currentView==='home'" class="p-3 md:p-4 space-y-5">
-          <!-- Hero Banner -->
           <div class="relative bg-gradient-to-r from-primary-dense via-amber-700 to-slate-900 rounded-xl p-5 md:p-6 overflow-hidden shadow-xl">
-            <div class="absolute right-0 top-0 w-48 h-full opacity-10">
-              <svg viewBox="0 0 100 100" fill="currentColor" class="text-white w-full h-full">
-                <circle cx="75" cy="25" r="40"/><circle cx="30" cy="70" r="30"/>
-              </svg>
-            </div>
             <div class="relative">
-              <span class="inline-block bg-black/30 text-amber-200 text-[10px] font-black uppercase tracking-widest px-2 py-1 rounded mb-2">🎁 Welcome Bonus</span>
-              <h1 class="text-xl md:text-3xl font-black text-white leading-tight">100% First Deposit Bonus</h1>
-              <p class="text-amber-200 text-sm mt-1">Up to <span class="font-black text-white">5,000 ETB</span></p>
-              <button @click="openAuth('register')"
+              <span class="inline-block bg-black/30 text-amber-200 text-[10px] font-black uppercase tracking-widest px-2 py-1 rounded mb-2">⚽ Upcoming Football & Sports</span>
+              <h1 class="text-xl md:text-3xl font-black text-white leading-tight">Bet on the matches coming next</h1>
+              <p class="text-amber-200 text-sm mt-1">Live event data and current odds from your local betting database.</p>
+              <button @click="goToUpcoming"
                 class="mt-4 inline-flex items-center gap-2 bg-black hover:bg-slate-900 text-primary font-black px-5 py-2.5 rounded-lg text-sm transition border border-primary/30">
-                Claim Bonus →
+                Browse Upcoming →
               </button>
             </div>
           </div>
 
-          <!-- Featured Matches -->
+          <!-- Day navigation -->
           <div>
-            <div class="flex items-center justify-between mb-3">
-              <h2 class="text-sm font-black text-white uppercase tracking-wide flex items-center gap-2">
-                🔥 Featured Matches
-                <span v-if="loadingTopMatches" class="text-[10px] text-primary font-normal animate-pulse">Loading…</span>
-              </h2>
-              <button @click="goToSports()" class="text-xs text-primary hover:text-amber-300 font-bold">View All →</button>
+            <div class="flex items-center justify-between mb-2">
+              <h2 class="text-sm font-black text-white uppercase tracking-wide">📅 Upcoming Matches</h2>
+              <button @click="goToUpcoming" class="text-xs text-primary hover:text-amber-300 font-bold">View All →</button>
             </div>
-            <div v-if="!loadingTopMatches && topMatches.length===0"
-              class="bg-slate-900 border border-slate-800 rounded-lg p-6 text-center text-slate-500 text-sm">
-              No featured matches available right now.
-            </div>
-            <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-3">
-              <div v-for="match in topMatches" :key="match.id"
-                class="bg-slate-900 border border-slate-800 hover:border-primary/30 rounded-xl p-3.5 transition cursor-pointer"
-                @click="selectLeague(match.sport_key)">
-                <div class="flex justify-between items-center text-[10px] text-slate-500 mb-2.5">
-                  <span class="font-bold uppercase tracking-wider flex items-center gap-1">
-                    {{ leagueFlag(match.sport_key) }} {{ match.sport_title }}
-                  </span>
-                  <span v-if="isLive(match.commence_time)" class="text-red-400 font-black flex items-center gap-1 animate-pulse">
-                    <span class="w-1.5 h-1.5 rounded-full bg-red-500"></span> LIVE
-                  </span>
-                  <span v-else class="text-slate-500">{{ formatDate(match.commence_time) }}</span>
-                </div>
-                <div class="mb-3">
-                  <p class="font-black text-white text-sm leading-tight">{{ match.home_team }}</p>
-                  <p class="text-slate-500 text-[10px] my-0.5 font-bold uppercase">vs</p>
-                  <p class="font-black text-white text-sm leading-tight">{{ match.away_team }}</p>
-                </div>
-                <div v-if="getH2HOdds(match)" class="grid grid-cols-3 gap-1.5">
-                  <button v-for="(btn,i) in h2hBtns(match)" :key="i"
-                    v-if="btn.odd"
-                    @click.stop="toggleBet(match, btn.sel, btn.odd)"
-                    :class="isSelectionActive(match.id,btn.sel) ? 'bg-primary text-black':'bg-slate-800 hover:bg-slate-700 text-slate-200'"
-                    class="rounded-lg p-1.5 text-center transition flex flex-col items-center">
-                    <span class="text-[9px] text-slate-400 font-bold uppercase">{{ btn.label }}</span>
-                    <span class="font-black text-xs">{{ btn.odd.toFixed(2) }}</span>
-                  </button>
-                </div>
-                <div v-else class="text-[10px] text-slate-600 text-center py-1">Odds not available</div>
-              </div>
+            <div class="flex gap-2 overflow-x-auto pb-1">
+              <button v-for="day in upcomingDayTabs" :key="day.key" @click="selectUpcomingDay(day.key)"
+                :class="selectedUpcomingDay===day.key ? 'bg-primary text-black border-primary' : 'bg-slate-900 text-slate-300 border-slate-800 hover:border-slate-700'"
+                class="flex-shrink-0 border rounded-xl px-4 py-2.5 text-left transition">
+                <span class="block text-[10px] font-black uppercase tracking-wider">{{ day.label }}</span>
+                <span class="block text-[9px] opacity-70 mt-0.5">{{ day.dateLabel }}</span>
+              </button>
             </div>
           </div>
 
-          <!-- Top Leagues grid -->
-          <div>
-            <h2 class="text-sm font-black text-white uppercase tracking-wide mb-3">🏆 Top Leagues</h2>
-            <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-2">
-              <button v-for="lg in topLeagues" :key="lg.key"
-                @click="selectLeague(lg.key)"
-                class="bg-slate-900 hover:bg-slate-800 border border-slate-800 hover:border-primary/40 rounded-xl p-3 text-center transition group">
-                <div class="text-2xl mb-1">{{ leagueFlag(lg.key) }}</div>
-                <p class="text-xs font-bold text-slate-300 group-hover:text-primary transition leading-tight truncate">{{ lg.title }}</p>
+          <!-- Featured upcoming -->
+          <section>
+            <div class="flex items-center justify-between mb-3">
+              <h2 class="text-sm font-black text-white uppercase tracking-wide">🔥 Featured Upcoming</h2>
+              <span v-if="loadingUpcoming" class="text-[10px] text-primary animate-pulse">Loading…</span>
+            </div>
+            <div v-if="!loadingUpcoming && featuredUpcoming.length===0"
+              class="bg-slate-900 border border-slate-800 rounded-xl p-6 text-center text-slate-500 text-sm">
+              No upcoming events are currently stored in the database.
+            </div>
+            <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-3">
+              <div v-for="match in featuredUpcoming" :key="match.id"
+                class="bg-slate-900 border border-slate-800 hover:border-primary/30 rounded-xl p-3.5 transition cursor-pointer"
+                @click="openMatchDetail(match)">
+                <div class="flex justify-between items-center text-[10px] text-slate-500 mb-2.5">
+                  <span class="font-bold uppercase tracking-wider flex items-center gap-1 truncate">{{ leagueFlag(match.sport_key) }} {{ match.sport_title }}</span>
+                  <span class="text-primary font-black ml-2 flex-shrink-0">{{ formatShortTime(match.commenceTime) }}</span>
+                </div>
+                <div class="mb-3">
+                  <p class="font-black text-white text-sm leading-tight">{{ match.homeTeam }}</p>
+                  <p class="text-slate-500 text-[10px] my-0.5 font-bold uppercase">vs</p>
+                  <p class="font-black text-white text-sm leading-tight">{{ match.awayTeam }}</p>
+                </div>
+                <div class="grid grid-cols-3 gap-1.5">
+                  <button v-for="(btn,i) in h2hBtnsForDb(match)" :key="i"
+                    @click.stop="btn.odd && toggleBet(match, btn.sel, btn.odd)"
+                    :class="btn.odd ? (isSelectionActive(match.id,btn.sel) ? 'bg-primary text-black' : 'bg-slate-800 hover:bg-slate-700 text-slate-200') : 'bg-slate-800/50 text-slate-600 cursor-default'"
+                    class="rounded-lg p-1.5 text-center transition flex flex-col items-center">
+                    <span class="text-[9px] font-bold uppercase">{{ btn.label }}</span>
+                    <span class="font-black text-xs">{{ btn.odd ? Number(btn.odd).toFixed(2) : '-' }}</span>
+                  </button>
+                </div>
+                <div class="mt-2 flex items-center justify-between text-[9px] text-slate-500">
+                  <span>Markets: <b class="text-slate-300">{{ formatCount(match.marketCount) }}</b></span>
+                  <span>Selections: <b class="text-slate-300">{{ formatCount(match.selectionCount) }}</b></span>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <!-- Day matches -->
+          <section>
+            <div class="flex items-center justify-between mb-3">
+              <h2 class="text-sm font-black text-white uppercase tracking-wide">{{ selectedUpcomingDayLabel }} Matches</h2>
+              <span class="text-[10px] text-slate-500">{{ upcomingDayEvents.length }} event{{ upcomingDayEvents.length===1?'':'s' }}</span>
+            </div>
+            <div v-if="upcomingDayEvents.length===0" class="bg-slate-900 border border-slate-800 rounded-xl p-6 text-center text-slate-500 text-sm">
+              No events stored for this date.
+            </div>
+            <div v-else class="space-y-2">
+              <div v-for="match in upcomingDayEvents.slice(0,12)" :key="match.id"
+                class="bg-slate-900 border border-slate-800 hover:border-slate-700 rounded-xl p-3 flex items-center gap-3 transition">
+                <div class="w-16 flex-shrink-0 text-center">
+                  <p class="text-primary font-black text-xs">{{ formatShortTime(match.commenceTime) }}</p>
+                  <p class="text-[9px] text-slate-600 mt-1">{{ leagueFlag(match.sport_key) }}</p>
+                </div>
+                <div class="flex-1 min-w-0 cursor-pointer" @click="openMatchDetail(match)">
+                  <p class="text-[9px] text-slate-500 uppercase font-bold truncate">{{ match.sport_title }}</p>
+                  <p class="text-xs font-black text-white truncate mt-0.5">{{ match.homeTeam }} <span class="text-slate-600">vs</span> {{ match.awayTeam }}</p>
+                </div>
+                <div class="hidden sm:grid grid-cols-3 gap-1.5 w-44">
+                  <button v-for="(btn,i) in h2hBtnsForDb(match)" :key="i"
+                    @click="btn.odd && toggleBet(match, btn.sel, btn.odd)"
+                    :class="btn.odd ? (isSelectionActive(match.id,btn.sel) ? 'bg-primary text-black' : 'bg-slate-800 hover:bg-slate-700 text-slate-200') : 'bg-slate-800/50 text-slate-600'"
+                    class="rounded-lg px-2 py-1.5 text-center text-[10px] font-black">{{ btn.odd ? Number(btn.odd).toFixed(2) : '-' }}</button>
+                </div>
+                <button @click="openMatchDetail(match)" class="flex-shrink-0 bg-slate-800 hover:bg-slate-700 border border-slate-700 rounded-lg px-2.5 py-2 text-[10px] font-black text-primary transition">
+                  More · {{ formatCount(match.marketCount) }}
+                </button>
+              </div>
+            </div>
+          </section>
+        </div>
+
+        <!-- ── UPCOMING VIEW ── -->
+        <div v-else-if="currentView==='upcoming'" class="p-3 md:p-4 space-y-4">
+          <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+            <div>
+              <p class="text-[10px] text-slate-500 uppercase font-black tracking-widest">Home / Upcoming</p>
+              <h2 class="text-lg font-black text-white mt-1">Upcoming Events</h2>
+            </div>
+            <button @click="resetToHome" class="text-xs text-primary font-bold">← Home</button>
+          </div>
+          <div class="flex gap-2 overflow-x-auto pb-1">
+            <button v-for="day in upcomingDayTabs" :key="day.key" @click="selectUpcomingDay(day.key)"
+              :class="selectedUpcomingDay===day.key ? 'bg-primary text-black border-primary' : 'bg-slate-900 text-slate-300 border-slate-800 hover:border-slate-700'"
+              class="flex-shrink-0 border rounded-xl px-4 py-2.5 text-left transition">
+              <span class="block text-[10px] font-black uppercase">{{ day.label }}</span>
+              <span class="block text-[9px] opacity-70 mt-0.5">{{ day.dateLabel }}</span>
+            </button>
+          </div>
+          <div v-if="loadingUpcoming" class="space-y-2">
+            <div v-for="n in 6" :key="n" class="h-20 bg-slate-900 border border-slate-800 rounded-xl animate-pulse"></div>
+          </div>
+          <div v-else-if="upcomingDayEvents.length===0" class="bg-slate-900 border border-slate-800 rounded-xl p-10 text-center text-slate-500">
+            No upcoming events for {{ selectedUpcomingDayLabel.toLowerCase() }}.
+          </div>
+          <div v-else class="space-y-2">
+            <div v-for="match in upcomingDayEvents" :key="match.id"
+              class="bg-slate-900 border border-slate-800 rounded-xl p-3 flex items-center gap-3">
+              <div class="w-16 flex-shrink-0 text-center">
+                <p class="text-primary font-black text-xs">{{ formatShortTime(match.commenceTime) }}</p>
+                <p class="text-[9px] text-slate-600 mt-1">{{ leagueFlag(match.sport_key) }}</p>
+              </div>
+              <div class="flex-1 min-w-0 cursor-pointer" @click="openMatchDetail(match)">
+                <p class="text-[9px] text-slate-500 uppercase font-bold truncate">{{ match.sport_title }}</p>
+                <p class="text-sm font-black text-white truncate">{{ match.homeTeam }} <span class="text-slate-600">vs</span> {{ match.awayTeam }}</p>
+                <p class="text-[9px] text-slate-600 mt-1">{{ formatCount(match.marketCount) }} markets · {{ formatCount(match.selectionCount) }} selections</p>
+              </div>
+              <div class="hidden sm:grid grid-cols-3 gap-1.5 w-44">
+                <button v-for="(btn,i) in h2hBtnsForDb(match)" :key="i"
+                  @click="btn.odd && toggleBet(match, btn.sel, btn.odd)"
+                  :class="btn.odd ? (isSelectionActive(match.id,btn.sel) ? 'bg-primary text-black' : 'bg-slate-800 hover:bg-slate-700 text-slate-200') : 'bg-slate-800/50 text-slate-600'"
+                  class="rounded-lg px-2 py-2 text-center text-xs font-black">{{ btn.odd ? Number(btn.odd).toFixed(2) : '-' }}</button>
+              </div>
+              <button @click="openMatchDetail(match)" class="bg-primary text-black rounded-lg px-3 py-2 text-[10px] font-black flex-shrink-0">
+                More · {{ formatCount(match.marketCount) }}
               </button>
             </div>
           </div>
@@ -567,6 +625,7 @@
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z"/>
                   </svg>
                   <span class="text-sm font-bold text-slate-200">{{ group.label }}</span>
+                  <span class="text-[9px] font-black bg-slate-800 text-primary border border-slate-700 rounded-full px-2 py-0.5">{{ group.outcomes.length }} selections</span>
                 </div>
                 <svg class="w-4 h-4 text-slate-500 transition-transform duration-200"
                   :class="openMarketGroups[group.key] ? 'rotate-180':''"
@@ -598,8 +657,40 @@
 
       </main>
 
-      <!-- ════ RIGHT BET SLIP ════ -->
+      <!-- ════ RIGHT RAIL ════ -->
       <aside class="w-80 bg-slate-900 border-l border-slate-800 hidden lg:flex flex-col flex-shrink-0" style="height:calc(100vh - 56px);position:sticky;top:56px;">
+        <div class="p-3 border-b border-slate-800 flex-shrink-0">
+          <div class="grid grid-cols-2 gap-2">
+            <button @click="goToUpcoming"
+              :class="currentView==='upcoming' ? 'bg-primary text-black' : 'bg-slate-800 text-slate-300 hover:bg-slate-700'"
+              class="rounded-lg py-2.5 text-[10px] font-black uppercase transition">📅 Upcoming</button>
+            <button @click="resetToHome"
+              :class="currentView==='home' ? 'bg-primary text-black' : 'bg-slate-800 text-slate-300 hover:bg-slate-700'"
+              class="rounded-lg py-2.5 text-[10px] font-black uppercase transition">🔥 Top Matches</button>
+          </div>
+        </div>
+
+        <div class="p-3 border-b border-slate-800 flex-shrink-0">
+          <div class="flex items-center justify-between mb-2">
+            <h3 class="font-black text-xs uppercase tracking-wide text-white">Featured Upcoming</h3>
+            <span class="text-[9px] text-slate-500">{{ upcomingEvents.length }} events</span>
+          </div>
+          <div class="space-y-1.5 max-h-64 overflow-y-auto custom-scroll">
+            <button v-for="match in topUpcoming" :key="match.id" @click="openMatchDetail(match)"
+              class="w-full text-left bg-slate-950 hover:bg-slate-800 border border-slate-800 rounded-lg p-2.5 transition">
+              <div class="flex justify-between gap-2">
+                <span class="text-[9px] text-slate-500 truncate">{{ match.sport_title }}</span>
+                <span class="text-[9px] text-primary font-bold flex-shrink-0">{{ formatShortTime(match.commenceTime) }}</span>
+              </div>
+              <p class="text-[10px] font-black text-white truncate mt-1">{{ match.homeTeam }} vs {{ match.awayTeam }}</p>
+              <div class="flex justify-between mt-1.5 text-[9px] text-slate-500">
+                <span>{{ formatCount(match.marketCount) }} markets</span>
+                <span class="text-primary font-black">{{ formatCount(match.selectionCount) }} selections</span>
+              </div>
+            </button>
+          </div>
+        </div>
+
         <div class="px-4 py-3 bg-slate-800/80 border-b border-slate-700 flex justify-between items-center flex-shrink-0">
           <h3 class="font-black text-sm uppercase tracking-wide text-primary">📋 Bet Slip</h3>
           <div class="flex items-center gap-2">
@@ -609,54 +700,25 @@
           </div>
         </div>
         <div v-if="betSlip.length===0" class="flex-1 flex flex-col justify-center items-center p-6 text-center text-slate-600">
-          <svg class="w-14 h-14 mb-3 opacity-30" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
-          </svg>
+          <svg class="w-14 h-14 mb-3 opacity-30" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10V7a2 2 0 00-2-2H9z"/></svg>
           <p class="text-sm font-bold text-slate-500">No selections yet</p>
           <p class="text-xs text-slate-600 mt-1">Click any odds to add</p>
         </div>
         <div v-else class="flex-1 overflow-y-auto p-3 space-y-2">
-          <div v-for="(item,idx) in betSlip" :key="idx"
-            class="bg-slate-950 border border-slate-800 rounded-lg p-3 relative">
-            <button @click="removeBet(idx)"
-              class="absolute top-2 right-2 w-5 h-5 flex items-center justify-center rounded text-slate-600 hover:text-red-400 hover:bg-slate-800 transition text-xs font-black">✕</button>
+          <div v-for="(item,idx) in betSlip" :key="idx" class="bg-slate-950 border border-slate-800 rounded-lg p-3 relative">
+            <button @click="removeBet(idx)" class="absolute top-2 right-2 w-5 h-5 rounded text-slate-600 hover:text-red-400 transition text-xs font-black">✕</button>
             <p class="text-[10px] text-slate-500 font-bold uppercase tracking-wider truncate pr-5">{{ item.matchTitle }}</p>
             <p class="text-primary font-black text-sm mt-1 truncate">{{ item.selection }}</p>
-            <div class="flex justify-between items-center mt-1.5">
-              <span class="text-[10px] text-slate-500">Odds</span>
-              <span class="text-white font-black text-sm">{{ item.odd.toFixed(2) }}</span>
-            </div>
+            <div class="flex justify-between items-center mt-1.5"><span class="text-[10px] text-slate-500">Odds</span><span class="text-white font-black text-sm">{{ item.odd.toFixed(2) }}</span></div>
           </div>
         </div>
         <div v-if="betSlip.length>0" class="p-4 bg-slate-950 border-t border-slate-800 space-y-3 flex-shrink-0">
-          <div class="flex justify-between text-xs">
-            <span class="text-slate-400 font-bold uppercase tracking-wide">Total Odds</span>
-            <span class="text-primary font-black text-base">{{ totalOdds.toFixed(2) }}</span>
+          <div class="flex justify-between text-xs"><span class="text-slate-400 font-bold uppercase">Total Odds</span><span class="text-primary font-black text-base">{{ totalOdds.toFixed(2) }}</span></div>
+          <div><label class="text-[10px] text-slate-500 font-black uppercase tracking-widest block mb-1.5">Stake (ETB)</label>
+            <input v-model.number="stakeAmount" type="number" min="10" step="10" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2.5 text-sm text-white font-bold focus:outline-none focus:border-primary transition"/>
           </div>
-          <div>
-            <label class="text-[10px] text-slate-500 font-black uppercase tracking-widest block mb-1.5">Stake (ETB)</label>
-            <div class="relative">
-              <input v-model.number="stakeAmount" type="number" min="10" step="10"
-                class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2.5 text-sm text-white font-bold focus:outline-none focus:border-primary transition pr-12"/>
-              <span class="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-slate-500 font-bold">ETB</span>
-            </div>
-            <div class="flex gap-1.5 mt-2">
-              <button v-for="q in [50,100,200,500]" :key="q" @click="stakeAmount=q"
-                class="flex-1 text-[10px] font-black bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-primary rounded py-1 transition">{{ q }}</button>
-            </div>
-          </div>
-          <div class="bg-slate-900 rounded-lg px-3 py-2.5 flex justify-between items-center border border-slate-800">
-            <span class="text-xs text-slate-400 font-bold uppercase tracking-wide">Payout</span>
-            <span class="text-emerald-400 font-black text-lg">{{ potentialPayout.toFixed(2) }} <span class="text-xs font-bold">ETB</span></span>
-          </div>
-          <button @click="placeBet" :disabled="stakeAmount<=0||isSubmitting"
-            class="w-full bg-primary hover:bg-primary active:scale-[0.98] disabled:opacity-50 text-black font-black py-3 rounded-xl text-sm transition uppercase tracking-wider shadow-lg shadow-primary/20 flex items-center justify-center gap-2">
-            <svg v-if="isSubmitting" class="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
-              <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/>
-              <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"/>
-            </svg>
-            {{ isSubmitting ? 'Placing…' : '🎲 Book Bet →' }}
-          </button>
+          <div class="bg-slate-900 rounded-lg px-3 py-2.5 flex justify-between items-center border border-slate-800"><span class="text-xs text-slate-400 font-bold uppercase">Payout</span><span class="text-emerald-400 font-black text-lg">{{ potentialPayout.toFixed(2) }} <span class="text-xs font-bold">ETB</span></span></div>
+          <button @click="placeBet" :disabled="stakeAmount<=0||isSubmitting" class="w-full bg-primary hover:bg-primary disabled:opacity-50 text-black font-black py-3 rounded-xl text-sm transition uppercase tracking-wider shadow-lg shadow-primary/20">{{ isSubmitting ? 'Placing…' : '🎲 Book Bet →' }}</button>
         </div>
       </aside>
     </div>
@@ -816,7 +878,7 @@ export default {
       api: import.meta.env.VITE_BACKEND_URL || 'http://localhost:3000/api',
 
       // UI
-      currentView:      'home',   // 'home' | 'sports' | 'live' | 'detail'
+      currentView:      'home',   // 'home' | 'sports' | 'live' | 'upcoming' | 'detail'
       detailBackView:   'sports', // where the back button in detail returns to
       mobileMenuOpen:   false,
       mobileDrawer:     null,
@@ -847,6 +909,8 @@ export default {
       // Matches
       matches:          [],
       topMatches:       [],
+      upcomingEvents:   [],
+      selectedUpcomingDay: '',
 
       // Match detail
       detailMatch:        null,
@@ -865,6 +929,7 @@ export default {
       loadingLeagues:     false,
       loadingTopLeagues:  false,
       loadingTopMatches:  false,
+      loadingUpcoming:     false,
       loadingOdds:        false,
 
       // Bet slip
@@ -883,6 +948,32 @@ export default {
   computed: {
     filteredMatches() {
       return this.filterLive ? this.matches.filter(m => m.isLive) : this.matches;
+    },
+    upcomingDayTabs() {
+      const base = new Date();
+      const make = (d, label) => ({
+        key: this.dateKey(d),
+        label,
+        dateLabel: d.toLocaleDateString(undefined, { month: 'short', day: 'numeric' }),
+      });
+      const today = new Date(base);
+      const tomorrow = new Date(base); tomorrow.setDate(tomorrow.getDate() + 1);
+      const sat = new Date(base);
+      sat.setDate(sat.getDate() + ((6 - sat.getDay() + 7) % 7));
+      const sun = new Date(sat); sun.setDate(sun.getDate() + 1);
+      return [make(today,'Today'), make(tomorrow,'Tomorrow'), make(sat,'Saturday'), make(sun,'Sunday')];
+    },
+    selectedUpcomingDayLabel() {
+      return this.upcomingDayTabs.find(d => d.key === this.selectedUpcomingDay)?.label || 'Upcoming';
+    },
+    upcomingDayEvents() {
+      return this.upcomingEvents.filter(m => this.dateKey(new Date(m.commenceTime)) === this.selectedUpcomingDay);
+    },
+    featuredUpcoming() {
+      return this.upcomingEvents.filter(m => m.odds.home || m.odds.draw || m.odds.away).slice(0, 6);
+    },
+    topUpcoming() {
+      return this.upcomingEvents.slice(0, 8);
     },
     totalOdds() {
       return this.betSlip.length ? this.betSlip.reduce((a, b) => a * b.odd, 1) : 0;
@@ -930,7 +1021,7 @@ export default {
         this.fetchBalance(),
         this.fetchSportTypes(),
         this.fetchTopLeagues(),
-        this.fetchTopMatches(),
+        this.fetchUpcomingEvents(),
       ]);
       await this.fetchOdds(this.selectedSportKey);
     },
@@ -945,6 +1036,36 @@ export default {
       this.currentView  = 'home';
       this.detailMatch  = null;
       this.filterLive   = false;
+    },
+
+    goToUpcoming() {
+      this.currentView = 'upcoming';
+      this.filterLive = false;
+      this.detailMatch = null;
+      if (!this.upcomingEvents.length) this.fetchUpcomingEvents();
+    },
+
+    selectUpcomingDay(dayKey) {
+      this.selectedUpcomingDay = dayKey;
+      this.currentView = this.currentView === 'upcoming' ? 'upcoming' : 'home';
+    },
+
+    dateKey(date) {
+      const d = new Date(date);
+      const y = d.getFullYear();
+      const m = String(d.getMonth() + 1).padStart(2, '0');
+      const day = String(d.getDate()).padStart(2, '0');
+      return `${y}-${m}-${day}`;
+    },
+
+    formatShortTime(value) {
+      const d = new Date(value);
+      return Number.isNaN(d.getTime()) ? '--:--' : d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    },
+
+    formatCount(value) {
+      const n = Number(value) || 0;
+      return n >= 100 ? `${Math.floor(n / 100) * 100}+` : String(n);
     },
 
     goToSports() {
@@ -1042,15 +1163,26 @@ export default {
       finally { this.loadingTopLeagues = false; }
     },
 
-    // ── API: top matches (home hero strip) ────────────────────────────────
-    async fetchTopMatches() {
-      this.loadingTopMatches = true;
+    // ── API: upcoming events for Home/Upcoming — DB only ────────────────
+    async fetchUpcomingEvents() {
+      this.loadingUpcoming = true;
       try {
-        const r = await fetch(`${this.api}/sports/top-matches?markets=h2h&regions=eu`);
+        const r = await fetch(`${this.api}/events/upcoming?days=7&limit=100`);
         const d = await r.json();
-        if (d.success) this.topMatches = d.data;
-      } catch (e) { console.error('fetchTopMatches', e); }
-      finally { this.loadingTopMatches = false; }
+        if (!r.ok || !d.success) throw new Error(d.error || `HTTP ${r.status}`);
+        this.upcomingEvents = (d.data || []).map(this.transformUpcomingEvent);
+        this.topMatches = this.upcomingEvents.slice(0, 8);
+        if (!this.selectedUpcomingDay) {
+          this.selectedUpcomingDay = this.dateKey(new Date());
+        }
+      } catch (e) {
+        console.error('fetchUpcomingEvents', e);
+        this.upcomingEvents = [];
+        this.topMatches = [];
+        this.showToast('Could not load upcoming events from the database', 'error');
+      } finally {
+        this.loadingUpcoming = false;
+      }
     },
 
     // ── API: odds for a league ────────────────────────────────────────────
@@ -1083,6 +1215,33 @@ export default {
       } catch {
         return 0;
       }
+    },
+
+    transformUpcomingEvent(ev) {
+      const home = Number.isFinite(Number(ev.odds?.home)) ? Number(ev.odds.home) : null;
+      const draw = Number.isFinite(Number(ev.odds?.draw)) ? Number(ev.odds.draw) : null;
+      const away = Number.isFinite(Number(ev.odds?.away)) ? Number(ev.odds.away) : null;
+      return {
+        id: ev.eventId,
+        sport_key: ev.sportKey,
+        sport_title: ev.sportTitle || ev.sportKey,
+        homeTeam: ev.homeTeam || '',
+        awayTeam: ev.awayTeam || '',
+        commenceTime: ev.commenceTime,
+        status: ev.status || 'upcoming',
+        isLive: false,
+        odds: { home, draw, away, over:null, under:null, bttsYes:null, bttsNo:null },
+        marketCount: Number(ev.marketCount) || 0,
+        selectionCount: Number(ev.selectionCount) || 0,
+      };
+    },
+
+    h2hBtnsForDb(match) {
+      return [
+        { label:'1', sel:'Home Win (1)', odd: match.odds?.home ?? null },
+        { label:'X', sel:'Draw (X)', odd: match.odds?.draw ?? null },
+        { label:'2', sel:'Away Win (2)', odd: match.odds?.away ?? null },
+      ];
     },
 
     // ── Event transformer ─────────────────────────────────────────────────
