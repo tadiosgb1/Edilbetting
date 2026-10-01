@@ -5,13 +5,25 @@ const { syncOddsForEvent, syncEvents } = require('../Services/Syncservice');
 
 /**
  * GET /api/events/:sportKey
- * List events from our DB. Supports ?from, ?to (ISO date), ?status.
+ * List events from our DB. Supports ?from, ?to (ISO date), ?status, ?search.
+ * Search matches by home team, away team, or event ID.
  */
 async function listEvents(req, res) {
   const { sportKey } = req.params;
   const where = { sportKey };
 
   if (req.query.status) where.status = req.query.status;
+
+  const search = String(req.query.search || '').trim();
+  if (search) {
+    const pattern = `%${search}%`;
+    where[Op.or] = [
+      { homeTeam: { [Op.like]: pattern } },
+      { awayTeam: { [Op.like]: pattern } },
+      { eventId: { [Op.like]: pattern } },
+    ];
+  }
+
   if (req.query.from || req.query.to) {
     where.commenceTime = {};
     if (req.query.from) where.commenceTime[Op.gte] = new Date(req.query.from);
