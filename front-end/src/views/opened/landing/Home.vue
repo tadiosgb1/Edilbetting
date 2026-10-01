@@ -518,18 +518,19 @@
                 </div>
                 <!-- Quick 1X2 in detail header -->
                 <div v-if="detailMatch.odds" class="flex gap-1.5">
-                  <button v-for="(btn,i) in [
+                  <template v-for="(btn,i) in [
                     {label:'1', sel:'Home Win (1)', odd:detailMatch.odds.home},
                     {label:'X', sel:'Draw (X)',     odd:detailMatch.odds.draw},
                     {label:'2', sel:'Away Win (2)', odd:detailMatch.odds.away},
-                  ]" :key="i"
-                    v-if="btn.odd"
-                    @click="toggleBet(detailMatch, btn.sel, btn.odd)"
-                    :class="isSelectionActive(detailMatch.id,btn.sel) ? 'bg-primary text-black border-primary':'bg-slate-700 hover:bg-slate-600 text-slate-200 border-slate-600'"
-                    class="border rounded-lg w-12 h-10 flex flex-col items-center justify-center transition">
-                    <span class="text-[8px] font-black uppercase" :class="isSelectionActive(detailMatch.id,btn.sel)?'text-black':'text-slate-500'">{{ btn.label }}</span>
-                    <span class="font-black text-xs leading-none">{{ btn.odd.toFixed(2) }}</span>
-                  </button>
+                  ]" :key="i">
+                    <button v-if="btn && Number.isFinite(Number(btn.odd))"
+                      @click="toggleBet(detailMatch, btn.sel, Number(btn.odd))"
+                      :class="isSelectionActive(detailMatch.id,btn.sel) ? 'bg-primary text-black border-primary':'bg-slate-700 hover:bg-slate-600 text-slate-200 border-slate-600'"
+                      class="border rounded-lg w-12 h-10 flex flex-col items-center justify-center transition">
+                      <span class="text-[8px] font-black uppercase" :class="isSelectionActive(detailMatch.id,btn.sel)?'text-black':'text-slate-500'">{{ btn.label }}</span>
+                      <span class="font-black text-xs leading-none">{{ Number(btn.odd).toFixed(2) }}</span>
+                    </button>
+                  </template>
                 </div>
               </div>
             </div>
