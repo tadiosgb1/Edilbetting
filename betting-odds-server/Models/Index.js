@@ -18,6 +18,7 @@ const BetSelection = require('./BetSelection');
 const ApiUsageLog = require('./Apiusagelog');
 const AuditLog = require('./Auditlog');
 const Brand = require('./Brand');
+const { MARKET_CATALOG } = require('../Services/marketCatalog');
 
 if (!Event.associations.sport) Event.belongsTo(Sport, { foreignKey: 'sportKey', targetKey: 'sportKey' });
 if (!Sport.associations.events) Sport.hasMany(Event, { foreignKey: 'sportKey', sourceKey: 'sportKey' });
@@ -53,6 +54,28 @@ if (!BetSelection.associations.Event) BetSelection.belongsTo(Event, { foreignKey
 async function initDatabase() {
   await sequelize.authenticate();
   await sequelize.sync({ alter: true });
+
+  const catalogRows = [];
+  for (const [category, keys] of Object.entries(MARKET_CATALOG)) {
+    for (let i = 0; i < keys.length; i++) {
+      const marketKey = keys[i];
+      catalogRows.push({
+        marketKey,
+        displayName: marketKey,
+        category: category === 'gamePeriod' ? 'game_period'
+          : category === 'otherSoccer' ? 'other_soccer'
+          : category === 'playerPropsSoccer' ? 'player_props'
+          : category,
+        tabLabel: category,
+        sortOrder: i,
+        enabled: true,
+      });
+    }
+  }
+  await MarketCatalog.bulkCreate(catalogRows, {
+    updateOnDuplicate: ['displayName', 'category', 'tabLabel', 'sortOrder', 'enabled'],
+  });
+
   await Brand.findOrCreate({ where: { id: 1 }, defaults: { id: 1, primary: '#F59E0B', secondary: '#0F172A', tertiary: '#1E293B' } });
 }
 
