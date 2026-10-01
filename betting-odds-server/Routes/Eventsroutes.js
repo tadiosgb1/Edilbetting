@@ -34,6 +34,7 @@ const asyncHandler = require('../middleware/asyncHandler');
  *     responses:
  *       200: { description: List of events }
  */
+router.get('/upcoming',       asyncHandler(ctrl.listUpcomingEvents));
 router.get('/:sportKey',       asyncHandler(ctrl.listEvents));
 
 /**
