@@ -20,46 +20,61 @@ async function listEvents(req, res) {
 
   const events = await Event.findAll({
     where,
-    include: [
-      { model: Sport, attributes: ['title', 'country'] },
-      {
-        model: OddsCurrent,
-        as: 'odds',
-        attributes: ['marketKey', 'outcomeName', 'point', 'displayPrice', 'suspended'],
-        where: { suspended: false },
-        required: false,
-      },
-    ],
-    order:   [['commenceTime', 'ASC']],
+    include: [{ model: Sport, attributes: ['title', 'country'] }],
+    order: [['commenceTime', 'ASC']],
   });
-  const data = await Promise.all(events.map(async (event) => {
+
+  const eventIds = events.map(event => event.eventId);
+  const [oddsRows, marketRows] = await Promise.all([
+    eventIds.length ? OddsCurrent.findAll({
+      where: { eventId: { [Op.in]: eventIds }, suspended: false },
+      attributes: ['eventId', 'marketKey', 'outcomeName', 'displayPrice', 'suspended'],
+    }) : [],
+    eventIds.length ? EventMarket.findAll({
+      where: { eventId: { [Op.in]: eventIds }, isAvailable: true },
+      attributes: ['eventId', 'marketKey'],
+    }) : [],
+  ]);
+
+  const oddsByEvent = new Map();
+  for (const row of oddsRows) {
+    if (!oddsByEvent.has(row.eventId)) oddsByEvent.set(row.eventId, []);
+    oddsByEvent.get(row.eventId).push(row);
+  }
+
+  const marketsByEvent = new Map();
+  for (const row of marketRows) {
+    if (!marketsByEvent.has(row.eventId)) marketsByEvent.set(row.eventId, new Set());
+    marketsByEvent.get(row.eventId).add(row.marketKey);
+  }
+
+  const data = events.map(event => {
     const json = event.toJSON();
-    const rows = Array.isArray(json.odds) ? json.odds : [];
-    const h2h = rows.filter((row) => row.marketKey === 'h2h' && !row.suspended);
+    const rows = oddsByEvent.get(event.eventId) || [];
+    const h2h = rows.filter(row => row.marketKey === 'h2h');
 
     const findOutcome = (teamName, fallbackName) =>
-      h2h.find((row) => row.outcomeName === teamName || row.outcomeName === fallbackName);
+      h2h.find(row => row.outcomeName === teamName || row.outcomeName === fallbackName);
 
-    let homeRow = findOutcome(json.homeTeam, 'Home');
-    let drawRow = findOutcome(null, 'Draw');
-    let awayRow = findOutcome(json.awayTeam, 'Away');
-
-    const homeOdd = homeRow ? Number(homeRow.displayPrice) : null;
-    const drawOdd = drawRow ? Number(drawRow.displayPrice) : null;
-    const awayOdd = awayRow ? Number(awayRow.displayPrice) : null;
+    const homeRow = findOutcome(json.homeTeam, 'Home');
+    const drawRow = findOutcome(null, 'Draw');
+    const awayRow = findOutcome(json.awayTeam, 'Away');
+    const marketSet = marketsByEvent.get(event.eventId) || new Set();
 
     return {
       ...json,
       odds: {
-        home: homeOdd,
-        draw: drawOdd,
-        away: awayOdd,
+        home: homeRow ? Number(homeRow.displayPrice) : null,
+        draw: drawRow ? Number(drawRow.displayPrice) : null,
+        away: awayRow ? Number(awayRow.displayPrice) : null,
       },
+      marketCount: marketSet.size,
+      selectionCount: rows.length,
     };
-  }));
+  });
+
   res.json({ success: true, sportKey, count: data.length, data });
 }
-
 /**
  * GET /api/events/:sportKey/today
  * Convenience — events whose commenceTime falls in today's UTC day.
