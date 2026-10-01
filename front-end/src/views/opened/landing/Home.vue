@@ -654,6 +654,7 @@ export default {
       filterLive:       false,
       selectedMarket:   '1x2',
       sidebarSearch:    '',
+      searchDebounceTimer: null,
 
       // Auth / user
       isLoggedIn:       false,
@@ -711,6 +712,16 @@ export default {
       // Toast
       toast: { show: false, message: '', type: 'success' },
     };
+  },
+
+  watch: {
+    sidebarSearch(value) {
+      clearTimeout(this.searchDebounceTimer);
+      const query = String(value || '').trim();
+      this.searchDebounceTimer = setTimeout(() => {
+        this.fetchOdds(this.selectedSportKey, query);
+      }, query ? 300 : 0);
+    },
   },
 
   computed: {
@@ -901,6 +912,7 @@ export default {
       this.currentLeagueTitle = title;
       this.currentView        = this.filterLive ? 'live' : 'sports';
       this.detailMatch        = null;
+      this.sidebarSearch      = '';
       await this.fetchOdds(sportKey);
     },
 
@@ -953,14 +965,19 @@ export default {
     },
 
     // ── API: odds for a league ────────────────────────────────────────────
-    async fetchOdds(sportKey) {
+    async fetchOdds(sportKey, search = '') {
       this.loadingOdds  = true;
       this.matches      = [];
       this.marketCounts = {};   // reset counts for the new league
       try {
         // Sport/league events come from the backend event endpoint.
         // Example: GET /api/events/soccer_epl
-        const r = await fetch(`${this.api}/events/${encodeURIComponent(sportKey)}?status=upcoming&from=${encodeURIComponent(new Date().toISOString())}`);
+        const params = new URLSearchParams({
+          status: 'upcoming',
+          from: new Date().toISOString(),
+        });
+        if (String(search || '').trim()) params.set('search', String(search).trim());
+        const r = await fetch(`${this.api}/events/${encodeURIComponent(sportKey)}?${params.toString()}`);
         const d = await r.json();
         if (d.success) {
           this.matches = d.data.map(ev => this.transformEvent(ev));
