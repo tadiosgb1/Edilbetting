@@ -1,6 +1,6 @@
 'use strict';
 const { Op }    = require('sequelize');
-const { Event, Sport, OddsCurrent } = require('../Models');
+const { Event, Sport, EventMarket, OddsCurrent } = require('../Models');
 
 /**
  * GET /api/events/:sportKey
@@ -121,6 +121,40 @@ async function listLiveEvents(req, res) {
   res.json({ success: true, sportKey, count: events.length, data: events });
 }
 
+
+/**
+ * GET /api/events/:sportKey/:eventId/markets
+ * Market keys discovered and persisted for this event.
+ */
+async function getEventMarkets(req, res) {
+  const { sportKey, eventId } = req.params;
+  const event = await Event.findOne({ where: { eventId, sportKey } });
+  if (!event) return res.status(404).json({ success: false, error: 'Event not found.' });
+
+  const markets = await EventMarket.findAll({
+    where: { eventId },
+    order: [['marketKey', 'ASC'], ['bookmakerKey', 'ASC']],
+  });
+
+  const grouped = {};
+  for (const row of markets) {
+    if (!grouped[row.marketKey]) grouped[row.marketKey] = [];
+    grouped[row.marketKey].push({
+      bookmakerKey: row.bookmakerKey,
+      lastUpdate: row.lastUpdate,
+      lastSeenAt: row.lastSeenAt,
+    });
+  }
+
+  res.json({
+    success: true,
+    eventId,
+    sportKey,
+    count: Object.keys(grouped).length,
+    markets: grouped,
+  });
+}
+
 /**
  * GET /api/events/:sportKey/:eventId
  * Single event by ID with its current odds.
@@ -138,4 +172,4 @@ async function getEvent(req, res) {
   res.json({ success: true, data: event });
 }
 
-module.exports = { listEvents, listTodayEvents, listLiveEvents, getEvent };
+module.exports = { listEvents, listTodayEvents, listLiveEvents, getEventMarkets, getEvent };
