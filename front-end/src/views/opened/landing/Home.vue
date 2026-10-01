@@ -425,14 +425,14 @@
                 <template v-else-if="selectedMarket==='ou'">
                   <div class="flex gap-1.5 items-center">
                     <button v-for="(btn,i) in [
-                      {label:'O 2.5', sel:'Over 2.5',  odd:match.odds.over||1.85},
-                      {label:'U 2.5', sel:'Under 2.5', odd:match.odds.under||1.95},
+                      {label:'O 2.5', sel:'Over 2.5',  odd:match.odds.over},
+                      {label:'U 2.5', sel:'Under 2.5', odd:match.odds.under},
                     ]" :key="i"
-                      @click="toggleBet(match, btn.sel, btn.odd)"
+                      @click="btn.odd && toggleBet(match, btn.sel, btn.odd)"
                       :class="isSelectionActive(match.id,btn.sel) ? 'bg-primary text-black border-primary':'bg-slate-800 hover:bg-slate-700 text-slate-200 border-slate-700'"
                       class="border rounded-lg w-14 h-12 flex flex-col items-center justify-center transition flex-shrink-0 cursor-pointer">
                       <span class="text-[9px] font-black uppercase" :class="isSelectionActive(match.id,btn.sel)?'text-black':'text-slate-500'">{{ btn.label }}</span>
-                      <span class="font-black text-sm leading-none">{{ btn.odd.toFixed(2) }}</span>
+                      <span class="font-black text-sm leading-none">{{ btn.odd ? btn.odd.toFixed(2) : '-' }}</span>
                     </button>
                   </div>
                 </template>
@@ -441,14 +441,14 @@
                 <template v-else-if="selectedMarket==='btts'">
                   <div class="flex gap-1.5 items-center">
                     <button v-for="(btn,i) in [
-                      {label:'Yes', sel:'BTTS - Yes', odd:match.odds.bttsYes||1.75},
-                      {label:'No',  sel:'BTTS - No',  odd:match.odds.bttsNo||2.05},
+                      {label:'Yes', sel:'BTTS - Yes', odd:match.odds.bttsYes},
+                      {label:'No',  sel:'BTTS - No',  odd:match.odds.bttsNo},
                     ]" :key="i"
                       @click="toggleBet(match, btn.sel, btn.odd)"
                       :class="isSelectionActive(match.id,btn.sel) ? 'bg-primary text-black border-primary':'bg-slate-800 hover:bg-slate-700 text-slate-200 border-slate-700'"
                       class="border rounded-lg w-14 h-12 flex flex-col items-center justify-center transition flex-shrink-0 cursor-pointer">
                       <span class="text-[9px] font-black uppercase" :class="isSelectionActive(match.id,btn.sel)?'text-black':'text-slate-500'">{{ btn.label }}</span>
-                      <span class="font-black text-sm leading-none">{{ btn.odd.toFixed(2) }}</span>
+                      <span class="font-black text-sm leading-none">{{ btn.odd ? btn.odd.toFixed(2) : '-' }}</span>
                     </button>
                   </div>
                 </template>
@@ -1074,10 +1074,9 @@ export default {
     // Returns the count so it can be shown immediately in the badge if needed.
     async fetchOneMarketCount(sportKey, matchId) {
       try {
-        const r = await fetch(`${this.api}/events/${sportKey}/${matchId}/market-count?regions=eu`);
+        const r = await fetch(`${this.api}/events/${sportKey}/${matchId}/markets`);
         const d = await r.json();
-        const count = d.marketCount ?? 0;
-        // Store in reactive map so badge updates if user returns to list
+        const count = d.count ?? 0;
         this.marketCounts = { ...this.marketCounts, [matchId]: count };
         return count;
       } catch {
@@ -1152,27 +1151,24 @@ export default {
 
       const sportKey = match.sport_key || this.selectedSportKey;
 
-      // Fetch real market count (lazy — only fired on click) and
-      // full event odds in parallel. Both update the UI reactively.
       const [, eventData] = await Promise.all([
         this.fetchOneMarketCount(sportKey, match.id),
-        fetch(`${this.api}/odds/${sportKey}/events/${match.id}?regions=eu`)
+        fetch(`${this.api}/odds/${match.id}`)
           .then(r => r.json())
           .catch(() => null),
       ]);
 
       try {
-        if (eventData?.success && eventData?.data) {
-          this.detailMarkets = this.buildMarketGroups(eventData.data);
+        if (eventData?.success) {
+          this.detailMarkets = this.buildMarketGroups(eventData);
         } else {
-          this.detailMarkets = this.buildFallbackMarkets(match);
+          this.detailMarkets = [];
         }
       } catch (e) {
         console.error('openMatchDetail build', e);
-        this.detailMarkets = this.buildFallbackMarkets(match);
+        this.detailMarkets = [];
       } finally {
         this.loadingDetail = false;
-        // Open first 3 groups by default
         this.detailMarkets.slice(0, 3).forEach(m => {
           this.openMarketGroups[m.key] = true;
         });
@@ -1180,54 +1176,35 @@ export default {
     },
 
     buildMarketGroups(eventData) {
-      const groups = {};
-      (eventData.bookmakers || []).forEach(bm => {
-        (bm.markets || []).forEach(mkt => {
-          const key   = mkt.key;
-          const label = this.marketLabel(key);
-          if (!groups[key]) groups[key] = { key, label, outcomes: [] };
-          (mkt.outcomes || []).forEach(o => {
-            const existing = groups[key].outcomes.find(
-              ex => ex.name === o.name && ex.point === o.point
-            );
-            if (!existing) groups[key].outcomes.push({ name: o.name, price: o.price, point: o.point });
-            else if (o.price > existing.price) existing.price = o.price;
-          });
-        });
-      });
+      const groups = Object.entries(eventData.markets || {}).map(([key, outcomes]) => ({
+        key,
+        label: this.marketLabel(key),
+        outcomes: (outcomes || []).map(o => ({
+          name: o.name,
+          price: Number(o.price),
+          point: o.point ?? null,
+          description: o.description || null,
+          source: o.source || null,
+        })).filter(o => Number.isFinite(o.price)),
+      })).filter(group => group.outcomes.length > 0);
+
       const priority = { h2h:0, totals:1, spreads:2, outrights:3 };
-      return Object.values(groups).sort((a,b) => (priority[a.key]??99) - (priority[b.key]??99));
+      return groups.sort((a,b) => (priority[a.key]??99) - (priority[b.key]??99));
     },
 
     buildFallbackMarkets(match) {
-      const groups = [];
-      if (match.odds) {
-        if (match.odds.home || match.odds.draw || match.odds.away) {
-          groups.push({
-            key: 'h2h', label: '1X2 — Match Result',
-            outcomes: [
-              { name: '1 — ' + match.homeTeam, price: match.odds.home },
-              { name: 'X — Draw',               price: match.odds.draw },
-              { name: '2 — ' + match.awayTeam, price: match.odds.away },
-            ].filter(o => o.price),
-          });
-        }
-        groups.push({
-          key: 'totals', label: 'Over/Under 2.5 Goals',
-          outcomes: [
-            { name: 'Over 2.5',  price: match.odds.over  || 1.85 },
-            { name: 'Under 2.5', price: match.odds.under || 1.95 },
-          ],
-        });
-        groups.push({
-          key: 'btts', label: 'Both Teams to Score',
-          outcomes: [
-            { name: 'Yes', price: match.odds.bttsYes || 1.75 },
-            { name: 'No',  price: match.odds.bttsNo  || 2.05 },
-          ],
-        });
-      }
-      return groups;
+      if (!match?.odds) return [];
+      const outcomes = [
+        { name: match.homeTeam, price: match.odds.home },
+        { name: 'Draw', price: match.odds.draw },
+        { name: match.awayTeam, price: match.odds.away },
+      ].filter(o => Number.isFinite(Number(o.price)));
+
+      return outcomes.length ? [{
+        key: 'h2h',
+        label: '1X2 — Match Result',
+        outcomes,
+      }] : [];
     },
 
     marketLabel(key) {
