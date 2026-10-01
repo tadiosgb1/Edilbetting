@@ -96,6 +96,103 @@ async function listLiveEvents(req, res) {
   res.json({ success: true, sportKey, count: events.length, data: events });
 }
 
+/**
+ * GET /api/events/upcoming
+ * DB-only upcoming event feed for the Home/Upcoming experience.
+ * Returns event-level 1X2 odds plus available market/selection counts.
+ */
+async function listUpcomingEvents(req, res) {
+  const now = new Date();
+  const days = Math.min(Math.max(Number(req.query.days) || 7, 1), 14);
+  const limit = Math.min(Math.max(Number(req.query.limit) || 100, 1), 250);
+  const to = new Date(now.getTime() + days * 24 * 60 * 60 * 1000);
+  const where = {
+    status: 'upcoming',
+    commenceTime: { [Op.gte]: now, [Op.lte]: to },
+  };
+  if (req.query.sportKey) where.sportKey = req.query.sportKey;
+
+  const events = await Event.findAll({
+    where,
+    include: [{ model: Sport, attributes: ['title', 'country'] }],
+    order: [['commenceTime', 'ASC']],
+    limit,
+  });
+
+  const eventIds = events.map(event => event.eventId);
+  if (!eventIds.length) {
+    return res.json({
+      success: true,
+      count: 0,
+      days,
+      data: [],
+    });
+  }
+
+  const [marketRows, oddsRows] = await Promise.all([
+    EventMarket.findAll({
+      where: { eventId: { [Op.in]: eventIds }, isAvailable: true },
+      attributes: ['eventId', 'marketKey'],
+    }),
+    OddsCurrent.findAll({
+      where: { eventId: { [Op.in]: eventIds }, suspended: false },
+      attributes: ['eventId', 'marketKey', 'outcomeName', 'displayPrice'],
+    }),
+  ]);
+
+  const marketsByEvent = new Map();
+  for (const row of marketRows) {
+    if (!marketsByEvent.has(row.eventId)) marketsByEvent.set(row.eventId, new Set());
+    marketsByEvent.get(row.eventId).add(row.marketKey);
+  }
+
+  const oddsByEvent = new Map();
+  for (const row of oddsRows) {
+    if (!oddsByEvent.has(row.eventId)) oddsByEvent.set(row.eventId, []);
+    oddsByEvent.get(row.eventId).push(row);
+  }
+
+  const data = events.map(event => {
+    const json = event.toJSON();
+    const rows = oddsByEvent.get(event.eventId) || [];
+    const h2h = rows.filter(row => row.marketKey === 'h2h');
+    const findOutcome = (teamName, fallbackName) =>
+      h2h.find(row => row.outcomeName === teamName || row.outcomeName === fallbackName);
+
+    const home = findOutcome(json.homeTeam, 'Home');
+    const draw = findOutcome(null, 'Draw');
+    const away = findOutcome(json.awayTeam, 'Away');
+    const marketSet = marketsByEvent.get(event.eventId) || new Set();
+
+    return {
+      eventId: json.eventId,
+      sportKey: json.sportKey,
+      sportTitle: json.Sport?.title || json.sportKey,
+      country: json.Sport?.country || null,
+      homeTeam: json.homeTeam,
+      awayTeam: json.awayTeam,
+      commenceTime: json.commenceTime,
+      status: json.status,
+      odds: {
+        home: home ? Number(home.displayPrice) : null,
+        draw: draw ? Number(draw.displayPrice) : null,
+        away: away ? Number(away.displayPrice) : null,
+      },
+      marketCount: marketSet.size,
+      selectionCount: rows.length,
+    };
+  });
+
+  res.json({
+    success: true,
+    count: data.length,
+    days,
+    from: now.toISOString(),
+    to: to.toISOString(),
+    data,
+  });
+}
+
 
 
 
