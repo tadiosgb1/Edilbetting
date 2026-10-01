@@ -342,4 +342,4 @@ async function getEvent(req, res) {
   res.json({ success: true, data: event });
 }
 
-module.exports = { listEvents, listTodayEvents, listLiveEvents, syncSportEventsNow, syncEventNow, getEventMarkets, getEventMarketsWithOdds, getEvent };
+module.exports = { listEvents, listTodayEvents, listLiveEvents, listUpcomingEvents, syncSportEventsNow, syncEventNow, getEventMarkets, getEventMarketsWithOdds, getEvent };
