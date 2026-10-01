@@ -1,6 +1,7 @@
 'use strict';
 const { Op }    = require('sequelize');
 const { Event, Sport, EventMarket, OddsCurrent } = require('../Models');
+const { syncOddsForEvent } = require('../Services/Syncservice');
 
 /**
  * GET /api/events/:sportKey
@@ -96,6 +97,28 @@ async function listLiveEvents(req, res) {
 }
 
 
+
+/**
+ * POST /api/events/:sportKey/:eventId/sync
+ * One-event manual sync for controlled Postman/sandbox testing.
+ * Disabled unless ODDS_MANUAL_SYNC=true.
+ */
+async function syncEventNow(req, res) {
+  if (String(process.env.ODDS_MANUAL_SYNC || '').toLowerCase() !== 'true') {
+    return res.status(403).json({
+      success: false,
+      error: 'Manual odds sync is disabled. Set ODDS_MANUAL_SYNC=true for controlled testing.',
+    });
+  }
+
+  const { sportKey, eventId } = req.params;
+  const event = await Event.findOne({ where: { eventId, sportKey } });
+  if (!event) return res.status(404).json({ success: false, error: 'Event not found.' });
+
+  const result = await syncOddsForEvent(event);
+  res.json({ success: true, data: result });
+}
+
 /**
  * GET /api/events/:sportKey/:eventId/markets
  * Market keys discovered and persisted for this event.
@@ -146,4 +169,4 @@ async function getEvent(req, res) {
   res.json({ success: true, data: event });
 }
 
-module.exports = { listEvents, listTodayEvents, listLiveEvents, getEventMarkets, getEvent };
+module.exports = { listEvents, listTodayEvents, listLiveEvents, syncEventNow, getEventMarkets, getEvent };
