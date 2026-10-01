@@ -80,6 +80,11 @@ async function discoverEventMarkets(event) {
 
   const seen = new Set();
 
+  await EventMarket.update(
+    { isAvailable: false },
+    { where: { eventId: event.eventId } },
+  );
+
   for (const bookmaker of data?.bookmakers || []) {
     for (const market of bookmaker.markets || []) {
       if (!market.key) continue;
@@ -91,6 +96,7 @@ async function discoverEventMarkets(event) {
         bookmakerKey: bookmaker.key,
         lastUpdate: market.last_update || null,
         lastSeenAt: new Date(),
+        isAvailable: true,
       });
     }
   }
@@ -144,6 +150,13 @@ async function syncOddsForEvent(event) {
 
   const resolved = resolveBestOdds(raw, event.sportKey);
   let updated = 0;
+
+  // Anything not returned by the latest upstream snapshot is no longer
+  // selectable. This prevents stale markets/odds from leaking to the UI.
+  await OddsCurrent.update(
+    { suspended: true },
+    { where: { eventId: event.eventId } },
+  );
   const returnedMarketKeys = new Set(Object.keys(resolved));
 
   for (const [marketKey, marketData] of Object.entries(resolved)) {
