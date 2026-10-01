@@ -1,7 +1,7 @@
 'use strict';
 const { Op }    = require('sequelize');
 const { Event, Sport, EventMarket, OddsCurrent } = require('../Models');
-const { syncOddsForEvent } = require('../Services/Syncservice');
+const { syncOddsForEvent, syncEvents } = require('../Services/Syncservice');
 
 /**
  * GET /api/events/:sportKey
@@ -112,8 +112,13 @@ async function syncEventNow(req, res) {
   }
 
   const { sportKey, eventId } = req.params;
-  const event = await Event.findOne({ where: { eventId, sportKey } });
-  if (!event) return res.status(404).json({ success: false, error: 'Event not found.' });
+  let event = await Event.findOne({ where: { eventId, sportKey } });
+  if (!event) {
+    // /events is a free upstream endpoint, so this does not spend odds quota.
+    await syncEvents();
+    event = await Event.findOne({ where: { eventId, sportKey } });
+  }
+  if (!event) return res.status(404).json({ success: false, error: 'Event not found after refreshing events.' });
 
   const result = await syncOddsForEvent(event);
   res.json({ success: true, data: result });
