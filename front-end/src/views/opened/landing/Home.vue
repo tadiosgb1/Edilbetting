@@ -1151,22 +1151,28 @@ export default {
 
       const sportKey = match.sport_key || this.selectedSportKey;
 
-      const [, eventData] = await Promise.all([
-        this.fetchOneMarketCount(sportKey, match.id),
-        fetch(`${this.api}/odds/${match.id}`)
-          .then(r => r.json())
-          .catch(() => null),
-      ]);
-
       try {
-        if (eventData?.success) {
-          this.detailMarkets = this.buildMarketGroups(eventData);
-        } else {
-          this.detailMarkets = [];
+        // One DB request on More: available markets + their current odds.
+        // No upstream Odds API request is made by the browser.
+        const response = await fetch(
+          `${this.api}/events/${sportKey}/${match.id}/markets-with-odds`
+        );
+        const eventData = await response.json();
+
+        if (!response.ok || !eventData?.success) {
+          throw new Error(eventData?.error || `HTTP ${response.status}`);
         }
+
+        this.marketCounts = {
+          ...this.marketCounts,
+          [match.id]: Number(eventData.availableMarketCount || 0),
+        };
+        this.detailMarkets = this.buildMarketGroups(eventData);
       } catch (e) {
-        console.error('openMatchDetail build', e);
+        console.error('openMatchDetail', e);
+        this.marketCounts = { ...this.marketCounts, [match.id]: 0 };
         this.detailMarkets = [];
+        this.showToast('Could not load markets for this match', 'error');
       } finally {
         this.loadingDetail = false;
         this.detailMarkets.slice(0, 3).forEach(m => {
