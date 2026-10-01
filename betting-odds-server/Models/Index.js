@@ -5,6 +5,7 @@ const sequelize = require('../config/database');
 const Sport = require('./Sport');
 const MarketCatalog = require('./MarketCatalog');
 const Event = require('./Event');
+const EventMarket = require('./Eventmarket');
 const OddsCurrent = require('./Oddscurrent');
 const OddsHistory = require('./Oddshistory');
 const Result = require('./Result');
@@ -20,6 +21,9 @@ const Brand = require('./Brand');
 
 if (!Event.associations.sport) Event.belongsTo(Sport, { foreignKey: 'sportKey', targetKey: 'sportKey' });
 if (!Sport.associations.events) Sport.hasMany(Event, { foreignKey: 'sportKey', sourceKey: 'sportKey' });
+
+if (!Event.associations.markets) Event.hasMany(EventMarket, { foreignKey: 'eventId', sourceKey: 'eventId', as: 'markets' });
+if (!EventMarket.associations.Event) EventMarket.belongsTo(Event, { foreignKey: 'eventId', targetKey: 'eventId' });
 
 if (!OddsCurrent.associations.Event) OddsCurrent.belongsTo(Event, { foreignKey: 'eventId', targetKey: 'eventId' });
 if (!Event.associations.odds) Event.hasMany(OddsCurrent, { foreignKey: 'eventId', sourceKey: 'eventId', as: 'odds' });
@@ -52,4 +56,4 @@ async function initDatabase() {
   await Brand.findOrCreate({ where: { id: 1 }, defaults: { id: 1, primary: '#F59E0B', secondary: '#0F172A', tertiary: '#1E293B' } });
 }
 
-module.exports = { sequelize, initDatabase, Sport, MarketCatalog, Event, OddsCurrent, OddsHistory, Result, User, Wallet, WalletTransaction, PaymentProof, Bet, BetSelection, ApiUsageLog, AuditLog, Brand };
+module.exports = { sequelize, initDatabase, Sport, MarketCatalog, Event, EventMarket, OddsCurrent, OddsHistory, Result, User, Wallet, WalletTransaction, PaymentProof, Bet, BetSelection, ApiUsageLog, AuditLog, Brand };
