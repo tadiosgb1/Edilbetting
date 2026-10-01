@@ -57,7 +57,11 @@ function start() {
   const enabled = String(process.env.CRON_RUN || '').toLowerCase() === 'true';
 
   if (!enabled) {
-    logger.info('cronScheduler: disabled (set CRON_RUN=true to enable upstream synchronization)');
+    logger.info('cronScheduler: recurring jobs disabled (CRON_RUN=false)');
+    const startupSync = String(process.env.CRON_STARTUP_SYNC ?? 'true').toLowerCase() === 'true';
+    if (startupSync) {
+      void syncAll().catch(err => logger.error(`startup sync failed: ${err.message}`));
+    }
     return;
   }
 
@@ -113,9 +117,14 @@ function start() {
   logger.info(`  scores: ${scoresSchedule}`);
   logger.info(`  sports enabled: ${ENABLED_SPORTS.join(',')}`);
 
-  // CRON_RUN=true also performs one synchronization immediately when server.js starts.
-  // Set CRON_RUN=false in sandbox/dev to avoid any upstream quota usage.
-  void syncAll().catch(err => logger.error(`CRON startup sync failed: ${err.message}`));
+  // Recurring cron jobs are controlled by CRON_RUN. The initial server bootstrap
+  // sync is intentionally separate: server.js must populate the local DB on first
+  // startup even when CRON_RUN=false. Set CRON_STARTUP_SYNC=false only when a
+  // completely offline startup is required.
+  const startupSync = String(process.env.CRON_STARTUP_SYNC ?? 'true').toLowerCase() === 'true';
+  if (startupSync) {
+    void syncAll().catch(err => logger.error(`startup sync failed: ${err.message}`));
+  }
 }
 
 function stop() {
