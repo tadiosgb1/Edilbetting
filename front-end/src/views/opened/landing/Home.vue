@@ -718,6 +718,11 @@ export default {
     sidebarSearch(value) {
       clearTimeout(this.searchDebounceTimer);
       const query = String(value || '').trim();
+      if (query) {
+        // Search results belong in the same shared Events/Matches view.
+        this.currentView = 'sports';
+        this.filterLive = false;
+      }
       this.searchDebounceTimer = setTimeout(() => {
         this.fetchOdds(this.selectedSportKey, query);
       }, query ? 300 : 0);
