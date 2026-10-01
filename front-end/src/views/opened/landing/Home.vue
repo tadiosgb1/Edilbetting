@@ -1160,16 +1160,23 @@ export default {
       else if (selection === 'Draw (X)') outcomeName = 'Draw';
       else if (selection === 'Away Win (2)') outcomeName = match.awayTeam ?? match.away_team;
 
-      const same = b =>
-        b.matchId === id &&
-        b.marketKey === marketKey &&
-        b.outcomeName === outcomeName &&
-        String(b.point ?? '') === String(point ?? '');
+      // One selection is allowed per event + market. Clicking another
+      // outcome in the same market replaces the previous selection.
+      // Different markets on the same event can still be selected together.
+      const sameMarket = b => b.matchId === id && b.marketKey === marketKey;
+      const existingIndex = this.betSlip.findIndex(sameMarket);
+      if (existingIndex > -1) {
+        const existing = this.betSlip[existingIndex];
+        const isSameSelection =
+          existing.outcomeName === outcomeName &&
+          String(existing.point ?? '') === String(point ?? '');
 
-      const idx = this.betSlip.findIndex(same);
-      if (idx > -1) {
-        this.betSlip.splice(idx, 1);
-        return;
+        if (isSameSelection) {
+          this.betSlip.splice(existingIndex, 1);
+          return;
+        }
+
+        this.betSlip.splice(existingIndex, 1);
       }
 
       this.betSlip.push({
