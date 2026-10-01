@@ -32,9 +32,9 @@ async function syncSports() {
 }
 
 // ── Events ───────────────────────────────────────────────────────────────────
-async function syncEvents() {
+async function syncEvents(sports = ENABLED_SPORTS) {
   let total = 0;
-  for (const sportKey of ENABLED_SPORTS) {
+  for (const sportKey of sports) {
     let data;
     try {
       data = await callOddsApi(`/sports/${sportKey}/events`, { dateFormat: 'iso' });
