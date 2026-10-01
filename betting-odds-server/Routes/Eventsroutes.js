@@ -63,6 +63,7 @@ router.get('/:sportKey/live',  asyncHandler(ctrl.listLiveEvents));
  */
 router.post('/:sportKey/sync-events', asyncHandler(ctrl.syncSportEventsNow));
 router.post('/:sportKey/:eventId/sync', asyncHandler(ctrl.syncEventNow));
+router.get('/:sportKey/:eventId/markets-with-odds', asyncHandler(ctrl.getEventMarketsWithOdds));
 router.get('/:sportKey/:eventId/markets', asyncHandler(ctrl.getEventMarkets));
 router.get('/:sportKey/:eventId', asyncHandler(ctrl.getEvent));
 
