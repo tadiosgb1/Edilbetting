@@ -677,7 +677,6 @@ export default {
 
       // Matches
       matches:          [],
-      topMatches:       [],
       upcomingEvents:   [],
       selectedUpcomingDay: '',
 
@@ -1063,13 +1062,6 @@ export default {
         { label:'X', sel:'Draw (X)',     odd: o.draw },
         { label:'2', sel:'Away Win (2)', odd: o.away },
       ];
-    },
-
-    // ── Market count badge — reads from the reactive counts map ──────────
-    // Returns null while loading (shows spinner), the real number once fetched.
-    getMarketCount(matchId) {
-      const n = this.marketCounts[matchId];
-      return (n === undefined) ? null : n;
     },
 
     // ── Open match detail view ────────────────────────────────────────────
