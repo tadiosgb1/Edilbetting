@@ -106,7 +106,7 @@ async function getEventMarkets(req, res) {
   if (!event) return res.status(404).json({ success: false, error: 'Event not found.' });
 
   const markets = await EventMarket.findAll({
-    where: { eventId },
+    where: { eventId, isAvailable: true },
     order: [['marketKey', 'ASC'], ['bookmakerKey', 'ASC']],
   });
 
