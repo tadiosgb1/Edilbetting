@@ -10,6 +10,7 @@ const EventMarket = sequelize.define('EventMarket', {
   bookmakerKey:{ type: DataTypes.STRING(60), allowNull: false, field: 'bookmaker_key' },
   lastUpdate:  { type: DataTypes.DATE, field: 'last_update' },
   lastSeenAt:  { type: DataTypes.DATE, allowNull: false, defaultValue: DataTypes.NOW, field: 'last_seen_at' },
+  isAvailable: { type: DataTypes.BOOLEAN, allowNull: false, defaultValue: true, field: 'is_available' },
 }, {
   tableName: 'event_markets',
   updatedAt: false,
