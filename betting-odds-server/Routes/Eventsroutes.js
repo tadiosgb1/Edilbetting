@@ -61,6 +61,7 @@ router.get('/:sportKey/live',  asyncHandler(ctrl.listLiveEvents));
  *     summary: Single event with current odds
  *     tags: [Events]
  */
+router.get('/:sportKey/:eventId/markets', asyncHandler(ctrl.getEventMarkets));
 router.get('/:sportKey/:eventId', asyncHandler(ctrl.getEvent));
 
 module.exports = router;
