@@ -17,7 +17,7 @@ npm install
 | `npm run dev:agent` | Agent workspace | http://localhost:3002 |
 | `npm run dev` | Player sportsbook (default) | http://localhost:3000 |
 
-Each command starts the same Next.js App Router application with a role-specific environment. The root URL redirects to that workspace. Login and registration use phone numbers, and each workspace accepts only an account for its own role.
+Each command starts the same Next.js App Router application with a role-specific environment. The app router lives in `src/app`. The root `scripts/` directory contains Node.js developer tooling (including the role-specific launcher); it intentionally remains outside `src/` because it is not browser application source code.
 
 ## Local demo credentials
 
@@ -41,10 +41,10 @@ Registration is a local browser demo assigned to the role of the running workspa
 
 ## Architecture
 
-- `app/(auth)` — authentication routes
-- `app/(player)` — player sportsbook
-- `app/(admin)` — admin routes and role guard
-- `app/(agent)` — agent routes and role guard
+- `src/app/(auth)` — authentication routes
+- `src/app/(player)` — player sportsbook
+- `src/app/(admin)` — admin routes and role guard
+- `src/app/(agent)` — agent routes and role guard
 - `src/components/auth` — client-side session guard
 - `src/components/ui` — reusable UI primitives
 - `src/components/layout` — shared dashboard layout
