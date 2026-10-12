@@ -1,0 +1,1 @@
+import {AdminAgentLayout} from "@/components/layout/admin-agent-layout";export default function Layout({children}:{children:React.ReactNode}){return <AdminAgentLayout role="agent">{children}</AdminAgentLayout>}
