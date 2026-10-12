@@ -1,5 +1,7 @@
 import { redirect } from "next/navigation";
 
+export const dynamic = "force-dynamic";
+
 const roleRoutes: Record<string, string> = {
   player: "/player",
   admin: "/admin",
