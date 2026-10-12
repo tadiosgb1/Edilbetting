@@ -83,7 +83,46 @@ export default function App() {
           <div className="mb-4 flex flex-col justify-between gap-3 sm:flex-row sm:items-center"><div><div className="flex items-center gap-2"><h2 className="text-xl font-black tracking-tight">{activeNav === 'Live' || sport === 'Live' ? 'Live matches' : activeNav === 'Results' ? 'Match results' : activeNav === 'Promotions' ? 'Featured matches' : 'Sports markets'}</h2><span className="rounded-md bg-edil-green/10 px-2 py-1 text-[10px] font-black text-edil-green">{visibleMarkets.length} EVENTS</span></div><p className="mt-1 text-xs text-slate-500">Choose an outcome to add it to your bet slip</p></div><label className="flex items-center gap-2 rounded-xl border border-white/10 bg-edil-900 px-3 py-2.5 focus-within:border-edil-green/50"><Search size={16} className="text-slate-500"/><input value={search} onChange={e => setSearch(e.target.value)} placeholder="Search teams or leagues..." className="w-full bg-transparent text-sm outline-none placeholder:text-slate-600 sm:w-48"/></label></div>
           <div className="mb-4 flex gap-2 overflow-x-auto pb-1 scrollbar-none">{categories.map(c => <button key={c} onClick={() => { setSport(c); if (c === 'Live') setActiveNav('Sports') }} className={`shrink-0 rounded-lg border px-3 py-2 text-xs font-bold transition ${sport === c ? 'border-edil-green/40 bg-edil-green/10 text-edil-green' : 'border-white/10 bg-edil-900 text-slate-400 hover:text-white'}`}>{c === 'Live' && <span className="mr-1.5 inline-block h-1.5 w-1.5 rounded-full bg-red-500"/>}{c}</button>)}</div>
           <div className="overflow-hidden rounded-2xl border border-white/10 bg-edil-900"><div className="flex items-center justify-between border-b border-white/10 bg-white/[.025] px-4 py-3"><div className="flex items-center gap-2 text-xs font-black uppercase tracking-wider text-slate-300"><Trophy size={15} className="text-edil-green"/> Featured events</div><span className="text-[10px] text-slate-500">1X2 · Match winner</span></div>
-            {visibleMarkets.map((market) => <article key={market.id} className="border-b border-white/[.07] p-4 last:border-0 hover:bg-white/[.015]"><div className="mb-3 flex items-center justify-between gap-2"><p className="truncate text-[9px] font-black tracking-[.13em] text-slate-500">{market.league}</p>{market.live ? <span className="inline-flex shrink-0 items-center gap-1.5 rounded-full bg-red-500/10 px-2 py-1 text-[9px] font-black uppercase text-red-400"><span className="h-1.5 w-1.5 animate-pulse rounded-full bg-red-500"/> Live · {market.score}</span> : <span className="shrink-0 text-[10px] text-slate-500">{market.time}</span>}</div><div className="grid grid-cols-[minmax(0,1fr)_minmax(150px,.9fr)] items-center gap-3"><div className="min-w-0"><p className="truncate text-sm font-bold sm:text-base">{market.home}</p><p className="my-1 text-[10px] font-black uppercase tracking-wider text-slate-600">VS</p><p className="truncate text-sm font-bold sm:text-base">{market.away}</p></div><div className="grid grid-cols-3 gap-1.5">{(['1', 'X', '2'] as const).map((key, i) => { const selected = picks.some(p => p.market.id === market.id && p.selection === key); return <button key={key} onClick={() => togglePick(market, key, market.odds[i])} disabled={market.odds[i] === '—'} className={`flex min-w-0 flex-col items-center justify-center rounded-lg border px-1 py-2.5 transition sm:py-3 ${selected ? 'border-edil-green bg-edil-green text-slate-950 shadow-glow' : 'border-white/[.08] bg-[#111c2d] hover:border-edil-green/50 hover:bg-edil-green/5'} disabled:cursor-not-allowed disabled:opacity-40`}><span className={`text-[9px] font-bold ${selected ? 'text-slate-700' : 'text-slate-500'}`}>{key === '1' ? 'HOME' : key === 'X' ? 'DRAW' : 'AWAY'}</span><span className="mt-1 text-sm font-black tabular-nums">{market.odds[i]}</span></button> })}</div></div></article>})}
+            {visibleMarkets.map((market) => (
+              <article key={market.id} className="border-b border-white/[.07] p-4 last:border-0 hover:bg-white/[.015]">
+                <div className="mb-3 flex items-center justify-between gap-2">
+                  <p className="truncate text-[9px] font-black tracking-[.13em] text-slate-500">{market.league}</p>
+                  {market.live ? (
+                    <span className="inline-flex shrink-0 items-center gap-1.5 rounded-full bg-red-500/10 px-2 py-1 text-[9px] font-black uppercase text-red-400">
+                      <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-red-500" /> Live · {market.score}
+                    </span>
+                  ) : (
+                    <span className="shrink-0 text-[10px] text-slate-500">{market.time}</span>
+                  )}
+                </div>
+                <div className="grid grid-cols-[minmax(0,1fr)_minmax(150px,.9fr)] items-center gap-3">
+                  <div className="min-w-0">
+                    <p className="truncate text-sm font-bold sm:text-base">{market.home}</p>
+                    <p className="my-1 text-[10px] font-black uppercase tracking-wider text-slate-600">VS</p>
+                    <p className="truncate text-sm font-bold sm:text-base">{market.away}</p>
+                  </div>
+                  <div className="grid grid-cols-3 gap-1.5">
+                    {(['1', 'X', '2'] as const).map((key, i) => {
+                      const selected = picks.some((pick) => pick.market.id === market.id && pick.selection === key)
+                      const odd = market.odds[i]
+                      return (
+                        <button
+                          key={key}
+                          onClick={() => togglePick(market, key, odd)}
+                          disabled={odd === "—"}
+                          className={`flex min-w-0 flex-col items-center justify-center rounded-lg border px-1 py-2.5 transition sm:py-3 ${selected ? "border-edil-green bg-edil-green text-slate-950 shadow-glow" : "border-white/[.08] bg-[#111c2d] hover:border-edil-green/50 hover:bg-edil-green/5"} disabled:cursor-not-allowed disabled:opacity-40`}
+                        >
+                          <span className={`text-[9px] font-bold ${selected ? "text-slate-700" : "text-slate-500"}`}>
+                            {key === "1" ? "HOME" : key === "X" ? "DRAW" : "AWAY"}
+                          </span>
+                          <span className="mt-1 text-sm font-black tabular-nums">{odd}</span>
+                        </button>
+                      )
+                    })}
+                  </div>
+                </div>
+              </article>
+            ))}
             {!visibleMarkets.length && <div className="p-10 text-center"><Search className="mx-auto mb-3 text-slate-600" size={24}/><p className="font-bold">No matches found</p><p className="mt-1 text-xs text-slate-500">Try another team name or category.</p></div>}
           </div>
           <p className="mt-3 flex items-start gap-2 text-[10px] leading-5 text-slate-500"><ShieldCheck size={14} className="mt-0.5 shrink-0"/> Odds displayed are sample UI data until connected to your betting-odds server. Bet responsibly. 18+.</p>
