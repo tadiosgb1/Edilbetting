@@ -1,0 +1,1 @@
+import {DashboardShell} from "./dashboard-shell";export function AdminAgentLayout({role,children}:{role:"admin"|"agent";children:React.ReactNode}){return <DashboardShell role={role}>{children}</DashboardShell>}
