@@ -1,0 +1,1 @@
+import {OverviewPage} from "@/components/dashboard/overview-page";export default function AgentPage(){return <OverviewPage role="agent"/>}
