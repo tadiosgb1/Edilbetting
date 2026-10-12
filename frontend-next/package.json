@@ -1,9 +1,36 @@
 {
-  "name": "edilbetting-frontend-next",
+  "name": "edilbetting-multitenant-frontend",
   "private": true,
-  "version": "1.0.0",
+  "version": "1.1.0",
   "type": "module",
-  "scripts": { "dev": "vite", "build": "tsc -b && vite build", "preview": "vite preview" },
-  "dependencies": { "axios": "^1.7.9", "lucide-react": "^0.468.0", "react": "^18.3.1", "react-dom": "^18.3.1", "react-router-dom": "^6.28.1" },
-  "devDependencies": { "@types/react": "^18.3.12", "@types/react-dom": "^18.3.1", "@vitejs/plugin-react": "^4.3.4", "autoprefixer": "^10.4.20", "postcss": "^8.4.49", "tailwindcss": "^3.4.16", "typescript": "~5.6.2", "vite": "^6.0.5" }
+  "scripts": {
+    "dev": "vite --host 0.0.0.0 --port 5173",
+    "dev:player": "vite --mode player --host 0.0.0.0 --port 5173 --strictPort",
+    "dev:agent": "vite --mode agent --host 0.0.0.0 --port 5174 --strictPort",
+    "dev:admin": "vite --mode admin --host 0.0.0.0 --port 5175 --strictPort",
+    "dev:all": "concurrently -k -n player,agent,admin -c green,cyan,magenta \"npm:dev:player\" \"npm:dev:agent\" \"npm:dev:admin\"",
+    "build": "tsc -b && vite build",
+    "build:player": "tsc -b && vite build --mode player",
+    "build:agent": "tsc -b && vite build --mode agent",
+    "build:admin": "tsc -b && vite build --mode admin",
+    "preview": "vite preview --host 0.0.0.0"
+  },
+  "dependencies": {
+    "axios": "^1.7.9",
+    "lucide-react": "^0.468.0",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "react-router-dom": "^6.28.1"
+  },
+  "devDependencies": {
+    "@types/react": "^18.3.12",
+    "@types/react-dom": "^18.3.1",
+    "@vitejs/plugin-react": "^4.3.4",
+    "autoprefixer": "^10.4.20",
+    "concurrently": "^9.1.0",
+    "postcss": "^8.4.49",
+    "tailwindcss": "^3.4.16",
+    "typescript": "~5.6.2",
+    "vite": "^6.0.5"
+  }
 }
