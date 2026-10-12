@@ -12,7 +12,7 @@ if (!(role in ports)) {
 
 const nextBin = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../node_modules/next/dist/bin/next");
 const port = ports[role];
-const child = spawn(process.execPath, [nextBin, "dev", "--hostname", "0.0.0.0", "-p", String(port)], {
+const child = spawn(process.execPath, [nextBin, "dev", "--turbo", "--hostname", "0.0.0.0", "-p", String(port)], {
   stdio: "inherit",
   env: {
     ...process.env,
