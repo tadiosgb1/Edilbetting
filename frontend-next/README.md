@@ -1,49 +1,31 @@
-# EdilBet multi-tenant frontend
+# EdilBet Frontend — Next.js App Router
 
-React, TypeScript, Vite and Tailwind frontend for the EdilBet player, agent and admin experiences. The existing Vue application in `../front-end` remains intact and is the reference for established workflows.
+Next.js App Router, React, TypeScript, Tailwind CSS, Zustand, Axios and Lucide UI foundation.
 
-## Requirements
-- Node.js 20 LTS or newer
-- npm
-
-## Install and run
-From this directory run `npm install`, then use separate terminals:
-
+## Run locally
 ```bash
-npm run dev:player
-npm run dev:agent
-npm run dev:admin
+cd frontend-next
+npm install
+cp .env.example .env.local
+npm run dev
 ```
-
-| Experience | Development URL | Production hostname |
-| --- | --- | --- |
-| Player | http://localhost:5173 | https://edilbet.com |
-| Agent | http://localhost:5174 | https://agent.edilbet.com |
-| Admin | http://localhost:5175 | https://admin.edilbet.com |
-
-Use `npm run dev:all` to launch all three together.
-
-## Commands
-- `npm run dev:player`, `npm run dev:agent`, `npm run dev:admin` — one tenant each
-- `npm run dev:all` — all tenant servers concurrently
-- `npm run build` — TypeScript check and production build
-- `npm run build:player`, `npm run build:agent`, `npm run build:admin` — tenant-mode builds
-- `npm run preview` — preview the default build
-
-## Configuration
-Copy `.env.example` to `.env.local` and set `VITE_API_BASE_URL` to the browser-accessible API base URL. Variables prefixed with `VITE_` are public and embedded in the browser bundle. Never store passwords, signing keys, database credentials or private tokens in frontend environment variables.
+Open http://localhost:3000. Routes: `/auth/login`, `/player`, `/admin`, `/agent`.
 
 ## Architecture
-- `src/tenant.ts` — host/port tenant resolution
-- `src/pages/PlayerSportsPage.tsx` — player sportsbook
-- `src/pages/RoleDashboard.tsx` — role-aware agent/admin dashboard
-- `src/components/DashboardShell.tsx` — responsive workspace navigation and layout
-- `src/App.tsx` — tenant entry point
+- `app/(auth)` — authentication routes
+- `app/(player)` — player sportsbook
+- `app/(admin)` — admin routes and role layout
+- `app/(agent)` — agent routes and role layout
+- `src/components/ui` — reusable Button, Input, Card and Badge primitives
+- `src/components/layout` — shared admin/agent header, sidebar and dashboard shell
+- `src/components/dashboard` — reusable overview modules
+- `src/hooks` — reusable client hooks
+- `src/stores` — Zustand state
+- `src/services` — Axios API client and authentication service
+- `src/lib` — shared utilities
 
-Admin navigation reflects the Vue router's current dashboard areas: users, bets, payment proofs, brands, sports and events. The agent workspace provides players, commissions, transactions and reports. Metrics and records are demo content; unfinished sections are scaffolded, not represented as connected workflows.
+## Environment
+Set `NEXT_PUBLIC_API_BASE_URL` in `.env.local`. Variables prefixed with `NEXT_PUBLIC_` are browser-visible. Keep private credentials server-side.
 
-## Production checklist
-Configure DNS/TLS and route each hostname to the frontend deployment, with SPA fallback enabled. Tenant routing by hostname or port selects presentation only; it is not authorization. Enforce authentication, role permissions, tenant isolation and audit logging on the backend for every protected API. Connect existing authentication, sports, events, bets, payments, users and brands APIs before production. Demo login controls are not suitable for real accounts.
-
-## Mobile and accessibility
-The dashboard uses responsive grids, collapsible mobile navigation, horizontally scrollable data tables and semantic control labels. Test at 320px, 375px, tablet and desktop widths before release.
+## Production requirements
+The login currently demonstrates role selection and navigation only. Connect `authService` to the backend, use secure server-managed sessions, protect routes with server-side authorization, and enforce role permissions and tenant isolation in the backend. Dashboard records and odds are illustrative, not live data. Install dependencies and run the build/typecheck before deployment.
