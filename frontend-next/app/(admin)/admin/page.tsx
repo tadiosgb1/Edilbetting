@@ -1,0 +1,1 @@
+import {OverviewPage} from "@/components/dashboard/overview-page";export default function AdminPage(){return <OverviewPage role="admin"/>}
