@@ -1,9 +1,12 @@
 {
   "name": "edilbetting-frontend",
-  "version": "2.0.0",
+  "version": "2.1.0",
   "private": true,
   "scripts": {
-    "dev": "next dev --hostname 0.0.0.0 -p 3000",
+    "dev": "node scripts/dev-role.mjs player",
+    "dev:player": "node scripts/dev-role.mjs player",
+    "dev:admin": "node scripts/dev-role.mjs admin",
+    "dev:agent": "node scripts/dev-role.mjs agent",
     "build": "next build",
     "start": "next start --hostname 0.0.0.0 -p 3000",
     "lint": "tsc --noEmit",
