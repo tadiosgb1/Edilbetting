@@ -1,0 +1,1 @@
+import type {HTMLAttributes} from "react";import {clsx} from "clsx";export function Badge({className,...props}:HTMLAttributes<HTMLSpanElement>){return <span className={clsx("inline-flex items-center rounded-full border border-[#9fe870]/20 bg-[#9fe870]/10 px-2.5 py-1 text-[11px] font-semibold text-[#b5f391]",className)} {...props}></span>}
