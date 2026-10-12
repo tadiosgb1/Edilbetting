@@ -1,22 +1,12 @@
 import { useMemo, useState } from 'react'
 import type { FormEvent } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
-import { Activity, ArrowDownRight, ArrowUpRight, Bell, ChevronDown, ChevronRight, CircleHelp, Clock3, Flame, Menu, Search, ShieldCheck, Ticket, Trophy, UserRound, Wallet, X, Zap } from 'lucide-react'
+import { useNavigate } from 'react-router-dom'
+import { initialMarkets, sports, categories } from '../data/markets'
+import type { Market, Pick } from '../types/sportsbook'
+import SportsbookStat from '../components/SportsbookStat'
+import { Activity, ArrowDownRight, ArrowUpRight, Bell, ChevronRight, CircleHelp, Clock3, Flame, Menu, Search, ShieldCheck, Ticket, Trophy, UserRound, Wallet, X, Zap } from 'lucide-react'
 
-type Market = { id: string; home: string; away: string; league: string; time: string; sport: string; odds: [string, string, string]; live?: boolean; score?: string }
-type Pick = { market: Market; selection: string; odd: string }
-const initialMarkets: Market[] = [
-  { id: 'm1', home: 'Arsenal', away: 'Chelsea', league: 'ENGLAND · PREMIER LEAGUE', time: 'Today, 20:00', sport: 'Football', odds: ['2.05', '3.40', '3.55'] },
-  { id: 'm2', home: 'Real Madrid', away: 'Barcelona', league: 'SPAIN · LA LIGA', time: 'Today, 21:00', sport: 'Football', odds: ['2.45', '3.60', '2.60'] },
-  { id: 'm3', home: 'Liverpool', away: 'Manchester City', league: 'ENGLAND · PREMIER LEAGUE', time: 'Today, 18:30', sport: 'Football', odds: ['2.80', '3.25', '2.30'], live: true, score: '1 - 1' },
-  { id: 'm4', home: 'Bayern Munich', away: 'Dortmund', league: 'GERMANY · BUNDESLIGA', time: 'Today, 19:30', sport: 'Football', odds: ['1.75', '3.90', '4.20'] },
-  { id: 'm5', home: 'Lakers', away: 'Golden State Warriors', league: 'USA · NBA', time: 'Tomorrow, 02:30', sport: 'Basketball', odds: ['1.88', '—', '1.94'] },
-  { id: 'm6', home: 'Inter Milan', away: 'AC Milan', league: 'ITALY · SERIE A', time: 'Tomorrow, 20:45', sport: 'Football', odds: ['2.15', '3.10', '3.20'] },
-]
-const sports = [{ name: 'Football', icon: '⚽' }, { name: 'Basketball', icon: '🏀' }, { name: 'Tennis', icon: '🎾' }, { name: 'Volleyball', icon: '🏐' }, { name: 'Esports', icon: '🎮' }]
-const categories = ['All matches', 'Live', 'Upcoming', 'Football', 'Basketball']
-
-export default function App() {
+export default function PlayerSportsPage() {
   const [markets] = useState(initialMarkets)
   const [sport, setSport] = useState('All matches')
   const [activeNav, setActiveNav] = useState('Sports')
@@ -74,7 +64,7 @@ export default function App() {
         <div className="relative mt-7 grid max-w-xl grid-cols-3 gap-2 sm:absolute sm:bottom-8 sm:right-8 sm:mt-0 sm:w-[42%]"><div className="rounded-xl border border-white/10 bg-black/20 p-3"><Zap className="mb-2 text-edil-green" size={17}/><p className="text-lg font-black sm:text-2xl">LIVE</p><p className="text-[10px] text-slate-400 sm:text-xs">Match center</p></div><div className="rounded-xl border border-white/10 bg-black/20 p-3"><Trophy className="mb-2 text-edil-green" size={17}/><p className="text-lg font-black sm:text-2xl">Top</p><p className="text-[10px] text-slate-400 sm:text-xs">Competitions</p></div><div className="rounded-xl border border-white/10 bg-black/20 p-3"><Activity className="mb-2 text-edil-green" size={17}/><p className="text-lg font-black sm:text-2xl">Odds</p><p className="text-[10px] text-slate-400 sm:text-xs">Compare markets</p></div></div>
       </section>
 
-      <div className="mb-5 grid grid-cols-2 gap-3 sm:grid-cols-4"><Stat icon={<Activity size={17}/>} label="Matches listed" value={String(markets.length).padStart(2, '0')} note="Across competitions"/><Stat icon={<Zap size={17}/>} label="Live right now" value={String(markets.filter(m => m.live).length).padStart(2, '0')} note="Follow the action"/><Stat icon={<Trophy size={17}/>} label="Sports" value="05+" note="Find your game"/><Stat icon={<Clock3 size={17}/>} label="Market status" value="Open" note="Demo match data"/></div>
+      <div className="mb-5 grid grid-cols-2 gap-3 sm:grid-cols-4"><SportsbookStat icon={<Activity size={17}/>} label="Matches listed" value={String(markets.length).padStart(2, '0')} note="Across competitions"/><SportsbookStat icon={<Zap size={17}/>} label="Live right now" value={String(markets.filter(m => m.live).length).padStart(2, '0')} note="Follow the action"/><SportsbookStat icon={<Trophy size={17}/>} label="Sports" value="05+" note="Find your game"/><SportsbookStat icon={<Clock3 size={17}/>} label="Market status" value="Open" note="Demo match data"/></div>
 
       <div id="markets" className="grid items-start gap-5 lg:grid-cols-[220px_minmax(0,1fr)_300px]">
         <aside className="hidden rounded-2xl border border-white/10 bg-edil-900 p-3 lg:block"><p className="px-3 pb-3 pt-2 text-[10px] font-black uppercase tracking-[.18em] text-slate-500">Browse sports</p>{sports.map((s) => <button key={s.name} onClick={() => { setSport(s.name); setActiveNav('Sports') }} className={`mb-1 flex w-full items-center justify-between rounded-xl px-3 py-3 text-sm font-semibold transition ${sport === s.name ? 'bg-edil-green/10 text-edil-green' : 'text-slate-300 hover:bg-white/5'}`}><span><span className="mr-3">{s.icon}</span>{s.name}</span><ChevronRight size={15} className="text-slate-600"/></button>)}<div className="my-4 border-t border-white/10"/><p className="px-3 pb-3 text-[10px] font-black uppercase tracking-[.18em] text-slate-500">Your account</p><button onClick={() => setAuthOpen('login')} className="flex w-full items-center gap-3 rounded-xl px-3 py-3 text-sm text-slate-300 hover:bg-white/5"><UserRound size={17}/> My account</button><button onClick={() => setAuthOpen('login')} className="flex w-full items-center gap-3 rounded-xl px-3 py-3 text-sm text-slate-300 hover:bg-white/5"><Ticket size={17}/> My bets</button></aside>
@@ -140,7 +130,4 @@ export default function App() {
     {authOpen && <div className="fixed inset-0 z-50 grid place-items-center bg-black/75 p-4 backdrop-blur-sm" onClick={() => { setAuthOpen(null); setNotice('') }}><div role="dialog" aria-modal="true" aria-labelledby="auth-title" className="w-full max-w-md rounded-2xl border border-white/10 bg-edil-900 p-6 shadow-2xl" onClick={e => e.stopPropagation()}><div className="mb-5 flex items-center justify-between"><div><p className="text-xs font-black tracking-[.15em] text-edil-green">WELCOME TO EDILBET</p><h2 id="auth-title" className="mt-2 text-2xl font-black">{authOpen === 'login' ? 'Log in to your account' : 'Create your account'}</h2></div><button onClick={() => { setAuthOpen(null); setNotice('') }} className="rounded-lg p-2 text-slate-400 hover:bg-white/5" aria-label="Close"><X size={18}/></button></div><form onSubmit={submitAuth} className="space-y-4"><label className="block text-xs font-bold text-slate-400">Phone number<input required type="tel" placeholder="+251 9..." className="mt-2 w-full rounded-xl border border-white/10 bg-[#0b1220] px-4 py-3 text-sm text-white outline-none focus:border-edil-green/60"/></label><label className="block text-xs font-bold text-slate-400">Password<input required type="password" minLength={6} placeholder="Enter your password" className="mt-2 w-full rounded-xl border border-white/10 bg-[#0b1220] px-4 py-3 text-sm text-white outline-none focus:border-edil-green/60"/></label>{notice && <p className="rounded-lg bg-amber-400/10 p-3 text-xs leading-5 text-amber-200">{notice}</p>}<button type="submit" className="w-full rounded-xl bg-edil-green py-3.5 text-sm font-black text-slate-950 hover:bg-lime-300">{authOpen === 'login' ? 'Log in' : 'Create account'}</button></form><p className="mt-5 text-center text-xs text-slate-500">{authOpen === 'login' ? 'New to EdilBet?' : 'Already have an account?'} <button onClick={() => { setAuthOpen(authOpen === 'login' ? 'register' : 'login'); setNotice('') }} className="font-bold text-edil-green hover:underline">{authOpen === 'login' ? 'Join now' : 'Log in'}</button></p><p className="mt-4 text-center text-[10px] leading-4 text-slate-600">Frontend preview only. Connect your existing authentication endpoints before production use.</p></div></div>}
   </div>
 }
-
-function Stat({ icon, label, value, note }: { icon: React.ReactNode; label: string; value: string; note: string }) {
-  return <div className="rounded-2xl border border-white/10 bg-edil-900 p-4"><div className="flex items-center justify-between"><span className="text-xs font-semibold text-slate-400">{label}</span><span className="text-edil-green">{icon}</span></div><p className="mt-3 text-2xl font-black tracking-tight">{value}</p><p className="mt-1 text-[10px] text-slate-500">{note}</p></div>
-}
+\n
