@@ -19,13 +19,17 @@ export function DashboardShell({ role, children }: { role: Role; children: React
   const clearUser = useAuthStore((state) => state.clearUser);
   const [mobile, setMobile] = useState(false);
   const [collapsed, setCollapsed] = useState(false);
-  const [profileOpen, setProfileOpen] = useState(false);\n  const [brandPanelOpen, setBrandPanelOpen] = useState(false);\n  const [brandColor, setBrandColor] = useState("#16a34a");
+  const [profileOpen, setProfileOpen] = useState(false);
+  const [brandPanelOpen, setBrandPanelOpen] = useState(false);
+  const [brandColor, setBrandColor] = useState("#16a34a");
   const [theme, setTheme] = useState<"dark" | "light">("dark");
   const admin = role === "admin";
   const nav = admin ? adminNav : agentNav;
 
   useEffect(() => {
-    if (window.localStorage.getItem("edilbet-dashboard-theme") === "light") setTheme("light");\n    const savedBrand = window.localStorage.getItem("edilbet-dashboard-brand");\n    if (savedBrand && /^#[0-9a-fA-F]{6}$/.test(savedBrand)) setBrandColor(savedBrand);
+    if (window.localStorage.getItem("edilbet-dashboard-theme") === "light") setTheme("light");
+    const savedBrand = window.localStorage.getItem("edilbet-dashboard-brand");
+    if (savedBrand && /^#[0-9a-fA-F]{6}$/.test(savedBrand)) setBrandColor(savedBrand);
   }, []);
 
   function toggleTheme() {
@@ -35,7 +39,11 @@ export function DashboardShell({ role, children }: { role: Role; children: React
       return next;
     });
   }
-  function changeBrand(color: string) {\n    setBrandColor(color);\n    window.localStorage.setItem("edilbet-dashboard-brand", color);\n  }\n  function signOut() {
+  function changeBrand(color: string) {
+    setBrandColor(color);
+    window.localStorage.setItem("edilbet-dashboard-brand", color);
+  }
+  function signOut() {
     clearUser();
     router.replace("/auth/login");
   }
@@ -58,7 +66,9 @@ export function DashboardShell({ role, children }: { role: Role; children: React
           <div className="min-w-0"><div className="text-sm font-semibold">{t(admin ? "Admin" : "Agent")}</div></div>
         </div>
         <div className="flex shrink-0 items-center gap-2">
-          <LanguageSelector compact />\n          <button onClick={() => setBrandPanelOpen((open) => !open)} aria-label="Customize brand color" title="Brand appearance" className="dashboard-icon-button rounded-xl border p-2.5"><Palette size={17} /></button>
+          <LanguageSelector compact />
+          <button onClick={() => setBrandPanelOpen((open) => !open)} aria-label="Customize brand color" title="Brand appearance" className="dashboard-icon-button rounded-xl border p-2.5"><Palette size={17} /></button>
+          <button onClick={() => setBrandPanelOpen((open) => !open)} aria-label="Customize brand color" title="Brand appearance" className="dashboard-icon-button rounded-xl border p-2.5"><Palette size={17} /></button>
           <button onClick={toggleTheme} aria-label={theme === "dark" ? "Switch to light mode" : "Switch to dark mode"} title={theme === "dark" ? "Light mode" : "Dark mode"} className="dashboard-icon-button rounded-xl border p-2.5">{theme === "dark" ? <Sun size={17} /> : <Moon size={17} />}</button>
           <button aria-label="Help" title="Help" className="dashboard-icon-button hidden rounded-xl border p-2.5 sm:block"><CircleHelp size={17} /></button>
           <button aria-label="Notifications" title="Notifications" className="dashboard-icon-button rounded-xl border p-2.5"><Bell size={17} /></button>
@@ -77,5 +87,6 @@ export function DashboardShell({ role, children }: { role: Role; children: React
       </header>
       <div className="mx-auto max-w-[1600px] p-4 md:p-8">{children}</div>
     </main>
+    {brandPanelOpen && <><button aria-label="Close brand settings" onClick={() => setBrandPanelOpen(false)} className="fixed inset-0 z-40 bg-black/30" /><aside aria-label="Brand appearance settings" className="dashboard-brand-panel fixed inset-y-0 right-0 z-50 w-[300px] max-w-[88vw] border-l p-5 shadow-2xl"><div className="mb-6 flex items-center justify-between"><h2 className="text-sm font-semibold">Brand appearance</h2><button onClick={() => setBrandPanelOpen(false)} aria-label="Close brand settings" className="dashboard-icon-button rounded-lg p-2"><X size={17} /></button></div><p className="mb-4 text-xs dashboard-muted">Choose an accent color. Saved in this browser until backend brand settings are available.</p><div className="grid grid-cols-2 gap-3">{[{name:"Green",color:"#16a34a"},{name:"Emerald",color:"#059669"},{name:"Teal",color:"#0d9488"},{name:"Blue",color:"#2563eb"},{name:"Amber",color:"#d97706"},{name:"Violet",color:"#7c3aed"}].map((brand) => <button key={brand.color} onClick={() => changeBrand(brand.color)} className={clsx("flex items-center gap-2 rounded-xl border p-3 text-xs font-medium", brandColor === brand.color ? "dashboard-brand-choice-active" : "dashboard-brand-choice")}><span className="h-5 w-5 rounded-full border border-black/10" style={{ backgroundColor: brand.color }} />{brand.name}{brandColor === brand.color && <span className="ml-auto">✓</span>}</button>)}</div><div className="mt-6 border-t pt-5 dashboard-brand-panel-divider"><label htmlFor="custom-brand-color" className="mb-2 block text-xs font-medium">Custom brand color</label><div className="flex items-center gap-3"><input id="custom-brand-color" type="color" value={brandColor} onChange={(event) => changeBrand(event.target.value)} className="h-10 w-12 cursor-pointer rounded border p-1" /><span className="text-xs dashboard-muted">{brandColor.toUpperCase()}</span></div><button onClick={() => changeBrand("#16a34a")} className="dashboard-brand-reset mt-5 w-full rounded-xl px-3 py-2.5 text-xs font-semibold">Reset to green</button></div></aside></>}
   </div>;
 }
