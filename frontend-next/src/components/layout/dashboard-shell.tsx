@@ -76,20 +76,20 @@ export function DashboardShell({ role, children }: { role: Role; children: React
     </aside>
     <main className="dashboard-main min-w-0 flex-1">
       <header className="dashboard-header sticky top-0 z-20 border-b px-3 py-3 backdrop-blur-xl sm:px-5 md:px-8">
-        <div className="flex min-w-0 flex-col gap-3 sm:flex-row sm:items-center sm:justify-between sm:gap-4">
+        <div className="flex min-w-0 flex-row items-center justify-between gap-2 sm:gap-4">
           <div className="flex min-w-0 items-center gap-3">
             <button className="dashboard-icon-button shrink-0 rounded-xl border p-2 md:hidden" onClick={() => setMobile(true)} aria-label="Open navigation"><Menu size={20} /></button>
 <Link href={admin ? "/admin" : "/agent"} className="flex min-w-0 items-center gap-2.5 md:hidden" aria-label="Edilbet dashboard home">
               <span className="grid h-9 w-9 shrink-0 place-items-center bg-[#9fe870] text-sm font-black text-[#10170d]">E</span>
               <span className="min-w-0">
                 <span className="block truncate text-sm font-extrabold tracking-wide">EDIL<span className="text-[#9fe870]">BET</span></span>
-                <span className="block truncate text-[10px] dashboard-muted">{t(admin ? "Admin" : "Agent")} dashboard</span>
+                <span className="hidden truncate text-[10px] dashboard-muted xs:block sm:block">{t(admin ? "Admin" : "Agent")} dashboard</span>
               </span>
             </Link>
             <span className="hidden h-8 w-px shrink-0 bg-current opacity-15 sm:block" />
             <div className="hidden min-w-0 truncate text-sm font-semibold md:block">{t(admin ? "Admin" : "Agent")}</div>
           </div>
-          <div className="flex min-w-0 flex-wrap items-center gap-2 sm:justify-end">
+          <div className="flex min-w-0 flex-wrap items-center justify-end gap-1 sm:gap-2">
             <LanguageSelector compact />
             <button onClick={() => setBrandPanelOpen((open) => !open)} aria-label="Customize appearance" title="Appearance settings" className="dashboard-icon-button grid h-10 w-10 shrink-0 place-items-center rounded-xl border"><Palette size={17} /></button>
             <button onClick={toggleTheme} aria-label={theme === "dark" ? "Switch to light mode" : "Switch to dark mode"} title={theme === "dark" ? "Light mode" : "Dark mode"} className="dashboard-icon-button grid h-10 w-10 shrink-0 place-items-center rounded-xl border">{theme === "dark" ? <Sun size={17} /> : <Moon size={17} />}</button>
