@@ -67,8 +67,7 @@ export function DashboardShell({ role, children }: { role: Role; children: React
     {mobile && <button aria-label="Close navigation" onClick={() => setMobile(false)} className="fixed inset-0 z-30 bg-black/60 md:hidden" />}
     <aside className={clsx("dashboard-sidebar fixed inset-y-0 left-0 z-40 flex flex-col border-r transition-all md:sticky md:top-0 md:h-screen md:translate-x-0", collapsed ? "w-[84px]" : "w-[250px]", mobile ? "translate-x-0" : "-translate-x-full md:translate-x-0")}>
       <div className="flex h-[76px] shrink-0 items-center gap-3 border-b px-4">
-        <div className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-[#9fe870] font-black text-[#10170d]">E</div>
-        {!collapsed && <div className="min-w-0 font-bold">EDIL<span className="text-[#9fe870]">BET</span></div>}
+        {!collapsed && <div className="min-w-0 font-bold tracking-wide">EDIL<span className="text-[#9fe870]">BET</span></div>}
         <button onClick={() => setCollapsed(!collapsed)} className="ml-auto hidden h-8 w-8 shrink-0 items-center justify-center rounded-lg dashboard-icon-button md:flex" aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"} title={collapsed ? "Expand sidebar" : "Collapse sidebar"}>{collapsed ? <ChevronRight size={17} /> : <ChevronLeft size={17} />}</button>
         <button className="ml-auto md:hidden" onClick={() => setMobile(false)} aria-label="Close menu"><X size={18} /></button>
       </div>
@@ -84,12 +83,10 @@ export function DashboardShell({ role, children }: { role: Role; children: React
                 <span className="block truncate text-base font-extrabold tracking-wide">EDIL<span className="text-[#9fe870]">BET</span></span>
                 <span className="hidden truncate text-[10px] dashboard-muted sm:block">{t(admin ? "Admin" : "Agent")} dashboard</span>
               </Link>
-              <span className="hidden h-8 w-px shrink-0 bg-current opacity-15 sm:block" />
-              <div className="hidden min-w-0 truncate text-sm font-semibold md:block">{t(admin ? "Admin" : "Agent")}</div>
             </div>
             <div className="shrink-0 sm:hidden">
               <button onClick={() => setProfileOpen((open) => !open)} aria-expanded={profileOpen} aria-haspopup="menu" className="dashboard-profile flex items-center gap-1.5 rounded-xl border px-2 py-1.5 text-left">
-                <span className="grid h-8 w-8 shrink-0 place-items-center bg-[#9fe870] text-xs font-black text-[#17210f]">{admin ? "A" : "G"}</span>
+                <UserRound size={18} className="dashboard-muted" />
                 <ChevronDown size={14} className="dashboard-muted" />
               </button>
             </div>
@@ -102,8 +99,8 @@ export function DashboardShell({ role, children }: { role: Role; children: React
             <button aria-label="Notifications" title="Notifications" className="dashboard-icon-button grid h-10 w-10 shrink-0 place-items-center rounded-xl border"><Bell size={17} /></button>
             <div className="relative ml-auto hidden sm:block">
               <button onClick={() => setProfileOpen((open) => !open)} aria-expanded={profileOpen} aria-haspopup="menu" className="dashboard-profile flex max-w-[210px] items-center gap-2 rounded-xl border px-2 py-1.5 text-left sm:px-3 sm:py-2">
-                <span className="grid h-8 w-8 shrink-0 place-items-center bg-[#9fe870] text-xs font-black text-[#17210f]">{admin ? "A" : "G"}</span>
-                <span className="hidden min-w-0 sm:block"><span className="block truncate text-xs font-semibold">{admin ? t("Admin") : t("Agent")}</span><span className="mt-1 block truncate text-[10px] dashboard-muted">{t(admin ? "Administrator" : "Agent account")}</span></span>
+                <UserRound size={18} className="dashboard-muted" />
+                <span className="hidden min-w-0 sm:block"><span className="block truncate text-xs font-semibold">{admin ? t("Admin") : t("Agent")}</span></span>
                 <ChevronDown size={14} className="dashboard-muted" />
               </button>
             </div>
