@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useMemo, useState } from "react";
+import { useLanguage } from "@/components/language-provider";
 import {
   Activity, CalendarDays, ChevronDown, CircleHelp, Clock3, Flame, Menu,
   Search, ShieldCheck, Trophy, Wallet, X, Zap,
@@ -49,6 +50,7 @@ const sports = [
 type Pick = { matchId: string; teams: string; selection: string; odd: string };
 
 export default function PlayerPage() {
+  const { t } = useLanguage();
   const [search, setSearch] = useState("");
   const [tab, setTab] = useState<"home" | "sports" | "live">("home");
   const [day, setDay] = useState("All");
@@ -86,7 +88,7 @@ export default function PlayerPage() {
               <span className="text-base font-black tracking-wide text-white sm:text-lg">BET</span>
             </Link>
             <nav className="ml-3 hidden items-center gap-1 lg:flex">
-              {([{ id: "home", label: "⌂ Home" }, { id: "sports", label: "⚽ Sports" }, { id: "live", label: "🔴 Live" }] as const).map((item) => (
+              {([{ id: "home", label: `⌂ ${t("Home")}` }, { id: "sports", label: `⚽ ${t("Sports")}` }, { id: "live", label: `🔴 ${t("Live")}` }] as const).map((item) => (
                 <button key={item.id} onClick={() => { setTab(item.id); setDay(item.id === "live" ? "Live" : "All"); }} className={`rounded px-3 py-1.5 text-sm font-semibold transition ${tab === item.id ? "bg-amber-400/10 text-amber-400" : "text-slate-400 hover:bg-slate-800/70 hover:text-white"}`}>{item.label}</button>
               ))}
             </nav>
@@ -105,7 +107,7 @@ export default function PlayerPage() {
           <div className="border-b border-slate-800 p-3">
             <div className="relative">
               <Search size={15} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-500"/>
-              <input value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Search matches…" className="w-full rounded-lg border border-slate-700 bg-slate-800 py-2 pl-8 pr-3 text-xs text-slate-200 outline-none placeholder:text-slate-500 focus:border-amber-400"/>
+              <input value={search} onChange={(event) => setSearch(event.target.value)} placeholder={t("Search matches…")} className="w-full rounded-lg border border-slate-700 bg-slate-800 py-2 pl-8 pr-3 text-xs text-slate-200 outline-none placeholder:text-slate-500 focus:border-amber-400"/>
             </div>
           </div>
           <div className="border-b border-slate-800 pb-2">
@@ -140,7 +142,7 @@ export default function PlayerPage() {
             </div>
 
             <div className="space-y-3">
-              {visibleMatches.length === 0 && <div className="rounded-xl border border-slate-800 bg-slate-900 p-8 text-center"><Activity size={22} className="mx-auto text-slate-600"/><p className="mt-3 text-sm font-semibold text-slate-300">No matches found</p><p className="mt-1 text-xs text-slate-500">Try another search or date filter.</p><button onClick={() => { setSearch(""); setDay("All"); setTab("home"); setActiveLeague("All sports"); }} className="mt-4 text-xs font-bold text-amber-400">Clear filters</button></div>}
+              {visibleMatches.length === 0 && <div className="rounded-xl border border-slate-800 bg-slate-900 p-8 text-center"><Activity size={22} className="mx-auto text-slate-600"/><p className="mt-3 text-sm font-semibold text-slate-300">{t("No matches found")}</p><p className="mt-1 text-xs text-slate-500">Try another search or date filter.</p><button onClick={() => { setSearch(""); setDay("All"); setTab("home"); setActiveLeague("All sports"); }} className="mt-4 text-xs font-bold text-amber-400">Clear filters</button></div>}
               {visibleMatches.map((match) => <article key={match.id} className="overflow-hidden rounded-xl border border-slate-800 bg-slate-900 transition hover:border-slate-700">
                 <div className="flex flex-wrap items-center justify-between gap-2 border-b border-slate-800 px-3 py-2.5 sm:px-4"><div className="flex min-w-0 items-center gap-2"><span>{match.icon}</span><span className="truncate text-[10px] font-black tracking-wide text-slate-400">{match.league}</span>{match.live && <span className="inline-flex items-center gap-1 rounded bg-red-500/10 px-1.5 py-0.5 text-[9px] font-black text-red-400"><span className="h-1.5 w-1.5 animate-pulse rounded-full bg-red-500"/>LIVE</span>}</div><div className="flex items-center gap-1.5 text-[10px] text-slate-500"><Clock3 size={12}/>{match.live ? match.kickoff : `${match.date} · ${match.kickoff}`}</div></div>
                 <div className="grid gap-3 p-3 sm:grid-cols-[minmax(0,1fr)_minmax(230px,.8fr)] sm:items-center sm:px-4 sm:py-4">
@@ -156,8 +158,8 @@ export default function PlayerPage() {
         <aside className="hidden w-[280px] shrink-0 border-l border-slate-800 bg-slate-900 xl:block">
           <div className="flex items-center justify-between border-b border-slate-800 px-4 py-4"><div className="flex items-center gap-2"><Trophy size={16} className="text-amber-400"/><h2 className="text-xs font-black uppercase tracking-wide">Bet Slip</h2></div><span className="rounded-full bg-slate-800 px-2 py-0.5 text-[10px] text-slate-400">{picks.length}</span></div>
           <div className="space-y-3 p-3">
-            {picks.length === 0 ? <div className="rounded-xl border border-dashed border-slate-700 px-4 py-8 text-center"><div className="mx-auto grid h-10 w-10 place-items-center rounded-full bg-slate-800"><Trophy size={17} className="text-slate-500"/></div><p className="mt-3 text-xs font-bold text-slate-300">Your slip is empty</p><p className="mt-1 text-[10px] leading-4 text-slate-500">Choose odds from a match to add a selection.</p></div> : picks.map((pick) => <div key={pick.matchId} className="rounded-xl border border-slate-700 bg-slate-800/70 p-3"><div className="flex items-start justify-between gap-2"><p className="text-[11px] font-semibold leading-5">{pick.teams}</p><button aria-label="Remove selection" onClick={() => setPicks((current) => current.filter((item) => item.matchId !== pick.matchId))} className="text-slate-500 hover:text-white"><X size={13}/></button></div><div className="mt-3 flex items-center justify-between text-[10px]"><span className="text-slate-400">Selection {pick.selection}</span><span className="font-black text-amber-300">{pick.odd}</span></div></div>)}
-            <div className="rounded-xl border border-slate-800 bg-slate-950 p-3"><div className="flex items-center justify-between text-xs"><span className="text-slate-500">Combined odds</span><strong className="text-amber-300">{picks.length ? picks.reduce((total, pick) => total * Number(pick.odd), 1).toFixed(2) : "—"}</strong></div><Link href="/auth/login" className="mt-4 flex w-full items-center justify-center gap-2 rounded-lg bg-amber-400 px-3 py-3 text-xs font-black text-slate-950 transition hover:bg-amber-300">Continue to sign in <Wallet size={14}/></Link><p className="mt-3 text-center text-[9px] leading-4 text-slate-600">Demo only. Sign in to continue.</p></div>
+            {picks.length === 0 ? <div className="rounded-xl border border-dashed border-slate-700 px-4 py-8 text-center"><div className="mx-auto grid h-10 w-10 place-items-center rounded-full bg-slate-800"><Trophy size={17} className="text-slate-500"/></div><p className="mt-3 text-xs font-bold text-slate-300">{t("Your slip is empty")}</p><p className="mt-1 text-[10px] leading-4 text-slate-500">Choose odds from a match to add a selection.</p></div> : picks.map((pick) => <div key={pick.matchId} className="rounded-xl border border-slate-700 bg-slate-800/70 p-3"><div className="flex items-start justify-between gap-2"><p className="text-[11px] font-semibold leading-5">{pick.teams}</p><button aria-label="Remove selection" onClick={() => setPicks((current) => current.filter((item) => item.matchId !== pick.matchId))} className="text-slate-500 hover:text-white"><X size={13}/></button></div><div className="mt-3 flex items-center justify-between text-[10px]"><span className="text-slate-400">Selection {pick.selection}</span><span className="font-black text-amber-300">{pick.odd}</span></div></div>)}
+            <div className="rounded-xl border border-slate-800 bg-slate-950 p-3"><div className="flex items-center justify-between text-xs"><span className="text-slate-500">Combined odds</span><strong className="text-amber-300">{picks.length ? picks.reduce((total, pick) => total * Number(pick.odd), 1).toFixed(2) : "—"}</strong></div><Link href="/auth/login" className="mt-4 flex w-full items-center justify-center gap-2 rounded-lg bg-amber-400 px-3 py-3 text-xs font-black text-slate-950 transition hover:bg-amber-300">{t("Continue to sign in")} <Wallet size={14}/></Link><p className="mt-3 text-center text-[9px] leading-4 text-slate-600">Demo only. Sign in to continue.</p></div>
             <div className="flex items-start gap-2 rounded-lg bg-slate-800/60 p-3 text-[10px] leading-4 text-slate-500"><CircleHelp size={14} className="mt-0.5 shrink-0"/>Select a price to add it to your slip. A selection can be removed at any time.</div>
           </div>
         </aside>
