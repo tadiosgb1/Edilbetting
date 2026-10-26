@@ -69,7 +69,7 @@ export function DashboardShell({ role, children }: { role: Role; children: React
               <ChevronDown size={14} className="dashboard-muted" />
             </button>
             {profileOpen && <div role="menu" className="dashboard-menu absolute right-0 top-full z-50 mt-2 w-52 rounded-xl border p-2 shadow-xl">
-              <div className="border-b px-3 py-2"><div className="text-xs font-semibold">{admin ? "Platform Admin" : "Senior Agent"}</div><div className="mt-1 text-[10px] dashboard-muted">{t(admin ? "Super administrator" : "Partner account")}</div></div>
+              <div className="border-b px-3 py-2"><div className="text-xs font-semibold">{admin ? t("Admin") : t("Agent")}</div><div className="mt-1 text-[10px] dashboard-muted">{t(admin ? "Administrator" : "Agent account")}</div></div>
               <button role="menuitem" onClick={signOut} className="mt-1 flex w-full items-center gap-2 rounded-lg px-3 py-2.5 text-left text-sm dashboard-signout"><LogOut size={16} />{t("Sign out")}</button>
             </div>}
           </div>
