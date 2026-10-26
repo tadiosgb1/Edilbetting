@@ -225,3 +225,113 @@
 .dashboard-main > div:last-child > article,
 .dashboard-main > div:last-child > [data-card],
 .dashboard-main > div:last-child .dashboard-card { border-radius:0 !important; }
+
+
+/* Brand accent is the single source of truth for dashboard navigation, icons and interactive states. */
+.dashboard-root .dashboard-sidebar svg { color: var(--brand) !important; }
+.dashboard-root .dashboard-sidebar .dashboard-nav-link:hover,
+.dashboard-root .dashboard-sidebar .dashboard-nav-active { background: color-mix(in srgb, var(--brand) 15%, transparent) !important; color: var(--brand) !important; }
+.dashboard-root .dashboard-sidebar .dashboard-nav-link:hover svg,
+.dashboard-root .dashboard-sidebar .dashboard-nav-active svg { color: var(--brand) !important; }
+.dashboard-root .dashboard-icon-button:hover,
+.dashboard-root .dashboard-profile:hover,
+.dashboard-root .dashboard-signout:hover { background: color-mix(in srgb, var(--brand) 13%, transparent) !important; border-color: color-mix(in srgb, var(--brand) 60%, var(--line)) !important; }
+.dashboard-root .dashboard-main button:hover:not(:disabled) { border-color: color-mix(in srgb, var(--brand) 65%, transparent); }
+.dashboard-root .dashboard-main button:focus-visible,
+.dashboard-root .dashboard-sidebar a:focus-visible,
+.dashboard-root input:focus-visible,
+.dashboard-root select:focus-visible { outline: 2px solid var(--brand); outline-offset: 2px; }
+.dashboard-root .dashboard-brand-reset,
+.dashboard-root button[class*="bg-green-"],
+.dashboard-root button[class*="bg-emerald-"],
+.dashboard-root button[class*="bg-[#9fe870]"] { background: var(--brand) !important; border-color: var(--brand) !important; }
+
+/* Additional professional dark palettes. Their accent is still controlled by Brand accent. */
+.dashboard-dark[data-dashboard-palette="graphite"] { --bg:#17191d; --panel:#22252b; --line:#3a3f48; --muted:#a6adb8; --text:#f3f4f6; background:#17191d !important; color:#f3f4f6 !important; }
+.dashboard-dark[data-dashboard-palette="graphite"] .dashboard-sidebar { background:#1c1f24; border-color:#3a3f48; }
+.dashboard-dark[data-dashboard-palette="graphite"] .dashboard-header { background:rgba(23,25,29,.96); border-color:#3a3f48; }
+.dashboard-dark[data-dashboard-palette="graphite"] .dashboard-main { background:#17191d; color:#f3f4f6; }
+.dashboard-dark[data-dashboard-palette="graphite"] .dashboard-menu,
+.dashboard-dark[data-dashboard-palette="graphite"] .dashboard-brand-panel,
+.dashboard-dark[data-dashboard-palette="graphite"] .dashboard-table thead { background:#22252b; border-color:#3a3f48; color:#e5e7eb; }
+.dashboard-dark[data-dashboard-palette="graphite"] .dashboard-field,
+.dashboard-dark[data-dashboard-palette="graphite"] .dashboard-secondary-button { background:#1c1f24; border-color:#454b55; color:#f3f4f6; }
+.dashboard-dark[data-dashboard-palette="graphite"] .dashboard-empty-state { background:#22252b; border-color:#454b55; }
+.dashboard-dark[data-dashboard-palette="graphite"] .dashboard-nav-link { color:#c4c9d1; }
+.dashboard-dark[data-dashboard-palette="graphite"] .dashboard-nav-link:hover,
+.dashboard-dark[data-dashboard-palette="graphite"] .dashboard-icon-button:hover,
+.dashboard-dark[data-dashboard-palette="graphite"] .dashboard-profile:hover { background:#30343c; color:#fff; }
+.dashboard-dark[data-dashboard-palette="graphite"] [class*="bg-[#090d18]"],
+.dashboard-dark[data-dashboard-palette="graphite"] [class*="bg-[#0d1422]"],
+.dashboard-dark[data-dashboard-palette="graphite"] [class*="bg-[#111b2b]"],
+.dashboard-dark[data-dashboard-palette="graphite"] [class*="bg-[#111827]"],
+.dashboard-dark[data-dashboard-palette="graphite"] [class*="bg-[#0c1321]"],
+.dashboard-dark[data-dashboard-palette="graphite"] [class*="bg-[#0b1220]"] { background:#22252b !important; }
+.dashboard-dark[data-dashboard-palette="graphite"] [class*="border-[#253148]"] { border-color:#3a3f48 !important; }
+.dashboard-dark[data-dashboard-palette="graphite"] .dashboard-muted { color:#a6adb8; }
+
+.dashboard-dark[data-dashboard-palette="forest"] { --bg:#10231d; --panel:#193128; --line:#315044; --muted:#a8c5b7; --text:#effcf5; background:#10231d !important; color:#effcf5 !important; }
+.dashboard-dark[data-dashboard-palette="forest"] .dashboard-sidebar { background:#142a22; border-color:#315044; }
+.dashboard-dark[data-dashboard-palette="forest"] .dashboard-header { background:rgba(16,35,29,.96); border-color:#315044; }
+.dashboard-dark[data-dashboard-palette="forest"] .dashboard-main { background:#10231d; color:#effcf5; }
+.dashboard-dark[data-dashboard-palette="forest"] .dashboard-menu,
+.dashboard-dark[data-dashboard-palette="forest"] .dashboard-brand-panel,
+.dashboard-dark[data-dashboard-palette="forest"] .dashboard-table thead { background:#193128; border-color:#315044; color:#effcf5; }
+.dashboard-dark[data-dashboard-palette="forest"] .dashboard-field,
+.dashboard-dark[data-dashboard-palette="forest"] .dashboard-secondary-button { background:#142a22; border-color:#426653; color:#effcf5; }
+.dashboard-dark[data-dashboard-palette="forest"] .dashboard-empty-state { background:#193128; border-color:#426653; }
+.dashboard-dark[data-dashboard-palette="forest"] .dashboard-nav-link { color:#c1d9cc; }
+.dashboard-dark[data-dashboard-palette="forest"] .dashboard-nav-link:hover,
+.dashboard-dark[data-dashboard-palette="forest"] .dashboard-icon-button:hover,
+.dashboard-dark[data-dashboard-palette="forest"] .dashboard-profile:hover { background:#254638; color:#fff; }
+.dashboard-dark[data-dashboard-palette="forest"] [class*="bg-[#090d18]"],
+.dashboard-dark[data-dashboard-palette="forest"] [class*="bg-[#0d1422]"],
+.dashboard-dark[data-dashboard-palette="forest"] [class*="bg-[#111b2b]"],
+.dashboard-dark[data-dashboard-palette="forest"] [class*="bg-[#111827]"],
+.dashboard-dark[data-dashboard-palette="forest"] [class*="bg-[#0c1321]"],
+.dashboard-dark[data-dashboard-palette="forest"] [class*="bg-[#0b1220]"] { background:#193128 !important; }
+.dashboard-dark[data-dashboard-palette="forest"] [class*="border-[#253148]"] { border-color:#315044 !important; }
+.dashboard-dark[data-dashboard-palette="forest"] .dashboard-muted { color:#a8c5b7; }
+
+.dashboard-dark[data-dashboard-palette="navy"] { --bg:#101d32; --panel:#182943; --line:#304765; --muted:#a8bdd7; --text:#f1f7ff; background:#101d32 !important; color:#f1f7ff !important; }
+.dashboard-dark[data-dashboard-palette="navy"] .dashboard-sidebar { background:#13233b; border-color:#304765; }
+.dashboard-dark[data-dashboard-palette="navy"] .dashboard-header { background:rgba(16,29,50,.96); border-color:#304765; }
+.dashboard-dark[data-dashboard-palette="navy"] .dashboard-main { background:#101d32; color:#f1f7ff; }
+.dashboard-dark[data-dashboard-palette="navy"] .dashboard-menu,
+.dashboard-dark[data-dashboard-palette="navy"] .dashboard-brand-panel,
+.dashboard-dark[data-dashboard-palette="navy"] .dashboard-table thead { background:#182943; border-color:#304765; color:#f1f7ff; }
+.dashboard-dark[data-dashboard-palette="navy"] .dashboard-field,
+.dashboard-dark[data-dashboard-palette="navy"] .dashboard-secondary-button { background:#13233b; border-color:#405a7a; color:#f1f7ff; }
+.dashboard-dark[data-dashboard-palette="navy"] .dashboard-empty-state { background:#182943; border-color:#405a7a; }
+.dashboard-dark[data-dashboard-palette="navy"] .dashboard-nav-link { color:#c6d5e8; }
+.dashboard-dark[data-dashboard-palette="navy"] .dashboard-nav-link:hover,
+.dashboard-dark[data-dashboard-palette="navy"] .dashboard-icon-button:hover,
+.dashboard-dark[data-dashboard-palette="navy"] .dashboard-profile:hover { background:#253d5d; color:#fff; }
+.dashboard-dark[data-dashboard-palette="navy"] [class*="bg-[#090d18]"],
+.dashboard-dark[data-dashboard-palette="navy"] [class*="bg-[#0d1422]"],
+.dashboard-dark[data-dashboard-palette="navy"] [class*="bg-[#111b2b]"],
+.dashboard-dark[data-dashboard-palette="navy"] [class*="bg-[#111827]"],
+.dashboard-dark[data-dashboard-palette="navy"] [class*="bg-[#0c1321]"],
+.dashboard-dark[data-dashboard-palette="navy"] [class*="bg-[#0b1220]"] { background:#182943 !important; }
+.dashboard-dark[data-dashboard-palette="navy"] [class*="border-[#253148]"] { border-color:#304765 !important; }
+.dashboard-dark[data-dashboard-palette="navy"] .dashboard-muted { color:#a8bdd7; }
+
+/* Custom dark surface: selected with the color picker; mix the picked base into readable dark surfaces. */
+.dashboard-dark[data-dashboard-palette="custom"] { --bg: color-mix(in srgb, var(--custom-dark-surface) 68%, #000); --panel: color-mix(in srgb, var(--custom-dark-surface) 82%, #fff 4%); --line: color-mix(in srgb, var(--custom-dark-surface) 65%, #fff 15%); background:var(--bg) !important; color:#f8fafc !important; }
+.dashboard-dark[data-dashboard-palette="custom"] .dashboard-sidebar { background:color-mix(in srgb, var(--custom-dark-surface) 78%, #000); border-color:var(--line); }
+.dashboard-dark[data-dashboard-palette="custom"] .dashboard-header { background:color-mix(in srgb, var(--custom-dark-surface) 78%, #000); border-color:var(--line); }
+.dashboard-dark[data-dashboard-palette="custom"] .dashboard-main { background:var(--bg); color:#f8fafc; }
+.dashboard-dark[data-dashboard-palette="custom"] .dashboard-menu,
+.dashboard-dark[data-dashboard-palette="custom"] .dashboard-brand-panel,
+.dashboard-dark[data-dashboard-palette="custom"] .dashboard-table thead { background:var(--panel); border-color:var(--line); color:#f8fafc; }
+.dashboard-dark[data-dashboard-palette="custom"] .dashboard-field,
+.dashboard-dark[data-dashboard-palette="custom"] .dashboard-secondary-button { background:color-mix(in srgb, var(--custom-dark-surface) 80%, #000); border-color:var(--line); color:#f8fafc; }
+.dashboard-dark[data-dashboard-palette="custom"] .dashboard-empty-state { background:var(--panel); border-color:var(--line); }
+.dashboard-dark[data-dashboard-palette="custom"] [class*="bg-[#090d18]"],
+.dashboard-dark[data-dashboard-palette="custom"] [class*="bg-[#0d1422]"],
+.dashboard-dark[data-dashboard-palette="custom"] [class*="bg-[#111b2b]"],
+.dashboard-dark[data-dashboard-palette="custom"] [class*="bg-[#111827]"],
+.dashboard-dark[data-dashboard-palette="custom"] [class*="bg-[#0c1321]"],
+.dashboard-dark[data-dashboard-palette="custom"] [class*="bg-[#0b1220]"] { background:var(--panel) !important; }
+.dashboard-dark[data-dashboard-palette="custom"] [class*="border-[#253148]"] { border-color:var(--line) !important; }
+.dashboard-dark[data-dashboard-palette="custom"] .dashboard-muted { color:#cbd5e1; }
