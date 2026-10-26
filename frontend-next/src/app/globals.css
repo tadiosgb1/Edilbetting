@@ -68,3 +68,49 @@
 .dashboard-dark .dashboard-empty-state { border-color:#2a3850; background:#0d1422; }
 .dashboard-dark .dashboard-crumb-current { color:#f4f7fc; }
 .dashboard-dark .dashboard-link { color:#b5f391; }
+
+
+/* Coffee-toned dashboard dark mode, with a live configurable brand accent. */
+.dashboard-root { --brand: #16a34a; }
+.dashboard-root .dashboard-nav-active { background: color-mix(in srgb, var(--brand) 16%, transparent) !important; color: var(--brand) !important; }
+.dashboard-root .dashboard-icon-button svg, .dashboard-root .dashboard-nav-active svg { color: var(--brand); }
+.dashboard-root .dashboard-brand-mark, .dashboard-root [class*="bg-[#9fe870]"] { background: var(--brand) !important; }
+.dashboard-root [class*="text-[#9fe870]"], .dashboard-root [class*="text-[#b5f391]"] { color: var(--brand) !important; }
+.dashboard-root [class*="bg-[#9fe870]/10"] { background: color-mix(in srgb, var(--brand) 13%, transparent) !important; }
+.dashboard-root .dashboard-brand-panel { background: var(--panel); color: var(--text); border-color: var(--line); }
+.dashboard-root .dashboard-brand-choice { background: transparent; border-color: var(--line); color: var(--text); }
+.dashboard-root .dashboard-brand-choice-active { background: color-mix(in srgb, var(--brand) 12%, transparent); border-color: var(--brand); color: var(--brand); }
+.dashboard-root .dashboard-brand-panel-divider { border-color: var(--line); }
+.dashboard-root .dashboard-brand-reset { background: var(--brand); color: #fff; }
+.dashboard-dark { --bg: #241a14; --panel: #30231b; --line: #4b382b; --muted: #c0a995; --text: #f7eee5; background: #241a14 !important; color: #f7eee5 !important; }
+.dashboard-dark .dashboard-sidebar { background: #2a1e17; border-color: #4b382b; }
+.dashboard-dark .dashboard-header { background: rgba(36,26,20,.95); border-color: #4b382b; }
+.dashboard-dark .dashboard-main { background: #241a14; color: #f7eee5; }
+.dashboard-dark .dashboard-muted { color: #c0a995; }
+.dashboard-dark .dashboard-icon-button, .dashboard-dark .dashboard-profile { color: #e8d8c8; border-color: #4b382b; }
+.dashboard-dark .dashboard-icon-button:hover, .dashboard-dark .dashboard-profile:hover { background: #3a2a20; color: #fff; }
+.dashboard-dark .dashboard-nav-link { color: #d0bdac; }
+.dashboard-dark .dashboard-nav-link:hover { background: #3a2a20; color: #fff; }
+.dashboard-dark .dashboard-menu { background: #30231b; border-color: #4b382b; }
+.dashboard-dark .dashboard-menu > div { border-color: #4b382b; }
+.dashboard-dark .dashboard-signout { color: #f0e3d7; }
+.dashboard-dark .dashboard-signout:hover { background: #473328; }
+.dashboard-dark .dashboard-table thead { background: #30231b; color: #d0bdac; }
+.dashboard-dark .dashboard-table tbody tr { border-color: #4b382b; }
+.dashboard-dark .dashboard-field, .dashboard-dark .dashboard-secondary-button { background: #2a1e17; border-color: #5a4333; color: #f0e3d7; }
+.dashboard-dark .dashboard-empty-state { border-color: #5a4333; background: #30231b; }
+.dashboard-dark .dashboard-crumb-current { color: #f7eee5; }
+.dashboard-dark .dashboard-link { color: var(--brand); }
+.dashboard-dark [class*="bg-[#090d18]"], .dashboard-dark [class*="bg-[#0d1422]"], .dashboard-dark [class*="bg-[#111b2b]"], .dashboard-dark [class*="bg-[#111827]"], .dashboard-dark [class*="bg-[#0c1321]"], .dashboard-dark [class*="bg-[#0b1220]"] { background: #30231b !important; }
+.dashboard-dark [class*="border-[#253148]"] { border-color: #4b382b !important; }
+.dashboard-dark [class*="text-[#95a3ba]"], .dashboard-dark [class*="text-[#9ba9bf]"], .dashboard-dark [class*="text-[#7f8da5]"], .dashboard-dark [class*="text-[#74839b]"], .dashboard-dark [class*="text-[#64738d]"], .dashboard-dark [class*="text-[#8c9bb5]"], .dashboard-dark [class*="text-[#8190a8]"], .dashboard-dark [class*="text-[#718099]"], .dashboard-dark [class*="text-[#61708a]"], .dashboard-dark [class*="text-[#b7c3d7]"] { color: #c0a995 !important; }
+.dashboard-light { --bg: #f7faf8; --panel: #ffffff; --line: #d9e5dd; --muted: #52645a; --text: #172a1e; }
+.dashboard-light .dashboard-icon-button svg { color: var(--brand); }
+.dashboard-light .dashboard-nav-active { background: color-mix(in srgb, var(--brand) 10%, white) !important; color: var(--brand) !important; }
+.dashboard-light .dashboard-brand-panel { background: #fff; color: #172a1e; border-color: #d9e5dd; }
+.dashboard-light .dashboard-brand-choice { background: #fff; border-color: #d9e5dd; color: #344b3a; }
+.dashboard-light .dashboard-brand-choice-active { background: color-mix(in srgb, var(--brand) 9%, white); border-color: var(--brand); color: var(--brand); }
+.dashboard-light .dashboard-brand-panel-divider { border-color: #d9e5dd; }
+.dashboard-light .dashboard-brand-reset { background: var(--brand); color: #fff; }
+.dashboard-light button[class*="bg-[#9fe870]"], .dashboard-light button[class*="bg-green-"], .dashboard-light button[class*="bg-emerald-"] { background: var(--brand) !important; color: #fff !important; }
+.dashboard-light button[class*="bg-[#9fe870]"] svg, .dashboard-light button[class*="bg-green-"] svg, .dashboard-light button[class*="bg-emerald-"] svg { color: #fff !important; }
