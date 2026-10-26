@@ -114,3 +114,32 @@
 .dashboard-light .dashboard-brand-reset { background: var(--brand); color: #fff; }
 .dashboard-light button[class*="bg-[#9fe870]"], .dashboard-light button[class*="bg-green-"], .dashboard-light button[class*="bg-emerald-"] { background: var(--brand) !important; color: #fff !important; }
 .dashboard-light button[class*="bg-[#9fe870]"] svg, .dashboard-light button[class*="bg-green-"] svg, .dashboard-light button[class*="bg-emerald-"] svg { color: #fff !important; }
+
+
+/* Iteration 2: espresso surfaces with burnt-orange accents for a warmer, livelier dark dashboard. */
+.dashboard-dark { --bg: #211812; --panel: #2c2018; --line: #4b3527; --muted: #cbb5a0; --text: #fff3e8; }
+.dashboard-dark .dashboard-sidebar { background: #291c14; border-color: #4b3527; }
+.dashboard-dark .dashboard-header { background: rgba(33,24,18,.96); border-color: #4b3527; }
+.dashboard-dark .dashboard-main { background: #211812; color: #fff3e8; }
+.dashboard-dark .dashboard-muted { color: #cbb5a0; }
+.dashboard-dark .dashboard-icon-button svg { color: #fb923c; }
+.dashboard-dark .dashboard-nav-active { background: rgba(249,115,22,.16) !important; color: #fdba74 !important; }
+.dashboard-dark .dashboard-nav-active svg { color: #fb923c; }
+.dashboard-dark .dashboard-icon-button:hover, .dashboard-dark .dashboard-profile:hover { background: #3b291d; color: #fff7ed; }
+.dashboard-dark .dashboard-nav-link { color: #ddc6b1; }
+.dashboard-dark .dashboard-nav-link:hover { background: #3b291d; color: #fff7ed; }
+.dashboard-dark .dashboard-menu { background: #2c2018; border-color: #4b3527; }
+.dashboard-dark .dashboard-menu > div { border-color: #4b3527; }
+.dashboard-dark .dashboard-table thead { background: #302219; color: #ddc6b1; }
+.dashboard-dark .dashboard-table tbody tr { border-color: #4b3527; }
+.dashboard-dark .dashboard-field, .dashboard-dark .dashboard-secondary-button { background: #291c14; border-color: #5b4230; color: #fff0e2; }
+.dashboard-dark .dashboard-empty-state { border-color: #5b4230; background: #2c2018; }
+.dashboard-dark .dashboard-crumb-current { color: #fff3e8; }
+.dashboard-dark [class*="bg-[#090d18]"], .dashboard-dark [class*="bg-[#0d1422]"], .dashboard-dark [class*="bg-[#111b2b]"], .dashboard-dark [class*="bg-[#111827]"], .dashboard-dark [class*="bg-[#0c1321]"], .dashboard-dark [class*="bg-[#0b1220]"] { background: #2c2018 !important; }
+.dashboard-dark [class*="border-[#253148]"] { border-color: #4b3527 !important; }
+.dashboard-dark [class*="text-[#95a3ba]"], .dashboard-dark [class*="text-[#9ba9bf]"], .dashboard-dark [class*="text-[#7f8da5]"], .dashboard-dark [class*="text-[#74839b]"], .dashboard-dark [class*="text-[#64738d]"], .dashboard-dark [class*="text-[#8c9bb5]"], .dashboard-dark [class*="text-[#8190a8]"], .dashboard-dark [class*="text-[#718099]"], .dashboard-dark [class*="text-[#61708a]"], .dashboard-dark [class*="text-[#b7c3d7]"] { color: #cbb5a0 !important; }
+.dashboard-dark .dashboard-link { color: #fb923c; }
+.dashboard-dark .dashboard-brand-panel { background: #2c2018; color: #fff3e8; border-color: #4b3527; }
+.dashboard-dark .dashboard-brand-choice { background: #291c14; border-color: #4b3527; color: #fff0e2; }
+.dashboard-dark .dashboard-brand-choice-active { background: rgba(249,115,22,.14); border-color: #f97316; color: #fdba74; }
+.dashboard-dark .dashboard-brand-panel-divider { border-color: #4b3527; }
