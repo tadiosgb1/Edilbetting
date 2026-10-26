@@ -79,7 +79,7 @@ export function DashboardShell({ role, children }: { role: Role; children: React
         <div className="flex min-w-0 flex-col gap-3 sm:flex-row sm:items-center sm:justify-between sm:gap-4">
           <div className="flex min-w-0 items-center gap-3">
             <button className="dashboard-icon-button shrink-0 rounded-xl border p-2 md:hidden" onClick={() => setMobile(true)} aria-label="Open navigation"><Menu size={20} /></button>
-            <Link href={admin ? "/admin" : "/agent"} className="flex min-w-0 items-center gap-2.5" aria-label="Edilbet dashboard home">
+<Link href={admin ? "/admin" : "/agent"} className="flex min-w-0 items-center gap-2.5 md:hidden" aria-label="Edilbet dashboard home">
               <span className="grid h-9 w-9 shrink-0 place-items-center bg-[#9fe870] text-sm font-black text-[#10170d]">E</span>
               <span className="min-w-0">
                 <span className="block truncate text-sm font-extrabold tracking-wide">EDIL<span className="text-[#9fe870]">BET</span></span>
