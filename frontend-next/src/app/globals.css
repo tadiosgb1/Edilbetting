@@ -14,3 +14,41 @@
 .dashboard-light [class*="text-[#10170d]"] { color: #10170d !important; }
 .dashboard-light input, .dashboard-light select { background: #ffffff !important; color: #172033 !important; border-color: #cbd5e1 !important; }
 .dashboard-light button { border-color: #dbe2ec; }
+
+/* Consistent admin and agent dashboard themes; player pages are not inside .dashboard-root. */
+.dashboard-dark { color-scheme: dark; background: #090d18; color: #f4f7fc; }
+.dashboard-dark .dashboard-sidebar { background: #0d1422; border-color: #253148; }
+.dashboard-dark .dashboard-header { background: rgba(9,13,24,.94); border-color: #253148; }
+.dashboard-dark .dashboard-main { background: #090d18; color: #f4f7fc; }
+.dashboard-dark .dashboard-muted { color: #7f8da5; }
+.dashboard-dark .dashboard-icon-button, .dashboard-dark .dashboard-profile { color: #aab6c9; border-color: #253148; }
+.dashboard-dark .dashboard-icon-button:hover, .dashboard-dark .dashboard-profile:hover { background: #182337; color: #fff; }
+.dashboard-dark .dashboard-nav-link { color: #95a3ba; }
+.dashboard-dark .dashboard-nav-link:hover { background: #182337; color: #fff; }
+.dashboard-dark .dashboard-nav-active { background: rgba(159,232,112,.1); color: #b5f391; }
+.dashboard-dark .dashboard-menu { background: #111b2b; border-color: #253148; }
+.dashboard-dark .dashboard-menu > div { border-color: #253148; }
+.dashboard-dark .dashboard-signout { color: #d3dbea; }
+.dashboard-dark .dashboard-signout:hover { background: #263247; }
+.dashboard-light { color-scheme: light; background: #f3f6fb !important; color: #172033 !important; }
+.dashboard-light .dashboard-sidebar { background: #fff; border-color: #dbe2ec; }
+.dashboard-light .dashboard-header { background: rgba(255,255,255,.96); border-color: #dbe2ec; }
+.dashboard-light .dashboard-main { background: #f3f6fb; color: #172033; }
+.dashboard-light .dashboard-muted { color: #667085; }
+.dashboard-light .dashboard-icon-button, .dashboard-light .dashboard-profile { color: #475467; border-color: #dbe2ec; background: #fff; }
+.dashboard-light .dashboard-icon-button:hover, .dashboard-light .dashboard-profile:hover { background: #eef2f8; color: #172033; }
+.dashboard-light .dashboard-nav-link { color: #475467; }
+.dashboard-light .dashboard-nav-link:hover { background: #eef2f8; color: #172033; }
+.dashboard-light .dashboard-nav-active { background: #effbe7; color: #315d1e; }
+.dashboard-light .dashboard-menu { background: #fff; border-color: #dbe2ec; color: #172033; }
+.dashboard-light .dashboard-menu > div { border-color: #dbe2ec; }
+.dashboard-light .dashboard-signout { color: #344054; }
+.dashboard-light .dashboard-signout:hover { background: #f2f4f7; }
+.dashboard-light [class*="border-[#253148]"] { border-color: #dbe2ec !important; }
+.dashboard-light [class*="bg-[#0d1422]"], .dashboard-light [class*="bg-[#111b2b]"], .dashboard-light [class*="bg-[#090d18]"] { background: #fff !important; }
+.dashboard-light [class*="text-[#95a3ba]"], .dashboard-light [class*="text-[#9ba9bf]"], .dashboard-light [class*="text-[#7f8da5]"], .dashboard-light [class*="text-[#74839b]"], .dashboard-light [class*="text-[#64738d]"] { color: #596579 !important; }
+.dashboard-light [class*="hover:bg-[#182337]"]:hover { background: #eef2f8 !important; }
+.dashboard-light [class*="bg-[#9fe870]/10"] { background: #effbe7 !important; }
+.dashboard-light [class*="text-[#b5f391]"] { color: #315d1e !important; }
+.dashboard-light [class*="text-white"] { color: #172033 !important; }
+.dashboard-light input, .dashboard-light select { background: #fff !important; color: #172033 !important; border-color: #cbd5e1 !important; }
