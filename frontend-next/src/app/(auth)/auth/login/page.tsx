@@ -7,6 +7,7 @@ import { ArrowRight, LockKeyhole, ShieldCheck } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { hashPassword, normalizePhone, useAuthStore, type UserRole } from "@/stores/auth-store";
+import { useLanguage } from "@/components/language-provider";
 
 const appRole = (process.env.NEXT_PUBLIC_APP_ROLE || "player") as UserRole;
 const destinations: Record<UserRole, string> = { player: "/player", agent: "/agent", admin: "/admin" };
@@ -22,6 +23,7 @@ const demoAccounts: Record<string, { role: UserRole; name: string }> = {
 };
 
 export default function LoginPage() {
+  const { t } = useLanguage();
   const [phone, setPhone] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
@@ -70,13 +72,13 @@ export default function LoginPage() {
     </section>
     <section className="flex min-h-screen items-center justify-center px-5 py-12 sm:px-10"><div className="w-full max-w-[420px]">
       <div className="mb-10 flex items-center gap-1.5 font-black tracking-widest lg:hidden"><span className="rounded bg-amber-400 px-2 py-1 text-lg text-slate-950">EDIL</span><span className="text-lg">BET</span></div>
-      <div className="mb-3 inline-flex items-center gap-2 text-xs font-black tracking-[.18em] text-amber-400"><LockKeyhole size={14}/>{copy.eyebrow}</div><h2 className="text-3xl font-black sm:text-4xl">{copy.title}</h2><p className="mt-3 text-sm leading-6 text-slate-400">{copy.description}</p>
+      <div className="mb-3 inline-flex items-center gap-2 text-xs font-black tracking-[.18em] text-amber-400"><LockKeyhole size={14}/>{copy.eyebrow}</div><h2 className="text-3xl font-black sm:text-4xl">{t(copy.title)}</h2><p className="mt-3 text-sm leading-6 text-slate-400">{copy.description}</p>
       <form onSubmit={submit} className="mt-8 space-y-5">
-        <div><label htmlFor="phone" className="mb-2 block text-xs font-bold text-slate-300">Phone number</label><Input id="phone" type="tel" inputMode="tel" autoComplete="tel" value={phone} onChange={(event) => setPhone(event.target.value)} placeholder="09XXXXXXXX" required /></div>
-        <div><div className="mb-2 flex items-center justify-between"><label htmlFor="password" className="block text-xs font-bold text-slate-300">Password</label><span className="text-xs text-slate-500">Demo: 1234</span></div><Input id="password" type="password" autoComplete="current-password" value={password} onChange={(event) => setPassword(event.target.value)} placeholder="Enter your password" required /></div>
+        <div><label htmlFor="phone" className="mb-2 block text-xs font-bold text-slate-300">{t("Phone number")}</label><Input id="phone" type="tel" inputMode="tel" autoComplete="tel" value={phone} onChange={(event) => setPhone(event.target.value)} placeholder="09XXXXXXXX" required /></div>
+        <div><div className="mb-2 flex items-center justify-between"><label htmlFor="password" className="block text-xs font-bold text-slate-300">{t("Password")}</label><span className="text-xs text-slate-500">Demo: 1234</span></div><Input id="password" type="password" autoComplete="current-password" value={password} onChange={(event) => setPassword(event.target.value)} placeholder="Enter your password" required /></div>
         {error && <p role="alert" className="rounded-lg border border-red-500/20 bg-red-500/10 px-3 py-2 text-xs text-red-300">{error}</p>}
-        <Button className="w-full justify-center" size="lg" type="submit" disabled={busy}>{busy ? "Signing in…" : <>Sign in <ArrowRight size={16}/></>}</Button>
-        <p className="text-center text-xs text-slate-400">New to EdilBet? <Link href="/auth/register" className="font-bold text-amber-400 hover:text-amber-300">Create an account</Link></p>
+        <Button className="w-full justify-center" size="lg" type="submit" disabled={busy}>{busy ? "Signing in…" : <>{t("Sign in")} <ArrowRight size={16}/></>}</Button>
+        <p className="text-center text-xs text-slate-400">New to EdilBet? <Link href="/auth/register" className="font-bold text-amber-400 hover:text-amber-300">{t("Create an account")}</Link></p>
         <div className="rounded-xl border border-slate-800 bg-slate-900/70 p-3 text-[11px] leading-5 text-slate-400"><p className="mb-1 font-bold text-slate-200">Sample login credentials</p><p>Player: 0963275521 · Agent: 0963275522 · Admin: 0963275523</p><p>Password for all three: 1234</p><p className="mt-1 text-slate-500">Local testing only. This is not production authentication.</p></div>
       </form>
     </div></section>
