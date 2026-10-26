@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
-import { Bell, ChevronLeft, ChevronRight, CircleHelp, LayoutDashboard, LogOut, Menu, Settings, Users, Wallet, Trophy, UserRound, ChartNoAxesCombined, X, Sun, Moon, ChevronDown, ShieldCheck } from "lucide-react";
+import { Bell, ChevronLeft, ChevronRight, CircleHelp, LayoutDashboard, LogOut, Menu, Settings, Users, Wallet, Trophy, UserRound, ChartNoAxesCombined, X, Sun, Moon, ChevronDown, ShieldCheck, Palette } from "lucide-react";
 import { clsx } from "clsx";
 import { useAuthStore } from "@/stores/auth-store";
 import { LanguageSelector, useLanguage } from "@/components/language-provider";
@@ -19,13 +19,13 @@ export function DashboardShell({ role, children }: { role: Role; children: React
   const clearUser = useAuthStore((state) => state.clearUser);
   const [mobile, setMobile] = useState(false);
   const [collapsed, setCollapsed] = useState(false);
-  const [profileOpen, setProfileOpen] = useState(false);
+  const [profileOpen, setProfileOpen] = useState(false);\n  const [brandPanelOpen, setBrandPanelOpen] = useState(false);\n  const [brandColor, setBrandColor] = useState("#16a34a");
   const [theme, setTheme] = useState<"dark" | "light">("dark");
   const admin = role === "admin";
   const nav = admin ? adminNav : agentNav;
 
   useEffect(() => {
-    if (window.localStorage.getItem("edilbet-dashboard-theme") === "light") setTheme("light");
+    if (window.localStorage.getItem("edilbet-dashboard-theme") === "light") setTheme("light");\n    const savedBrand = window.localStorage.getItem("edilbet-dashboard-brand");\n    if (savedBrand && /^#[0-9a-fA-F]{6}$/.test(savedBrand)) setBrandColor(savedBrand);
   }, []);
 
   function toggleTheme() {
@@ -35,12 +35,12 @@ export function DashboardShell({ role, children }: { role: Role; children: React
       return next;
     });
   }
-  function signOut() {
+  function changeBrand(color: string) {\n    setBrandColor(color);\n    window.localStorage.setItem("edilbet-dashboard-brand", color);\n  }\n  function signOut() {
     clearUser();
     router.replace("/auth/login");
   }
 
-  return <div data-dashboard-theme={theme} className={clsx("dashboard-root min-h-screen md:flex", theme === "light" ? "dashboard-light" : "dashboard-dark bg-[#090d18] text-slate-100")}>
+  return <div style={{ "--brand": brandColor } as React.CSSProperties} data-dashboard-theme={theme} className={clsx("dashboard-root min-h-screen md:flex", theme === "light" ? "dashboard-light" : "dashboard-dark bg-[#090d18] text-slate-100")}>
     {mobile && <button aria-label="Close navigation" onClick={() => setMobile(false)} className="fixed inset-0 z-30 bg-black/60 md:hidden" />}
     <aside className={clsx("dashboard-sidebar fixed inset-y-0 left-0 z-40 flex flex-col border-r transition-all md:sticky md:top-0 md:h-screen md:translate-x-0", collapsed ? "w-[84px]" : "w-[250px]", mobile ? "translate-x-0" : "-translate-x-full md:translate-x-0")}>
       <div className="flex h-[76px] shrink-0 items-center gap-3 border-b px-4">
@@ -58,7 +58,7 @@ export function DashboardShell({ role, children }: { role: Role; children: React
           <div className="min-w-0"><div className="text-sm font-semibold">{t(admin ? "Admin" : "Agent")}</div></div>
         </div>
         <div className="flex shrink-0 items-center gap-2">
-          <LanguageSelector compact />
+          <LanguageSelector compact />\n          <button onClick={() => setBrandPanelOpen((open) => !open)} aria-label="Customize brand color" title="Brand appearance" className="dashboard-icon-button rounded-xl border p-2.5"><Palette size={17} /></button>
           <button onClick={toggleTheme} aria-label={theme === "dark" ? "Switch to light mode" : "Switch to dark mode"} title={theme === "dark" ? "Light mode" : "Dark mode"} className="dashboard-icon-button rounded-xl border p-2.5">{theme === "dark" ? <Sun size={17} /> : <Moon size={17} />}</button>
           <button aria-label="Help" title="Help" className="dashboard-icon-button hidden rounded-xl border p-2.5 sm:block"><CircleHelp size={17} /></button>
           <button aria-label="Notifications" title="Notifications" className="dashboard-icon-button rounded-xl border p-2.5"><Bell size={17} /></button>
