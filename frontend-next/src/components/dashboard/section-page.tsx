@@ -1,8 +1,8 @@
 "use client";
 import Link from "next/link";
 import {useLanguage} from "@/components/language-provider";
-import {Card,CardTitle} from "@/components/ui/card";
-import {Search,SlidersHorizontal,FileText} from "lucide-react";
+import {Card} from "@/components/ui/card";
+import {Search,SlidersHorizontal} from "lucide-react";
 const titles:Record<string,string>={agents:"Agents",bets:"Bets",transactions:"Transactions",reports:"Reports",settings:"Settings",wallet:"Wallet & Payouts",commissions:"Commissions",players:"Players"};
 export function SectionPage({role,section}:{role:"admin"|"agent";section:string}){const {t}=useLanguage();const title=t(titles[section]??(section.charAt(0).toUpperCase()+section.slice(1)));return <div className="space-y-5">
 <nav aria-label="Breadcrumb" className="flex items-center gap-2 text-xs dashboard-muted"><Link href={role==="admin"?"/admin":"/agent"} className="hover:underline">{t("Overview")}</Link><span>/</span><span className="font-medium dashboard-crumb-current">{title}</span></nav>
