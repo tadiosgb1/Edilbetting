@@ -52,3 +52,19 @@
 .dashboard-light [class*="text-[#b5f391]"] { color: #315d1e !important; }
 .dashboard-light [class*="text-white"] { color: #172033 !important; }
 .dashboard-light input, .dashboard-light select { background: #fff !important; color: #172033 !important; border-color: #cbd5e1 !important; }
+
+/* Dashboard content components share the selected theme, including tables, cards and form controls. */
+.dashboard-light [class*="bg-[#111827]"], .dashboard-light [class*="bg-[#0c1321]"], .dashboard-light [class*="bg-[#0b1220]"], .dashboard-light [class*="bg-[#2a3850]"] { background:#fff !important; }
+.dashboard-light [class*="text-[#8c9bb5]"], .dashboard-light [class*="text-[#8190a8]"], .dashboard-light [class*="text-[#718099]"], .dashboard-light [class*="text-[#61708a]"], .dashboard-light [class*="text-[#b7c3d7]"], .dashboard-light [class*="text-[#d3dbea]"] { color:#596579 !important; }
+.dashboard-light .dashboard-table thead { background:#eef2f7; color:#475467; }
+.dashboard-light .dashboard-table tbody tr { border-color:#e2e8f0; }
+.dashboard-light .dashboard-field, .dashboard-light .dashboard-secondary-button { background:#fff; border-color:#d0d5dd; color:#344054; }
+.dashboard-light .dashboard-empty-state { border-color:#cbd5e1; background:#fff; }
+.dashboard-light .dashboard-crumb-current { color:#172033; }
+.dashboard-light .dashboard-link { color:#315d1e; }
+.dashboard-dark .dashboard-table thead { background:#0c1321; color:#8190a8; }
+.dashboard-dark .dashboard-table tbody tr { border-color:#253148; }
+.dashboard-dark .dashboard-field, .dashboard-dark .dashboard-secondary-button { background:#0b1220; border-color:#2a3850; color:#d3dbea; }
+.dashboard-dark .dashboard-empty-state { border-color:#2a3850; background:#0d1422; }
+.dashboard-dark .dashboard-crumb-current { color:#f4f7fc; }
+.dashboard-dark .dashboard-link { color:#b5f391; }
