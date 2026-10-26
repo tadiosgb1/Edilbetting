@@ -66,7 +66,7 @@ export function DashboardShell({ role, children }: { role: Role; children: React
   return <div style={{ "--brand": brandColor, "--custom-dark-surface": darkSurfaceColor } as React.CSSProperties} data-dashboard-theme={theme} data-dashboard-palette={darkPalette} className={clsx("dashboard-root min-h-screen md:flex", theme === "light" ? "dashboard-light" : "dashboard-dark bg-[#090d18] text-slate-100")}>
     {mobile && <button aria-label="Close navigation" onClick={() => setMobile(false)} className="fixed inset-0 z-30 bg-black/60 md:hidden" />}
     <aside className={clsx("dashboard-sidebar fixed inset-y-0 left-0 z-40 flex flex-col border-r transition-all md:sticky md:top-0 md:h-screen md:translate-x-0", collapsed ? "w-[84px]" : "w-[250px]", mobile ? "translate-x-0" : "-translate-x-full md:translate-x-0")}>
-      <div className="flex h-[76px] shrink-0 items-center gap-3 border-b px-4">
+      <div className="flex h-[76px] min-h-[76px] shrink-0 items-center gap-3 border-b px-4">
         {!collapsed && <div className="min-w-0 font-bold tracking-wide">EDIL<span className="text-[#9fe870]">BET</span></div>}
         <button onClick={() => setCollapsed(!collapsed)} className="ml-auto hidden h-8 w-8 shrink-0 items-center justify-center rounded-lg dashboard-icon-button md:flex" aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"} title={collapsed ? "Expand sidebar" : "Collapse sidebar"}>{collapsed ? <ChevronRight size={17} /> : <ChevronLeft size={17} />}</button>
         <button className="ml-auto md:hidden" onClick={() => setMobile(false)} aria-label="Close menu"><X size={18} /></button>
@@ -74,8 +74,8 @@ export function DashboardShell({ role, children }: { role: Role; children: React
       <div className="px-3 pt-5">{nav.map(([label, href, Icon]) => <Link key={href} href={href} onClick={() => setMobile(false)} title={collapsed ? label : undefined} className={clsx("mb-1 flex items-center gap-3 rounded-xl px-3 py-3 text-[13px] transition-colors", path === href ? "dashboard-nav-active font-semibold" : "dashboard-nav-link")}><Icon size={18} />{!collapsed && t(label)}</Link>)}</div>
     </aside>
     <main className="dashboard-main min-w-0 flex-1">
-      <header className="dashboard-header sticky top-0 z-20 border-b px-3 py-3 backdrop-blur-xl sm:px-5 md:px-8">
-        <div className="flex min-w-0 flex-col gap-3 sm:flex-row sm:items-center sm:justify-between sm:gap-4">
+      <header className="dashboard-header sticky top-0 z-20 min-h-[76px] border-b px-3 py-3 backdrop-blur-xl sm:px-5 md:px-8">
+        <div className="flex min-h-[50px] min-w-0 flex-col justify-center gap-3 sm:min-h-[50px] sm:flex-row sm:items-center sm:justify-between sm:gap-4">
           <div className="flex min-w-0 items-center justify-between gap-3">
             <div className="flex min-w-0 items-center gap-3">
               <button className="dashboard-icon-button shrink-0 rounded-xl border p-2 md:hidden" onClick={() => setMobile(true)} aria-label="Open navigation"><Menu size={20} /></button>
