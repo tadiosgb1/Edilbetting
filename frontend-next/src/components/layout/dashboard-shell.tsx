@@ -76,36 +76,41 @@ export function DashboardShell({ role, children }: { role: Role; children: React
     </aside>
     <main className="dashboard-main min-w-0 flex-1">
       <header className="dashboard-header sticky top-0 z-20 border-b px-3 py-3 backdrop-blur-xl sm:px-5 md:px-8">
-        <div className="flex min-w-0 flex-row items-center justify-between gap-2 sm:gap-4">
-          <div className="flex min-w-0 items-center gap-3">
-            <button className="dashboard-icon-button shrink-0 rounded-xl border p-2 md:hidden" onClick={() => setMobile(true)} aria-label="Open navigation"><Menu size={20} /></button>
-<Link href={admin ? "/admin" : "/agent"} className="flex min-w-0 items-center gap-2.5 md:hidden" aria-label="Edilbet dashboard home">
-              <span className="grid h-9 w-9 shrink-0 place-items-center bg-[#9fe870] text-sm font-black text-[#10170d]">E</span>
-              <span className="min-w-0">
-                <span className="block truncate text-sm font-extrabold tracking-wide">EDIL<span className="text-[#9fe870]">BET</span></span>
-                <span className="hidden truncate text-[10px] dashboard-muted xs:block sm:block">{t(admin ? "Admin" : "Agent")} dashboard</span>
-              </span>
-            </Link>
-            <span className="hidden h-8 w-px shrink-0 bg-current opacity-15 sm:block" />
-            <div className="hidden min-w-0 truncate text-sm font-semibold md:block">{t(admin ? "Admin" : "Agent")}</div>
+        <div className="flex min-w-0 flex-col gap-3 sm:flex-row sm:items-center sm:justify-between sm:gap-4">
+          <div className="flex min-w-0 items-center justify-between gap-3">
+            <div className="flex min-w-0 items-center gap-3">
+              <button className="dashboard-icon-button shrink-0 rounded-xl border p-2 md:hidden" onClick={() => setMobile(true)} aria-label="Open navigation"><Menu size={20} /></button>
+              <Link href={admin ? "/admin" : "/agent"} className="min-w-0 md:hidden" aria-label="Edilbet dashboard home">
+                <span className="block truncate text-base font-extrabold tracking-wide">EDIL<span className="text-[#9fe870]">BET</span></span>
+                <span className="hidden truncate text-[10px] dashboard-muted sm:block">{t(admin ? "Admin" : "Agent")} dashboard</span>
+              </Link>
+              <span className="hidden h-8 w-px shrink-0 bg-current opacity-15 sm:block" />
+              <div className="hidden min-w-0 truncate text-sm font-semibold md:block">{t(admin ? "Admin" : "Agent")}</div>
+            </div>
+            <div className="shrink-0 sm:hidden">
+              <button onClick={() => setProfileOpen((open) => !open)} aria-expanded={profileOpen} aria-haspopup="menu" className="dashboard-profile flex items-center gap-1.5 rounded-xl border px-2 py-1.5 text-left">
+                <span className="grid h-8 w-8 shrink-0 place-items-center bg-[#9fe870] text-xs font-black text-[#17210f]">{admin ? "A" : "G"}</span>
+                <ChevronDown size={14} className="dashboard-muted" />
+              </button>
+            </div>
           </div>
-          <div className="flex min-w-0 flex-wrap items-center justify-end gap-1 sm:gap-2">
+          <div className="flex min-w-0 flex-wrap items-center gap-2 sm:justify-end">
             <LanguageSelector compact />
             <button onClick={() => setBrandPanelOpen((open) => !open)} aria-label="Customize appearance" title="Appearance settings" className="dashboard-icon-button grid h-10 w-10 shrink-0 place-items-center rounded-xl border"><Palette size={17} /></button>
             <button onClick={toggleTheme} aria-label={theme === "dark" ? "Switch to light mode" : "Switch to dark mode"} title={theme === "dark" ? "Light mode" : "Dark mode"} className="dashboard-icon-button grid h-10 w-10 shrink-0 place-items-center rounded-xl border">{theme === "dark" ? <Sun size={17} /> : <Moon size={17} />}</button>
             <button aria-label="Help" title="Help" className="dashboard-icon-button hidden h-10 w-10 shrink-0 place-items-center rounded-xl border lg:grid"><CircleHelp size={17} /></button>
             <button aria-label="Notifications" title="Notifications" className="dashboard-icon-button grid h-10 w-10 shrink-0 place-items-center rounded-xl border"><Bell size={17} /></button>
-            <div className="relative ml-auto sm:ml-0">
-              <button onClick={() => setProfileOpen((open) => !open)} aria-expanded={profileOpen} aria-haspopup="menu" className="dashboard-profile flex max-w-[150px] items-center gap-2 rounded-xl border px-2 py-1.5 text-left sm:max-w-[210px] sm:px-3 sm:py-2">
+            <div className="relative ml-auto hidden sm:block">
+              <button onClick={() => setProfileOpen((open) => !open)} aria-expanded={profileOpen} aria-haspopup="menu" className="dashboard-profile flex max-w-[210px] items-center gap-2 rounded-xl border px-2 py-1.5 text-left sm:px-3 sm:py-2">
                 <span className="grid h-8 w-8 shrink-0 place-items-center bg-[#9fe870] text-xs font-black text-[#17210f]">{admin ? "A" : "G"}</span>
                 <span className="hidden min-w-0 sm:block"><span className="block truncate text-xs font-semibold">{admin ? t("Admin") : t("Agent")}</span><span className="mt-1 block truncate text-[10px] dashboard-muted">{t(admin ? "Administrator" : "Agent account")}</span></span>
                 <ChevronDown size={14} className="dashboard-muted" />
               </button>
-              {profileOpen && <div role="menu" className="dashboard-menu absolute right-0 top-full z-50 mt-2 w-52 rounded-xl border p-2 shadow-xl">
-                <div className="border-b px-3 py-2"><div className="text-xs font-semibold">{admin ? t("Admin") : t("Agent")}</div><div className="mt-1 text-[10px] dashboard-muted">{t(admin ? "Administrator" : "Agent account")}</div></div>
-                <button role="menuitem" onClick={signOut} className="mt-1 flex w-full items-center gap-2 rounded-lg px-3 py-2.5 text-left text-sm dashboard-signout"><LogOut size={16} />{t("Sign out")}</button>
-              </div>}
             </div>
+            {profileOpen && <div role="menu" className="dashboard-menu absolute right-3 top-[64px] z-50 mt-2 w-52 rounded-xl border p-2 shadow-xl sm:right-5 md:right-8">
+              <div className="border-b px-3 py-2"><div className="text-xs font-semibold">{admin ? t("Admin") : t("Agent")}</div><div className="mt-1 text-[10px] dashboard-muted">{t(admin ? "Administrator" : "Agent account")}</div></div>
+              <button role="menuitem" onClick={signOut} className="mt-1 flex w-full items-center gap-2 rounded-lg px-3 py-2.5 text-left text-sm dashboard-signout"><LogOut size={16} />{t("Sign out")}</button>
+            </div>}
           </div>
         </div>
       </header>
