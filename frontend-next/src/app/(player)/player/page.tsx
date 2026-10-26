@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useMemo, useState } from "react";
-import { useLanguage } from "@/components/language-provider";
+import { LanguageSelector, useLanguage } from "@/components/language-provider";
 import {
   Activity, CalendarDays, ChevronDown, CircleHelp, Clock3, Flame, Menu,
   Search, ShieldCheck, Trophy, Wallet, X, Zap,
@@ -99,6 +99,7 @@ export default function PlayerPage() {
             <Link href="/auth/login" className="rounded-lg border border-amber-400/30 bg-amber-400 px-3 py-2 text-xs font-black text-slate-950 shadow-md shadow-amber-500/10 transition hover:bg-amber-300 sm:px-4 sm:text-sm">Register</Link>
           </div>
         </div>
+        <div className="flex justify-end border-t border-slate-800 px-3 py-2 sm:px-5"><LanguageSelector compact /></div>
         {mobileMenu && <div className="border-t border-slate-800 bg-slate-900 p-3 lg:hidden"><div className="grid grid-cols-3 gap-2">{(["home", "sports", "live"] as const).map((item) => <button key={item} onClick={() => { setTab(item); setDay(item === "live" ? "Live" : "All"); setMobileMenu(false); }} className={`rounded-lg px-3 py-2.5 text-sm font-bold capitalize ${tab === item ? "bg-amber-400/10 text-amber-400" : "text-slate-300 hover:bg-slate-800"}`}>{item}</button>)}</div></div>}
       </header>
 

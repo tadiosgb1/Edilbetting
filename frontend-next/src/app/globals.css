@@ -1,1 +1,16 @@
 @import "tailwindcss"; :root{color-scheme:dark;--bg:#090d18;--panel:#111827;--line:#253148;--muted:#8c9bb5;--text:#f4f7fc;--brand:#9fe870}*{box-sizing:border-box}html,body{min-height:100%;margin:0}body{background:var(--bg);color:var(--text);font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}button,input{font:inherit}a{color:inherit;text-decoration:none}::selection{background:#9fe87055}
+/* Dashboard-only theme overrides; player sportsbook keeps its original dark styling. */
+.dashboard-light { background: #f3f6fb !important; color: #172033 !important; color-scheme: light; }
+.dashboard-light main { background: #f3f6fb !important; color: #172033 !important; }
+.dashboard-light aside { background: #ffffff !important; border-color: #dbe2ec !important; }
+.dashboard-light header { background: rgba(255,255,255,.94) !important; border-color: #dbe2ec !important; color: #172033 !important; }
+.dashboard-light [class*="border-[#253148]"] { border-color: #dbe2ec !important; }
+.dashboard-light [class*="bg-[#0d1422]"], .dashboard-light [class*="bg-[#111b2b]"], .dashboard-light [class*="bg-[#090d18]"] { background: #ffffff !important; }
+.dashboard-light [class*="text-[#95a3ba]"], .dashboard-light [class*="text-[#9ba9bf]"], .dashboard-light [class*="text-[#7f8da5]"], .dashboard-light [class*="text-[#74839b]"], .dashboard-light [class*="text-[#64738d]"] { color: #596579 !important; }
+.dashboard-light [class*="hover:bg-[#182337]"]:hover { background: #eef2f8 !important; }
+.dashboard-light [class*="bg-[#9fe870]/10"] { background: #effbe7 !important; }
+.dashboard-light [class*="text-[#b5f391]"] { color: #315d1e !important; }
+.dashboard-light [class*="text-white"] { color: #172033 !important; }
+.dashboard-light [class*="text-[#10170d]"] { color: #10170d !important; }
+.dashboard-light input, .dashboard-light select { background: #ffffff !important; color: #172033 !important; border-color: #cbd5e1 !important; }
+.dashboard-light button { border-color: #dbe2ec; }

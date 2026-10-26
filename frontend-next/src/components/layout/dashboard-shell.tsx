@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Bell, ChevronLeft, ChevronRight, CircleHelp, LayoutDashboard, LogOut, Menu, Settings, ShieldCheck, Users, Wallet, Trophy, UserRound, ChartNoAxesCombined, X } from "lucide-react";
 import { clsx } from "clsx";
 import { useAuthStore } from "@/stores/auth-store";

@@ -47,13 +47,16 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
   const t = (text: string) => translations[language][text] ?? text;
   return <LanguageContext.Provider value={{ language, setLanguage, t }}>
     {children}
-    <div className="fixed right-3 top-3 z-[100]">
-      <label className="sr-only" htmlFor="edilbet-language">{t("language")}</label>
-      <select id="edilbet-language" aria-label={t("language")} value={language} onChange={(event) => setLanguage(event.target.value as AppLanguage)}
-        className="rounded-lg border border-slate-600 bg-slate-900/95 px-2.5 py-2 text-xs font-semibold text-white shadow-lg outline-none focus:border-amber-400">
-        <option value="en">English</option><option value="am">አማርኛ</option><option value="ti">ትግርኛ</option>
-      </select>
-    </div>
   </LanguageContext.Provider>;
+}
+export function LanguageSelector({ compact = false }: { compact?: boolean }) {
+  const { language, setLanguage, t } = useLanguage();
+  return <div className="flex items-center gap-2">
+    <label className="sr-only" htmlFor="edilbet-language">{t("language")}</label>
+    <select id={compact ? "edilbet-language-compact" : "edilbet-language"} aria-label={t("language")} value={language} onChange={(event) => setLanguage(event.target.value as AppLanguage)}
+      className="max-w-full rounded-lg border border-slate-600 bg-slate-900 px-2.5 py-2 text-xs font-semibold text-white shadow-sm outline-none focus:border-amber-400">
+      <option value="en">English</option><option value="am">አማርኛ</option><option value="ti">ትግርኛ</option>
+    </select>
+  </div>;
 }
 export function useLanguage() { return useContext(LanguageContext); }
