@@ -119,7 +119,7 @@ export default function AuthPage({
   }
 
   const form = (
-    <section style={accentStyle} className={isModal ? "relative w-full max-w-2xl rounded-xl border border-slate-700 bg-slate-900 p-7 text-slate-100" : "w-full max-w-sm text-slate-100"}>
+    <section style={accentStyle} className={isModal ? "relative w-full max-w-4xl rounded-xl border border-slate-700 bg-slate-900 p-7 text-slate-100" : "w-full max-w-lg text-slate-100"}>
       {isModal && onClose && <button type="button" onClick={onClose} aria-label="Close" className="absolute right-3 top-3 rounded-md p-1.5 text-slate-400 hover:bg-slate-800 hover:text-white"><X size={18}/></button>}
       <div className="mb-4 flex items-center gap-2 text-[var(--auth-accent)]">
         {currentMode === "login" ? <LockKeyhole size={17}/> : <UserPlus size={17}/>}
