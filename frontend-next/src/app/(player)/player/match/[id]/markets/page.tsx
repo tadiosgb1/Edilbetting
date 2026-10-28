@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useParams } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Activity, ArrowLeft, CalendarDays, ChevronDown, Clock3, Dribbble, Mail, Search, Settings, ShieldCheck, Target, Ticket, Trophy, UserRound, Wallet, X, Zap } from "lucide-react";
 import { useAuthStore } from "@/stores/auth-store";
 import { LanguageSelector } from "@/components/language-provider";
@@ -99,6 +99,8 @@ export default function MatchMarketsPage() {
   const [search, setSearch] = useState("");
   const [selected, setSelected] = useState<string[]>([]);
   const [oddsFormat, setOddsFormat] = useState("Decimal");
+  const [visibleMarketCount, setVisibleMarketCount] = useState(8);
+  const loadMoreRef = useRef<HTMLDivElement | null>(null);
   const [theme, setTheme] = useState<"dark" | "light">("dark");
   const [brandColor, setBrandColor] = useState("#16a34a");
   const [darkPalette, setDarkPalette] = useState("slate");
@@ -130,6 +132,18 @@ export default function MatchMarketsPage() {
   };
   const active = categories.find((category) => category.name === activeCategory) || categories[0];
   const filteredMarkets = active.markets.filter((market) => !search || (market.name + " " + market.options.map((option) => option.label).join(" ")).toLowerCase().includes(search.toLowerCase()));
+  useEffect(() => { setVisibleMarketCount(8); }, [activeCategory, search]);
+  useEffect(() => {
+    const target = loadMoreRef.current;
+    if (!target || visibleMarketCount >= filteredMarkets.length) return;
+    const observer = new IntersectionObserver((entries) => {
+      if (entries.some((entry) => entry.isIntersecting)) {
+        setVisibleMarketCount((count) => Math.min(count + 8, filteredMarkets.length));
+      }
+    }, { rootMargin: "240px 0px", threshold: 0 });
+    observer.observe(target);
+    return () => observer.disconnect();
+  }, [visibleMarketCount, filteredMarkets.length]);
   const totalMarkets = categories.reduce((sum, category) => sum + category.markets.length, 0);
   return <main style={{ "--player-brand": brandColor, "--player-custom-surface": darkSurfaceColor } as React.CSSProperties} className="player-root h-screen overflow-hidden bg-slate-950 font-sans text-slate-100" data-player-theme={theme} data-player-palette={darkPalette}>
     <header className="relative z-40 border-b border-slate-800 bg-slate-900">
@@ -158,7 +172,7 @@ export default function MatchMarketsPage() {
         </aside>
         <section className="min-w-0">
           <div className="mb-3 flex flex-wrap items-center justify-between gap-3"><div><h2 className="text-sm font-black text-white">{active.name}</h2><p className="mt-1 text-[10px] text-slate-500">{active.markets.length} market groups · choose a price to highlight it</p></div><div className="flex items-center gap-2"><label className="sr-only" htmlFor="market-search">Search markets</label><div className="relative"><Search size={13} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-500"/><input id="market-search" value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Find a market…" className="w-44 rounded-md border border-slate-700 bg-slate-900 py-2 pl-8 pr-2 text-xs outline-none focus:border-emerald-500"/></div><select value={oddsFormat} onChange={(event) => setOddsFormat(event.target.value)} className="rounded-md border border-slate-700 bg-slate-900 px-2 py-2 text-xs text-slate-300"><option value="Decimal">Decimal</option><option value="US">US (+500)</option><option value="Hong Kong">Hong Kong</option></select></div></div>
-          <div className="space-y-3">{filteredMarkets.map((market) => <article key={market.name} className="overflow-hidden rounded-xl border border-slate-800 bg-slate-900"><div className="flex items-center justify-between gap-3 border-b border-slate-800 px-4 py-3"><span className="text-xs font-extrabold text-slate-200">{market.name}</span><span className="text-[10px] text-slate-500">{market.options.length} outcomes</span></div><div className="grid grid-cols-2 gap-2 p-3 sm:grid-cols-3 xl:grid-cols-4">{market.options.map((option) => {const key=market.name+"::"+option.label;const isSelected=selected.includes(key);return <button key={option.label} onClick={() => setSelected((current) => current.includes(key) ? current.filter((item) => item !== key) : [...current,key])} className={isSelected ? "rounded-md border border-emerald-500 bg-emerald-500/15 px-3 py-2 text-left" : "rounded-md border border-slate-800 bg-slate-950 px-3 py-2 text-left transition hover:border-[var(--player-brand)]/50 hover:bg-slate-800"}><span className="block text-[10px] leading-4 text-slate-400">{option.label}</span><strong className="mt-1 block text-xs font-black tabular-nums text-white">{formatOdd(option.odd)}</strong></button>;})}</div></article>)}</div>
+          <div className="space-y-3">{filteredMarkets.slice(0, visibleMarketCount).map((market) => <article key={market.name} className="overflow-hidden rounded-xl border border-slate-800 bg-slate-900"><div className="flex items-center justify-between gap-3 border-b border-slate-800 px-4 py-3"><span className="text-xs font-extrabold text-slate-200">{market.name}</span><span className="text-[10px] text-slate-500">{market.options.length} outcomes</span></div><div className="grid grid-cols-2 gap-2 p-3 sm:grid-cols-3 xl:grid-cols-4">{market.options.map((option) => {const key=market.name+"::"+option.label;const isSelected=selected.includes(key);return <button key={option.label} onClick={() => setSelected((current) => current.includes(key) ? current.filter((item) => item !== key) : [...current,key])} className={isSelected ? "rounded-md border border-emerald-500 bg-emerald-500/15 px-3 py-2 text-left" : "rounded-md border border-slate-800 bg-slate-950 px-3 py-2 text-left transition hover:border-[var(--player-brand)]/50 hover:bg-slate-800"}><span className="block text-[10px] leading-4 text-slate-400">{option.label}</span><strong className="mt-1 block text-xs font-black tabular-nums text-white">{formatOdd(option.odd)}</strong></button>;})}</div></article>)}{visibleMarketCount < filteredMarkets.length && <div ref={loadMoreRef} aria-label="Loading more markets" className="flex items-center justify-center gap-2 rounded-lg border border-slate-800 bg-slate-900 px-4 py-4 text-xs font-semibold text-slate-400"><span className="h-4 w-4 animate-spin rounded-full border-2 border-slate-600 border-t-[var(--player-brand)]" />Loading more markets…</div>}</div>
         </section>
       </div></div></section>
       <aside className="custom-scroll hidden h-full w-[280px] shrink-0 overflow-y-auto overscroll-contain border-l border-slate-800 bg-slate-900 xl:block">
