@@ -3,12 +3,12 @@
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
-import { useAuthStore } from "@/stores/auth-store";
+import { hashPassword, normalizePhone, useAuthStore } from "@/stores/auth-store";
 import AuthPage from "@/components/auth/auth-page";
 import { LanguageSelector, useLanguage } from "@/components/language-provider";
 import {
   Activity, CalendarDays, Check, ChevronDown, CircleHelp, Clock3, Dribbble,
-  Flame, Globe, LogOut, Menu, Moon, Palette, Search, Shield, ShieldCheck, Snowflake,
+  Flame, Globe, LockKeyhole, LogOut, Menu, Moon, Palette, Search, Shield, ShieldCheck, Snowflake,
   Sun, Target, Trophy, UserRound, Wallet, X, Zap, CircleDot,
 } from "lucide-react";
 
@@ -51,8 +51,17 @@ export default function PlayerPage() {
   const router = useRouter();
   const user = useAuthStore((state) => state.user);
   const clearUser = useAuthStore((state) => state.clearUser);
+  const accounts = useAuthStore((state) => state.accounts);
+  const updatePassword = useAuthStore((state) => state.updatePassword);
   const [authHydrated, setAuthHydrated] = useState(false);
   const [authMode, setAuthMode] = useState<"login" | "register" | null>(null);
+  const [profileOpen, setProfileOpen] = useState(false);
+  const [passwordOpen, setPasswordOpen] = useState(false);
+  const [currentPassword, setCurrentPassword] = useState("");
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmNewPassword, setConfirmNewPassword] = useState("");
+  const [passwordError, setPasswordError] = useState("");
+  const [passwordNotice, setPasswordNotice] = useState("");
   const [appearanceOpen, setAppearanceOpen] = useState(false);
   const [brandColor, setBrandColor] = useState("#16a34a");
   const [theme, setTheme] = useState<"dark" | "light">("dark");
@@ -101,6 +110,39 @@ export default function PlayerPage() {
     router.replace("/player");
   }
 
+  async function submitPasswordChange(event: React.FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    setPasswordError("");
+    setPasswordNotice("");
+    if (newPassword.length < 4) {
+      setPasswordError("Use at least 4 characters for the new password.");
+      return;
+    }
+    if (newPassword !== confirmNewPassword) {
+      setPasswordError("The new passwords do not match.");
+      return;
+    }
+    if (!user) return;
+    const account = accounts.find((item) => normalizePhone(item.phone) === normalizePhone(user.phone) && item.role === user.role);
+    if (!account) {
+      setPasswordError("Password changes are available for accounts created in this app.");
+      return;
+    }
+    if (await hashPassword(currentPassword) !== account.passwordHash) {
+      setPasswordError("Current password is incorrect.");
+      return;
+    }
+    const changed = await updatePassword(user.phone, user.role, await hashPassword(newPassword));
+    if (!changed) {
+      setPasswordError("Unable to update password. Please try again.");
+      return;
+    }
+    setCurrentPassword("");
+    setNewPassword("");
+    setConfirmNewPassword("");
+    setPasswordNotice("Password updated.");
+  }
+
   const visibleMatches = useMemo(() => matches.filter((match) => {
     const term = search.trim().toLowerCase();
     const matchesSearch = !term || [match.league, match.home, match.away].some((value) => value.toLowerCase().includes(term));
@@ -137,17 +179,31 @@ export default function PlayerPage() {
             </nav>
           </div>
           <div className="flex shrink-0 items-center gap-1.5 sm:gap-2.5">
-            {authHydrated && user ? <>
-              <div className="hidden items-center gap-2 rounded-lg border border-slate-700 bg-slate-800 px-3 py-2 sm:flex"><UserRound size={15} className="text-slate-400" /><span className="max-w-28 truncate text-xs font-semibold text-slate-200">{user.name}</span><span className="rounded bg-slate-700 px-1.5 py-0.5 text-[9px] font-bold uppercase text-slate-300">{user.role}</span></div>
-              <button onClick={signOut} className="flex items-center gap-1.5 rounded-lg px-2.5 py-2 text-xs font-semibold text-slate-300 transition hover:bg-slate-800 hover:text-white sm:px-3 sm:text-sm"><LogOut size={14} /> Sign out</button>
-            </> : authHydrated ? <>
-              <button onClick={() => setAuthMode("login")} className="rounded-lg px-2.5 py-2 text-xs font-semibold text-slate-300 transition hover:bg-slate-800 hover:text-[var(--player-brand)] sm:px-3 sm:text-sm">Login</button>
-              <button onClick={() => setAuthMode("register")} className="rounded-lg px-3 py-2 text-xs font-semibold text-white transition-opacity hover:opacity-90 sm:px-4 sm:text-sm" style={{ backgroundColor: brandColor }}>Register</button>
-            </> : <span className="px-2 py-2 text-xs text-slate-500">Checking session…</span>}
-            <button onClick={() => setAppearanceOpen((open) => !open)} aria-label="Brand appearance settings" aria-expanded={appearanceOpen} title="Brand appearance" className="grid h-9 w-9 place-items-center rounded-lg border border-slate-700 bg-slate-800 text-slate-300 transition hover:text-white"><Palette size={16} /></button>
+            <div className="flex items-center gap-1">
+              <LanguageSelector compact />
+              {authHydrated && user ? <div className="relative">
+                <button onClick={() => setProfileOpen((open) => !open)} aria-label="Open profile menu" aria-expanded={profileOpen} className="flex h-9 items-center gap-2 rounded-lg border border-slate-700 px-2 text-sm transition hover:border-[var(--player-brand)]">
+                  <UserRound size={17} className="player-accent-icon" />
+                  <span className="hidden max-w-24 truncate text-xs font-semibold sm:block">{user.name}</span>
+                  <ChevronDown size={13} className="player-accent-icon" />
+                </button>
+                {profileOpen && <>
+                  <button aria-label="Close profile menu" onClick={() => setProfileOpen(false)} className="fixed inset-0 z-40 cursor-default" />
+                  <div className="absolute right-0 top-11 z-50 w-52 rounded-lg border border-slate-700 bg-slate-900 p-1.5">
+                    <div className="border-b border-slate-800 px-3 py-2"><p className="truncate text-xs font-semibold">{user.name}</p><p className="mt-0.5 text-[10px] uppercase text-slate-500">{user.role}</p></div>
+                    <button onClick={() => { setProfileOpen(false); setAppearanceOpen(true); }} className="flex w-full items-center gap-2 rounded-md px-3 py-2.5 text-left text-xs text-slate-300 hover:bg-slate-800 hover:text-[var(--player-brand)]"><Palette size={15} className="player-accent-icon" /> Settings</button>
+                    <button onClick={() => { setProfileOpen(false); setPasswordOpen(true); setPasswordError(""); setPasswordNotice(""); }} className="flex w-full items-center gap-2 rounded-md px-3 py-2.5 text-left text-xs text-slate-300 hover:bg-slate-800 hover:text-[var(--player-brand)]"><LockKeyhole size={15} className="player-accent-icon" /> Change password</button>
+                    <button onClick={signOut} className="flex w-full items-center gap-2 rounded-md px-3 py-2.5 text-left text-xs text-slate-300 hover:bg-slate-800 hover:text-[var(--player-brand)]"><LogOut size={15} className="player-accent-icon" /> Log out</button>
+                  </div>
+                </>}
+              </div> : authHydrated ? <>
+                <button onClick={() => setAuthMode("login")} className="rounded-lg px-2.5 py-2 text-xs font-semibold text-slate-300 transition hover:bg-slate-800 hover:text-[var(--player-brand)] sm:px-3 sm:text-sm">Login</button>
+                <button onClick={() => setAuthMode("register")} className="rounded-lg px-3 py-2 text-xs font-semibold text-white transition-opacity hover:opacity-90 sm:px-4 sm:text-sm" style={{ backgroundColor: brandColor }}>Register</button>
+              </> : <span className="px-2 py-2 text-xs text-slate-500">…</span>}
+              <button onClick={() => setAppearanceOpen((open) => !open)} aria-label="Brand appearance settings" aria-expanded={appearanceOpen} title="Brand appearance" className="grid h-9 w-9 place-items-center rounded-lg border border-slate-700 bg-slate-800/70 text-[var(--player-brand)] transition hover:bg-slate-800"><Palette size={16} className="player-accent-icon" /></button>
+            </div>
           </div>
         </div>
-        <div className="flex justify-end border-t border-slate-800 px-3 py-2 sm:px-5"><LanguageSelector compact /></div>
         {mobileMenu && <div className="border-t border-slate-800 bg-slate-900 p-3 lg:hidden"><div className="grid grid-cols-3 gap-2">{(["home", "sports", "live"] as const).map((item) => <button key={item} onClick={() => { setTab(item); setDay(item === "live" ? "Live" : "All"); setMobileMenu(false); }} className={`rounded-lg px-3 py-2.5 text-sm font-bold capitalize ${tab === item ? "bg-[var(--player-brand)]/10 text-[var(--player-brand)]" : "text-slate-300 hover:bg-slate-800"}`}>{item}</button>)}</div></div>}
       </header>
 
@@ -183,16 +239,16 @@ export default function PlayerPage() {
         <aside className="custom-scroll hidden w-60 shrink-0 flex-col overflow-y-auto border-r border-slate-800 bg-slate-900 lg:flex xl:w-64">
           <div className="border-b border-slate-800 p-3">
             <div className="relative">
-              <Search size={15} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-500"/>
+              <Search size={15} className="player-accent-icon absolute left-2.5 top-1/2 -translate-y-1/2"/>
               <input value={search} onChange={(event) => setSearch(event.target.value)} placeholder={t("Search matches…")} className="w-full rounded-lg border border-slate-700 bg-slate-800 py-2 pl-8 pr-3 text-xs text-slate-200 outline-none placeholder:text-slate-500 focus:border-[var(--player-brand)]"/>
             </div>
           </div>
           <div className="border-b border-slate-800 pb-2">
             <div className="flex items-center justify-between px-3 pb-1 pt-3"><p className="text-[10px] font-black uppercase tracking-widest text-slate-500">Top Leagues</p><Flame size={13} className="text-[var(--player-brand)]"/></div>
-            {topLeagues.map(([league, count]) => <button key={league} onClick={() => { setActiveLeague(league); setTab("sports"); setDay("All"); }} className="flex w-full items-center gap-2 px-3 py-2 text-left text-xs font-semibold text-slate-300 transition hover:bg-slate-800 hover:text-[var(--player-brand)]"><Trophy size={14} className="shrink-0 text-slate-500" /><span className="flex-1 truncate">{league}</span><span className="text-[9px] text-slate-600">{count}</span></button>)}
+            {topLeagues.map(([league, count]) => <button key={league} onClick={() => { setActiveLeague(league); setTab("sports"); setDay("All"); }} className="flex w-full items-center gap-2 px-3 py-2 text-left text-xs font-semibold text-slate-300 transition hover:bg-slate-800 hover:text-[var(--player-brand)]"><Trophy size={14} className="player-accent-icon shrink-0" /><span className="flex-1 truncate">{league}</span><span className="text-[9px] text-slate-600">{count}</span></button>)}
           </div>
           <div className="px-3 pb-1 pt-3"><p className="text-[10px] font-black uppercase tracking-widest text-slate-500">Sports</p></div>
-          <div className="pb-4">{sports.map(([name, count]) => { const SportIcon = sportIcons[name as keyof typeof sportIcons]; return <button key={name} onClick={() => { setActiveLeague(name === "Football" ? "All sports" : name); setTab("sports"); }} className="flex w-full items-center gap-2.5 px-3 py-2.5 text-left text-slate-300 transition hover:bg-slate-800/70 hover:text-white"><SportIcon size={16} className="shrink-0 text-slate-500" /><span className="flex-1 text-xs font-bold">{name}</span><span className="rounded bg-slate-800 px-1.5 py-0.5 text-[9px] text-slate-500">{count}</span><ChevronDown size={12} className="text-slate-600"/></button>; })}</div>
+          <div className="pb-4">{sports.map(([name, count]) => { const SportIcon = sportIcons[name as keyof typeof sportIcons]; return <button key={name} onClick={() => { setActiveLeague(name === "Football" ? "All sports" : name); setTab("sports"); }} className="flex w-full items-center gap-2.5 px-3 py-2.5 text-left text-slate-300 transition hover:bg-slate-800/70 hover:text-white"><SportIcon size={16} className="player-accent-icon shrink-0" /><span className="flex-1 text-xs font-bold">{name}</span><span className="rounded bg-slate-800 px-1.5 py-0.5 text-[9px] text-slate-500">{count}</span><ChevronDown size={12} className="text-slate-600"/></button>; })}</div>
           <div className="mt-auto border-t border-slate-800 p-3"><div className="rounded-xl border border-[var(--player-brand)]/10 bg-[var(--player-brand)]/5 p-3"><div className="flex items-center gap-2 text-xs font-bold text-[var(--player-brand)]"><ShieldCheck size={14}/> Play responsibly</div><p className="mt-2 text-[10px] leading-4 text-slate-500">18+ only. Set limits and keep the game fun.</p></div></div>
         </aside>
 
@@ -241,6 +297,20 @@ export default function PlayerPage() {
           </div>
         </aside>
       </div>
+      {passwordOpen && <div className="fixed inset-0 z-[100] grid place-items-center bg-black/65 p-4" onMouseDown={(event) => { if (event.target === event.currentTarget) setPasswordOpen(false); }}>
+        <section role="dialog" aria-modal="true" aria-label="Change password" className="relative w-full max-w-md rounded-xl border border-slate-700 bg-slate-900 p-6 text-slate-100">
+          <button onClick={() => setPasswordOpen(false)} aria-label="Close change password" className="absolute right-3 top-3 rounded-md p-1.5 text-slate-400 hover:bg-slate-800"><X size={18}/></button>
+          <h2 className="text-lg font-semibold">Change password</h2>
+          <form onSubmit={submitPasswordChange} className="mt-5 space-y-3">
+            <div><label htmlFor="current-password" className="mb-1.5 block text-xs text-slate-300">Current password</label><input id="current-password" type="password" autoComplete="current-password" value={currentPassword} onChange={(event) => setCurrentPassword(event.target.value)} required className="w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2.5 text-sm outline-none focus:border-[var(--player-brand)]"/></div>
+            <div><label htmlFor="new-password" className="mb-1.5 block text-xs text-slate-300">New password</label><input id="new-password" type="password" autoComplete="new-password" minLength={4} value={newPassword} onChange={(event) => setNewPassword(event.target.value)} required className="w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2.5 text-sm outline-none focus:border-[var(--player-brand)]"/></div>
+            <div><label htmlFor="confirm-new-password" className="mb-1.5 block text-xs text-slate-300">Confirm new password</label><input id="confirm-new-password" type="password" autoComplete="new-password" minLength={4} value={confirmNewPassword} onChange={(event) => setConfirmNewPassword(event.target.value)} required className="w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2.5 text-sm outline-none focus:border-[var(--player-brand)]"/></div>
+            {passwordError && <p role="alert" className="rounded-md bg-red-500/10 px-3 py-2 text-xs text-red-300">{passwordError}</p>}
+            {passwordNotice && <p role="status" className="rounded-md bg-emerald-500/10 px-3 py-2 text-xs text-emerald-300">{passwordNotice}</p>}
+            <button type="submit" className="w-full rounded-lg px-4 py-2.5 text-sm font-semibold text-white hover:opacity-90" style={{ backgroundColor: brandColor }}>Update password</button>
+          </form>
+        </section>
+      </div>}
       {authMode && <AuthPage key={authMode} mode={authMode} role="player" presentation="modal" onClose={() => setAuthMode(null)} onSuccess={() => setAuthMode(null)} />}
       <footer className="border-t border-slate-800 bg-slate-900 px-4 py-4 text-center text-[10px] text-slate-600">EdilBet · Play responsibly · 18+ only</footer>
       <nav className="fixed inset-x-0 bottom-0 z-30 grid grid-cols-3 border-t border-slate-800 bg-slate-900/95 backdrop-blur lg:hidden">{([{id:"home",label:"Home",icon:<CalendarDays size={16}/>},{id:"sports",label:"Sports",icon:<Trophy size={16}/>},{id:"live",label:"Live",icon:<Zap size={16}/>} ] as const).map((item) => <button key={item.id} onClick={() => { setTab(item.id); setDay(item.id === "live" ? "Live" : "All"); }} className={`flex flex-col items-center gap-1 py-2 text-[10px] font-bold ${tab === item.id ? "text-[var(--player-brand)]" : "text-slate-500"}`}>{item.icon}{item.label}</button>)}</nav>
