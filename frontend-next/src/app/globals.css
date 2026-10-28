@@ -411,3 +411,10 @@
   border-color: color-mix(in srgb, var(--player-brand) 60%, #64748b);
 }
 
+
+.player-root .player-accent-icon {
+  color: var(--player-brand) !important;
+}
+.player-root .player-accent-icon:hover {
+  color: var(--player-brand) !important;
+}
