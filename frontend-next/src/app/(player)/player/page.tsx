@@ -85,6 +85,8 @@ export default function PlayerPage() {
   const [picks, setPicks] = useState<Pick[]>([]);
   const [activeLeague, setActiveLeague] = useState("All sports");
   const [oddsFormat, setOddsFormat] = useState("Decimal (2.20)");
+  const [expandedMatchId, setExpandedMatchId] = useState<string | null>(null);
+  const [marketCategory, setMarketCategory] = useState("Popular");
 
   useEffect(() => {
     const persistApi = useAuthStore.persist;
