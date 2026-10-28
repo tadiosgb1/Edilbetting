@@ -453,3 +453,40 @@
 .player-root [class*="text-emerald-300"] { color: var(--player-brand) !important; }
 .player-root [class*="hover\\:border-emerald-500"]:hover { border-color: var(--player-brand) !important; }
 .player-root[data-player-theme="light"] .player-accent-solid-text { color: #fff !important; }
+
+
+/* Slim, unobtrusive vertical scrollbars across sportsbook columns. */
+.player-root .custom-scroll,
+.player-root [class*="overflow-y-auto"],
+.player-root [class*="overflow-auto"] {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(148, 163, 184, .42) transparent;
+  scrollbar-gutter: stable;
+}
+.player-root .custom-scroll::-webkit-scrollbar,
+.player-root [class*="overflow-y-auto"]::-webkit-scrollbar,
+.player-root [class*="overflow-auto"]::-webkit-scrollbar {
+  width: 5px;
+  height: 5px;
+}
+.player-root .custom-scroll::-webkit-scrollbar-track,
+.player-root [class*="overflow-y-auto"]::-webkit-scrollbar-track,
+.player-root [class*="overflow-auto"]::-webkit-scrollbar-track {
+  background: transparent;
+}
+.player-root .custom-scroll::-webkit-scrollbar-thumb,
+.player-root [class*="overflow-y-auto"]::-webkit-scrollbar-thumb,
+.player-root [class*="overflow-auto"]::-webkit-scrollbar-thumb {
+  background: rgba(148, 163, 184, .38);
+  border-radius: 999px;
+}
+.player-root .custom-scroll::-webkit-scrollbar-thumb:hover,
+.player-root [class*="overflow-y-auto"]::-webkit-scrollbar-thumb:hover,
+.player-root [class*="overflow-auto"]::-webkit-scrollbar-thumb:hover {
+  background: rgba(148, 163, 184, .65);
+}
+.player-root[data-player-theme="light"] .custom-scroll,
+.player-root[data-player-theme="light"] [class*="overflow-y-auto"],
+.player-root[data-player-theme="light"] [class*="overflow-auto"] {
+  scrollbar-color: rgba(100, 116, 139, .4) transparent;
+}
