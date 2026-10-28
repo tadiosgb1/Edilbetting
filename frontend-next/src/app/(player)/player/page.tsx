@@ -7,8 +7,8 @@ import { useAuthStore } from "@/stores/auth-store";
 import { LanguageSelector, useLanguage } from "@/components/language-provider";
 import {
   Activity, CalendarDays, Check, ChevronDown, CircleHelp, Clock3, Dribbble,
-  Flame, Globe, LogOut, Menu, Palette, Search, Shield, ShieldCheck, Snowflake,
-  Target, Trophy, UserRound, Wallet, X, Zap, CircleDot,
+  Flame, Globe, LogOut, Menu, Moon, Palette, Search, Shield, ShieldCheck, Snowflake,
+  Sun, Target, Trophy, UserRound, Wallet, X, Zap, CircleDot,
 } from "lucide-react";
 
 type Match = {
@@ -53,7 +53,10 @@ export default function PlayerPage() {
   const clearUser = useAuthStore((state) => state.clearUser);
   const [authHydrated, setAuthHydrated] = useState(false);
   const [appearanceOpen, setAppearanceOpen] = useState(false);
-  const [brandColor, setBrandColor] = useState("#fbbf24");
+  const [brandColor, setBrandColor] = useState("#16a34a");
+  const [theme, setTheme] = useState<"dark" | "light">("dark");
+  const [darkPalette, setDarkPalette] = useState<"coffee" | "slate" | "midnight" | "graphite" | "forest" | "navy" | "custom">("slate");
+  const [darkSurfaceColor, setDarkSurfaceColor] = useState("#172033");
   const [search, setSearch] = useState("");
   const [tab, setTab] = useState<"home" | "sports" | "live">("home");
   const [day, setDay] = useState("All");
@@ -65,6 +68,11 @@ export default function PlayerPage() {
     const persistApi = useAuthStore.persist;
     if (persistApi.hasHydrated()) setAuthHydrated(true);
     const unsubscribe = persistApi.onFinishHydration(() => setAuthHydrated(true));
+    if (window.localStorage.getItem("edilbet-player-theme") === "light") setTheme("light");
+    const savedPalette = window.localStorage.getItem("edilbet-player-dark-palette");
+    if (["coffee", "slate", "midnight", "graphite", "forest", "navy", "custom"].includes(savedPalette || "")) setDarkPalette(savedPalette as "coffee" | "slate" | "midnight" | "graphite" | "forest" | "navy" | "custom");
+    const savedSurface = window.localStorage.getItem("edilbet-player-dark-surface");
+    if (savedSurface && /^#[0-9a-fA-F]{6}$/.test(savedSurface)) setDarkSurfaceColor(savedSurface);
     const savedBrand = window.localStorage.getItem("edilbet-player-brand");
     if (savedBrand && /^#[0-9a-fA-F]{6}$/.test(savedBrand)) setBrandColor(savedBrand);
     return unsubscribe;
@@ -73,6 +81,17 @@ export default function PlayerPage() {
   function changeBrand(color: string) {
     setBrandColor(color);
     window.localStorage.setItem("edilbet-player-brand", color);
+  }
+
+  function changeDarkPalette(palette: "coffee" | "slate" | "midnight" | "graphite" | "forest" | "navy" | "custom") {
+    setDarkPalette(palette);
+    window.localStorage.setItem("edilbet-player-dark-palette", palette);
+  }
+
+  function changeDarkSurface(color: string) {
+    setDarkSurfaceColor(color);
+    window.localStorage.setItem("edilbet-player-dark-surface", color);
+    changeDarkPalette("custom");
   }
 
   function signOut() {
@@ -99,7 +118,7 @@ export default function PlayerPage() {
   }
 
   return (
-    <main style={{ "--player-brand": brandColor } as React.CSSProperties} className="min-h-screen bg-slate-950 pb-16 font-sans text-slate-100 lg:pb-0">
+    <main style={{ "--player-brand": brandColor, "--player-custom-surface": darkSurfaceColor } as React.CSSProperties} data-player-theme={theme} data-player-palette={darkPalette} className="player-root min-h-screen bg-slate-950 pb-16 font-sans text-slate-100 lg:pb-0">
       <header className="sticky top-0 z-40 border-b border-slate-800 bg-slate-900 shadow-lg">
         <div className="flex h-14 items-center justify-between gap-3 px-3 sm:px-5">
           <div className="flex min-w-0 items-center gap-3">
@@ -132,13 +151,30 @@ export default function PlayerPage() {
       </header>
 
       {appearanceOpen && <>
-        <button aria-label="Close brand appearance settings" onClick={() => setAppearanceOpen(false)} className="fixed inset-0 z-40 bg-black/40" />
-        <aside aria-label="Brand appearance settings" className="fixed right-3 top-20 z-50 w-[280px] rounded-2xl border border-slate-700 bg-slate-900 p-4 shadow-2xl sm:right-5">
-          <div className="mb-4 flex items-center justify-between"><h2 className="text-sm font-bold text-white">Brand appearance</h2><button onClick={() => setAppearanceOpen(false)} aria-label="Close settings" className="rounded-lg p-1.5 text-slate-400 hover:bg-slate-800 hover:text-white"><X size={16} /></button></div>
-          <p className="mb-3 text-xs leading-5 text-slate-400">Choose the accent color used by the EdilBet brand on this browser.</p>
-          <div className="grid grid-cols-5 gap-2">{brandChoices.map((color) => <button key={color} onClick={() => changeBrand(color)} aria-label={`Set brand color to ${color}`} aria-pressed={brandColor === color} className="grid h-10 place-items-center rounded-lg border border-slate-700 transition hover:scale-105" style={{ backgroundColor: color }}>{brandColor === color && <Check size={17} className="text-slate-950" />}</button>)}</div>
-          <button onClick={() => changeBrand("#fbbf24")} className="mt-4 w-full rounded-lg border border-slate-700 px-3 py-2 text-xs font-semibold text-slate-300 hover:bg-slate-800">Reset brand color</button>
-          <p className="mt-3 text-[10px] leading-4 text-slate-500">Your choice is saved locally and restored when you return.</p>
+        <button aria-label="Close brand settings" onClick={() => setAppearanceOpen(false)} className="fixed inset-0 z-40 bg-black/30" />
+        <aside aria-label="Player brand appearance settings" className="player-brand-panel fixed inset-y-0 right-0 z-50 w-[340px] max-w-[90vw] overflow-y-auto overscroll-contain border-l p-5 shadow-2xl">
+          <div className="mb-6 flex items-center justify-between"><h2 className="text-sm font-semibold">Brand appearance</h2><button onClick={() => setAppearanceOpen(false)} aria-label="Close brand settings" className="player-appearance-button rounded-lg border p-2"><X size={17} /></button></div>
+          <p className="mb-5 text-xs leading-5 player-appearance-muted">Customize player theme and accent colors. Preferences are saved in this browser, separately from the admin dashboard.</p>
+          <h3 className="mb-2 text-xs font-semibold">Appearance</h3>
+          <div className="mb-5 grid grid-cols-2 gap-2">
+            <button onClick={() => { setTheme("dark"); window.localStorage.setItem("edilbet-player-theme", "dark"); }} aria-pressed={theme === "dark"} className={`rounded-xl border p-3 text-xs font-medium ${theme === "dark" ? "player-choice-active" : "player-choice"}`}><Moon size={15} className="mb-2 inline" /> Dark mode</button>
+            <button onClick={() => { setTheme("light"); window.localStorage.setItem("edilbet-player-theme", "light"); }} aria-pressed={theme === "light"} className={`rounded-xl border p-3 text-xs font-medium ${theme === "light" ? "player-choice-active" : "player-choice"}`}><Sun size={15} className="mb-2 inline" /> Light mode</button>
+          </div>
+          <h3 className="mb-2 text-xs font-semibold">Dark mode colors</h3>
+          <div className="mb-5 grid grid-cols-1 gap-2">
+            {([
+              { id: "coffee", label: "Coffee & orange", surface: "#211812", accent: "#f97316" },
+              { id: "slate", label: "Slate & blue", surface: "#172033", accent: "#60a5fa" },
+              { id: "midnight", label: "Midnight & violet", surface: "#101018", accent: "#a78bfa" },
+              { id: "graphite", label: "Graphite & silver", surface: "#17191d", accent: "#d1d5db" },
+              { id: "forest", label: "Forest & jade", surface: "#10231d", accent: "#34d399" },
+              { id: "navy", label: "Navy & sky", surface: "#101d32", accent: "#38bdf8" },
+            ] as const).map((palette) => <button key={palette.id} onClick={() => changeDarkPalette(palette.id)} aria-pressed={darkPalette === palette.id} className={`flex items-center gap-3 rounded-xl border p-3 text-xs font-medium ${darkPalette === palette.id ? "player-choice-active" : "player-choice"}`}><span className="flex gap-1"><i className="h-5 w-5 rounded-full" style={{ backgroundColor: palette.surface }} /><i className="h-5 w-5 rounded-full" style={{ backgroundColor: palette.accent }} /></span>{palette.label}{darkPalette === palette.id && <Check size={15} className="ml-auto" />}</button>)}
+          </div>
+          <div className="mb-5 border-t pt-4 player-appearance-divider"><label htmlFor="player-custom-dark-surface" className="mb-2 block text-xs font-medium">Custom dark surface</label><div className="flex items-center gap-3"><input id="player-custom-dark-surface" type="color" value={darkSurfaceColor} onChange={(event) => changeDarkSurface(event.target.value)} className="h-10 w-12 cursor-pointer rounded border p-1" /><span className="text-xs player-appearance-muted">{darkSurfaceColor.toUpperCase()}</span></div></div>
+          <h3 className="mb-2 text-xs font-semibold">Brand accent</h3>
+          <div className="grid grid-cols-2 gap-3">{[{ name: "Green", color: "#16a34a" }, { name: "Emerald", color: "#059669" }, { name: "Orange", color: "#f97316" }, { name: "Teal", color: "#0d9488" }, { name: "Blue", color: "#2563eb" }, { name: "Violet", color: "#7c3aed" }].map((brand) => <button key={brand.color} onClick={() => changeBrand(brand.color)} aria-pressed={brandColor === brand.color} className={`flex items-center gap-2 rounded-xl border p-3 text-xs font-medium ${brandColor === brand.color ? "player-choice-active" : "player-choice"}`}><span className="h-5 w-5 rounded-full border border-black/10" style={{ backgroundColor: brand.color }} />{brand.name}{brandColor === brand.color && <Check size={15} className="ml-auto" />}</button>)}</div>
+          <div className="mt-6 border-t pt-5 player-appearance-divider"><label htmlFor="player-custom-brand-color" className="mb-2 block text-xs font-medium">Custom brand color</label><div className="flex items-center gap-3"><input id="player-custom-brand-color" type="color" value={brandColor} onChange={(event) => changeBrand(event.target.value)} className="h-10 w-12 cursor-pointer rounded border p-1" /><span className="text-xs player-appearance-muted">{brandColor.toUpperCase()}</span></div><button onClick={() => changeBrand("#16a34a")} className="player-brand-reset mt-5 w-full rounded-xl px-3 py-2.5 text-xs font-semibold">Reset to green</button></div>
         </aside>
       </>}
 
