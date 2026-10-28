@@ -12,7 +12,7 @@ type AuthState = {
   setUser: (user: AuthUser | null) => void;
   clearUser: () => void;
   addAccount: (account: LocalAccount) => boolean;
-  updatePassword: (phone: string, role: UserRole, passwordHash: string) => boolean;
+  updatePassword: (phone: string, role: UserRole, passwordHash: string, name?: string) => boolean;
 };
 
 export const normalizePhone = (phone: string) => phone.replace(/\D/g, "");
@@ -36,11 +36,15 @@ export const useAuthStore = create<AuthState>()(
         set((state) => ({ accounts: [...state.accounts, { ...account, phone }] }));
         return true;
       },
-      updatePassword: (phone, role, passwordHash) => {
+      updatePassword: (phone, role, passwordHash, name) => {
         const normalized = normalizePhone(phone);
+        if (!normalized) return false;
         const exists = get().accounts.some((item) => normalizePhone(item.phone) === normalized && item.role === role);
-        if (!exists) return false;
-        set((state) => ({ accounts: state.accounts.map((item) => normalizePhone(item.phone) === normalized && item.role === role ? { ...item, passwordHash } : item) }));
+        if (exists) {
+          set((state) => ({ accounts: state.accounts.map((item) => normalizePhone(item.phone) === normalized && item.role === role ? { ...item, passwordHash } : item) }));
+        } else {
+          set((state) => ({ accounts: [...state.accounts, { phone: normalized, role, name: name || normalized, passwordHash }] }));
+        }
         return true;
       },
     }),
