@@ -165,8 +165,8 @@ export default function PlayerPage() {
       <header className="sticky top-0 z-40 border-b border-slate-800 bg-slate-900">
         <div className="flex h-14 items-center justify-between gap-3 px-3 sm:px-5">
           <div className="flex min-w-0 items-center gap-3">
-            <button aria-label="Toggle sports menu" onClick={() => setMobileMenu(!mobileMenu)} className="grid h-9 w-9 shrink-0 place-items-center rounded-lg text-slate-400 hover:bg-slate-800 hover:text-white lg:hidden">
-              {mobileMenu ? <X size={19} /> : <Menu size={19} />}
+            <button aria-label="Toggle sports menu" onClick={() => setMobileMenu(!mobileMenu)} className="grid h-9 w-9 shrink-0 place-items-center rounded-lg text-[var(--player-brand)] hover:bg-slate-800 lg:hidden">
+              {mobileMenu ? <X size={19} className="player-accent-icon" /> : <Menu size={19} className="player-accent-icon" />}
             </button>
             <Link href="/player" className="flex shrink-0 items-center gap-1.5">
               <span style={{ backgroundColor: brandColor }} className="rounded px-2 py-0.5 text-base font-black tracking-widest text-slate-950 sm:text-lg">EDIL</span>
