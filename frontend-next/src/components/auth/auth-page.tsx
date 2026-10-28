@@ -93,16 +93,20 @@ export default function AuthPage({
         }
         setUser({ id: `local-${normalized}`, name: name.trim(), phone: normalized, role });
       } else {
-        const localAccount = localAccounts[normalized];
-        if (localAccount && password === "1234" && localAccount.role === role) {
-          setUser({ id: `account-${localAccount.role}`, name: localAccount.name, phone: normalized, role });
-        } else {
-          const account = accounts.find((item) => normalizePhone(item.phone) === normalized && item.role === role);
-          if (!account || await hashPassword(password) !== account.passwordHash) {
+        const account = accounts.find((item) => normalizePhone(item.phone) === normalized && item.role === role);
+        if (account) {
+          if (await hashPassword(password) !== account.passwordHash) {
             setError("Phone number or password is incorrect.");
             return;
           }
           setUser({ id: `local-${normalized}`, name: account.name, phone: normalized, role: account.role });
+        } else {
+          const localAccount = localAccounts[normalized];
+          if (!localAccount || password !== "1234" || localAccount.role !== role) {
+            setError("Phone number or password is incorrect.");
+            return;
+          }
+          setUser({ id: `account-${localAccount.role}`, name: localAccount.name, phone: normalized, role });
         }
       }
       if (onSuccess) onSuccess();
