@@ -7,9 +7,9 @@ import { hashPassword, normalizePhone, useAuthStore } from "@/stores/auth-store"
 import AuthPage from "@/components/auth/auth-page";
 import { LanguageSelector, useLanguage } from "@/components/language-provider";
 import {
-  Activity, CalendarDays, Check, ChevronDown, CircleHelp, Clock3, Dribbble,
-  Flame, Globe, LockKeyhole, LogOut, Menu, Moon, Palette, Search, Shield, ShieldCheck, Snowflake,
-  Sun, Target, Trophy, UserRound, Wallet, X, Zap, CircleDot,
+  Activity, ArrowDownToLine, ArrowUpFromLine, BadgePercent, CalendarDays, Check, ChevronDown, CircleHelp, Clock3, Dribbble,
+  Flame, Gift, Globe, History, LockKeyhole, LogOut, Mail, Menu, MessageSquare, Moon, Palette, Search, Settings, Shield, ShieldCheck, Snowflake,
+  Sun, Target, Ticket, Trophy, UserRound, Users, Wallet, X, Zap, CircleDot,
 } from "lucide-react";
 
 type Match = {
@@ -82,6 +82,7 @@ export default function PlayerPage() {
   const [mobileMenu, setMobileMenu] = useState(false);
   const [picks, setPicks] = useState<Pick[]>([]);
   const [activeLeague, setActiveLeague] = useState("All sports");
+  const [oddsFormat, setOddsFormat] = useState("Decimal (2.20)");
 
   useEffect(() => {
     const persistApi = useAuthStore.persist;
@@ -92,6 +93,10 @@ export default function PlayerPage() {
     if (["coffee", "slate", "midnight", "graphite", "forest", "navy", "custom"].includes(savedPalette || "")) setDarkPalette(savedPalette as "coffee" | "slate" | "midnight" | "graphite" | "forest" | "navy" | "custom");
     const savedSurface = window.localStorage.getItem("edilbet-player-dark-surface");
     if (savedSurface && /^#[0-9a-fA-F]{6}$/.test(savedSurface)) setDarkSurfaceColor(savedSurface);
+    try {
+      const savedPreferences = JSON.parse(window.localStorage.getItem("edilbet-player-preferences") || "{}");
+      if (typeof savedPreferences.oddsFormat === "string") setOddsFormat(savedPreferences.oddsFormat);
+    } catch { /* use decimal odds by default */ }
     const savedBrand = window.localStorage.getItem("edilbet-player-brand");
     if (savedBrand && /^#[0-9a-fA-F]{6}$/.test(savedBrand)) setBrandColor(savedBrand);
     return unsubscribe;
@@ -161,6 +166,23 @@ export default function PlayerPage() {
     return matchesSearch && matchesDay && matchesTab && matchesLeague;
   }), [search, day, tab, activeLeague]);
 
+  function formatOdd(raw: string) {
+    const decimal = Number(raw);
+    if (!Number.isFinite(decimal) || decimal <= 1) return raw;
+    if (oddsFormat.startsWith("US")) return decimal >= 2 ? `+${Math.round((decimal - 1) * 100)}` : `-${Math.round(100 / (decimal - 1))}`;
+    if (oddsFormat.startsWith("Hong Kong")) return (decimal - 1).toFixed(2);
+    if (oddsFormat.startsWith("Indonesian")) return decimal >= 2 ? `+${(decimal - 1).toFixed(2)}` : `-${(1 / (decimal - 1)).toFixed(2)}`;
+    if (oddsFormat.startsWith("Malaysian")) return decimal >= 2 ? `+${(decimal - 1).toFixed(2)}` : `-${(1 / (decimal - 1)).toFixed(3)}`;
+    if (oddsFormat.startsWith("UK")) {
+      const value = decimal - 1;
+      const denominators = [2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 20, 25, 50, 100];
+      let best = { n: 1, d: 1, error: Math.abs(value - 1) };
+      for (const d of denominators) { const n = Math.max(1, Math.round(value * d)); const error = Math.abs(value - n / d); if (error < best.error) best = { n, d, error }; }
+      return `${best.n}/${best.d}`;
+    }
+    return decimal.toFixed(2);
+  }
+
   function togglePick(match: Match, index: number) {
     const selection = ["1", "X", "2"][index];
     const key = `${match.id}-${selection}`;
@@ -199,18 +221,19 @@ export default function PlayerPage() {
                 </button>
                 {profileOpen && <>
                   <button aria-label="Close profile menu" onClick={() => setProfileOpen(false)} className="fixed inset-0 z-40 cursor-default" />
-                  <div className="absolute right-0 top-11 z-50 w-52 rounded-lg border border-slate-700 bg-slate-900 p-1.5">
-                    <div className="border-b border-slate-800 px-3 py-2"><p className="truncate text-xs font-semibold">{user.name}</p><p className="mt-0.5 text-[10px] uppercase text-slate-500">{user.role}</p></div>
-                    <button onClick={() => { setProfileOpen(false); setAppearanceOpen(true); }} className="flex w-full items-center gap-2 rounded-md px-3 py-2.5 text-left text-xs text-slate-300 hover:bg-slate-800 hover:text-[var(--player-brand)]"><Palette size={15} className="player-accent-icon" /> Settings</button>
-                    <button onClick={() => { setProfileOpen(false); setPasswordOpen(true); setPasswordError(""); setPasswordNotice(""); }} className="flex w-full items-center gap-2 rounded-md px-3 py-2.5 text-left text-xs text-slate-300 hover:bg-slate-800 hover:text-[var(--player-brand)]"><LockKeyhole size={15} className="player-accent-icon" /> Change password</button>
-                    <button onClick={signOut} className="flex w-full items-center gap-2 rounded-md px-3 py-2.5 text-left text-xs text-slate-300 hover:bg-slate-800 hover:text-[var(--player-brand)]"><LogOut size={15} className="player-accent-icon" /> Log out</button>
+                  <div className="absolute right-0 top-11 z-50 max-h-[80vh] w-72 max-w-[90vw] overflow-y-auto border border-slate-700 bg-slate-900 p-1.5 shadow-2xl">
+                    <div className="border-b border-slate-800 px-3 py-3"><p className="truncate text-xs font-semibold">{user.name}</p><p className="mt-0.5 text-[10px] uppercase text-slate-500">{user.role}</p><div className="mt-3 grid grid-cols-3 gap-2"><Link href="/player/account/bonus-points" onClick={() => setProfileOpen(false)} className="border border-slate-700 bg-slate-950 p-2"><Gift size={15} className="mb-1 text-[var(--player-brand)]"/><span className="block text-[10px] text-slate-400">Bonus points</span><strong className="text-xs">0</strong></Link><Link href="/player/account/main-account" onClick={() => setProfileOpen(false)} className="border border-slate-700 bg-slate-950 p-2"><Wallet size={15} className="mb-1 text-[var(--player-brand)]"/><span className="block text-[10px] text-slate-400">Main account</span><strong className="text-xs">ETB 0.00</strong></Link><Link href="/player/account/unsettled-bets" onClick={() => setProfileOpen(false)} className="border border-slate-700 bg-slate-950 p-2"><Ticket size={15} className="mb-1 text-[var(--player-brand)]"/><span className="block text-[10px] text-slate-400">Unsettled bets</span><strong className="text-xs">0</strong></Link></div></div>
+                    {([{href:"deposit",label:"Make a deposit",icon:ArrowDownToLine},{href:"withdraw",label:"Withdraw funds",icon:ArrowUpFromLine},{href:"invite-friends",label:"Invite friends",icon:Users},{href:"profile",label:"Personal profile",icon:UserRound},{href:"bet-history",label:"Bet history",icon:History},{href:"settings",label:"Account settings",icon:Settings},{href:"messages",label:"Messages",icon:Mail}] as const).map((item) => { const ItemIcon = item.icon; return <Link key={item.href} href={`/player/account/${item.href}`} onClick={() => setProfileOpen(false)} className="flex w-full items-center gap-3 px-3 py-2.5 text-left text-xs text-slate-300 transition hover:bg-slate-800 hover:text-[var(--player-brand)]"><ItemIcon size={15} className="player-accent-icon"/>{item.label}<ChevronDown size={12} className="ml-auto -rotate-90 text-slate-600"/></Link>; })}
+                    <button onClick={() => { setProfileOpen(false); setAppearanceOpen(true); }} className="flex w-full items-center gap-3 px-3 py-2.5 text-left text-xs text-slate-300 hover:bg-slate-800 hover:text-[var(--player-brand)]"><Palette size={15} className="player-accent-icon" /> Brand appearance</button>
+                    <button onClick={() => { setProfileOpen(false); setPasswordOpen(true); setPasswordError(""); setPasswordNotice(""); }} className="flex w-full items-center gap-3 px-3 py-2.5 text-left text-xs text-slate-300 hover:bg-slate-800 hover:text-[var(--player-brand)]"><LockKeyhole size={15} className="player-accent-icon" /> Change password</button>
+                    <button onClick={signOut} className="flex w-full items-center gap-3 px-3 py-2.5 text-left text-xs text-slate-300 hover:bg-slate-800 hover:text-[var(--player-brand)]"><LogOut size={15} className="player-accent-icon" /> Log out</button>
                   </div>
                 </>}
               </div> : authHydrated ? <>
                 <button onClick={() => setAuthMode("login")} className="min-w-[76px] rounded-lg px-4 py-2 text-xs font-semibold text-slate-300 transition hover:bg-slate-800 hover:text-[var(--player-brand)] sm:min-w-[92px] sm:px-5 sm:text-sm">Login</button>
                 <button onClick={() => setAuthMode("register")} className="min-w-[88px] rounded-lg px-4 py-2 text-xs font-semibold text-white transition-opacity hover:opacity-90 sm:min-w-[108px] sm:px-5 sm:text-sm" style={{ backgroundColor: brandColor }}>Register</button>
               </> : <span className="px-2 py-2 text-xs text-slate-500">…</span>}
-              <button onClick={() => setAppearanceOpen((open) => !open)} aria-label="Brand appearance settings" aria-expanded={appearanceOpen} title="Brand appearance" className="grid h-9 w-9 place-items-center rounded-lg border border-slate-700 bg-slate-800/70 text-[var(--player-brand)] transition hover:bg-slate-800"><Palette size={16} className="player-accent-icon" /></button>
+              <button onClick={() => router.push("/player/account/settings")} aria-label="Account settings" aria-expanded={appearanceOpen} title="Account settings" className="grid h-9 w-9 place-items-center border border-slate-700 bg-slate-800/70 text-[var(--player-brand)] transition hover:bg-slate-800"><Settings size={16} className="player-accent-icon" /></button>
             </div>
           </div>
         </div>
@@ -290,7 +313,7 @@ export default function PlayerPage() {
                 <div className="flex flex-wrap items-center justify-between gap-2 border-b border-slate-800 px-3 py-2.5 sm:px-4"><div className="flex min-w-0 items-center gap-2">{match.icon === "globe" ? <Globe size={14} className="shrink-0 text-slate-500" /> : <Trophy size={14} className="shrink-0 text-slate-500" />}<span className="truncate text-[10px] font-black tracking-wide text-slate-400">{match.league}</span>{match.live && <span className="inline-flex items-center gap-1 rounded bg-red-500/10 px-1.5 py-0.5 text-[9px] font-black text-red-400"><span className="h-1.5 w-1.5 animate-pulse rounded-full bg-red-500"/>LIVE</span>}</div><div className="flex items-center gap-1.5 text-[10px] text-slate-500"><Clock3 size={12}/>{match.live ? match.kickoff : `${match.date} · ${match.kickoff}`}</div></div>
                 <div className="grid gap-3 p-3 sm:grid-cols-[minmax(0,1fr)_minmax(230px,.8fr)] sm:items-center sm:px-4 sm:py-4">
                   <div className="flex items-center justify-between gap-3"><div className="min-w-0 flex-1"><p className="truncate text-sm font-bold text-white">{match.home}</p><p className="mt-2 truncate text-sm font-bold text-white">{match.away}</p></div>{match.score && <div className="rounded-lg bg-slate-800 px-3 py-2 text-sm font-black text-[var(--player-brand)]">{match.score}</div>}<div className="hidden text-[10px] font-bold text-slate-600 sm:block">VS</div></div>
-                  <div className="grid grid-cols-3 gap-2">{match.odds.map((odd, index) => { const selection = ["1", "X", "2"][index]; const active = picks.some((pick) => pick.matchId === match.id && pick.selection === selection); return <button key={selection} onClick={() => togglePick(match, index)} className={`rounded-lg border px-2 py-2 text-center transition ${active ? "border-[var(--player-brand)] bg-[var(--player-brand)]/15" : "border-slate-700 bg-slate-800/80 hover:border-[var(--player-brand)]/50 hover:bg-slate-800"}`}><span className="block text-[9px] font-bold text-slate-500">{selection}</span><span className={`mt-1 block text-xs font-black ${active ? "text-[var(--player-brand)]" : "text-slate-200"}`}>{odd}</span></button>; })}</div>
+                  <div className="grid grid-cols-3 gap-2">{match.odds.map((odd, index) => { const selection = ["1", "X", "2"][index]; const active = picks.some((pick) => pick.matchId === match.id && pick.selection === selection); return <button key={selection} onClick={() => togglePick(match, index)} className={`rounded-lg border px-2 py-2 text-center transition ${active ? "border-[var(--player-brand)] bg-[var(--player-brand)]/15" : "border-slate-700 bg-slate-800/80 hover:border-[var(--player-brand)]/50 hover:bg-slate-800"}`}><span className="block text-[9px] font-bold text-slate-500">{selection}</span><span className={`mt-1 block text-xs font-black ${active ? "text-[var(--player-brand)]" : "text-slate-200"}`}>{formatOdd(odd)}</span></button>; })}</div>
                 </div>
               </article>)}
             </div>
@@ -323,7 +346,7 @@ export default function PlayerPage() {
         </section>
       </div>}
       {agentOpen && <div className="fixed inset-0 z-[110] grid place-items-center overflow-y-auto bg-black/70 p-4" onMouseDown={(event) => { if (event.target === event.currentTarget) setAgentOpen(false); }}>
-        <section role="dialog" aria-modal="true" aria-label="Become an agent" className="relative my-auto w-full max-w-xl rounded-2xl border border-slate-700 bg-slate-900 p-5 text-slate-100 shadow-2xl sm:p-7">
+        <section role="dialog" aria-modal="true" aria-label="Become an agent" className="relative my-auto w-full max-w-2xl border border-slate-700 bg-slate-900 p-5 text-slate-100 shadow-2xl sm:p-7">
           <button onClick={() => setAgentOpen(false)} aria-label="Close agent application" className="absolute right-4 top-4 rounded-md p-2 text-slate-400 hover:bg-slate-800"><X size={18}/></button>
           <h2 className="text-xl font-bold">Become an EdilBet agent</h2><p className="mt-2 max-w-lg text-sm leading-6 text-slate-300">Tell us about your business and location to start an agent partnership application.</p>
           <form className="mt-5 space-y-4" onSubmit={(event) => { event.preventDefault(); window.localStorage.setItem("edilbet-agent-application", JSON.stringify({ business: agentBusiness.trim(), location: agentLocation.trim(), applicant: user?.name || "", phone: user?.phone || "", createdAt: new Date().toISOString(), status: "pending" })); setAgentNotice("Application details saved in this browser only. A server-side application and review workflow still needs to be connected."); }}>
@@ -336,7 +359,7 @@ export default function PlayerPage() {
         </section>
       </div>}
       {passwordOpen && <div className="fixed inset-0 z-[100] grid place-items-center bg-black/65 p-4" onMouseDown={(event) => { if (event.target === event.currentTarget) setPasswordOpen(false); }}>
-        <section role="dialog" aria-modal="true" aria-label="Change password" className="relative w-full max-w-md rounded-xl border border-slate-700 bg-slate-900 p-6 text-slate-100">
+        <section role="dialog" aria-modal="true" aria-label="Change password" className="relative w-full max-w-2xl border border-slate-700 bg-slate-900 p-5 text-slate-100 sm:p-7">
           <button onClick={() => setPasswordOpen(false)} aria-label="Close change password" className="absolute right-3 top-3 rounded-md p-1.5 text-slate-400 hover:bg-slate-800"><X size={18}/></button>
           <h2 className="text-lg font-semibold">Change password</h2>
           <form onSubmit={submitPasswordChange} className="mt-5 space-y-3">
