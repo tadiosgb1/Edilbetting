@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import { ArrowDownToLine, ArrowLeft, ArrowUpFromLine, Check, ChevronRight, Gift, History, Mail, MessageSquare, Settings, ShieldCheck, Ticket, UserRound, Users, Wallet } from "lucide-react";
 import { useAuthStore } from "@/stores/auth-store";
+import { useToast } from "@/components/toast-provider";
 
 const sections = [
   { id: "bonus-points", label: "Bonus points", detail: "Your rewards and bonus activity", icon: Gift },
@@ -25,6 +26,8 @@ const defaultPreferences = { oddsFormat: "Decimal (2.20)", marketView: "Full", l
 export default function PlayerAccountSectionPage() {
   const params = useParams<{ section: string }>();
   const user = useAuthStore((state) => state.user);
+  const toast = useToast();
+  const [theme, setTheme] = useState<"light" | "dark">("dark");
   const section = sections.find((item) => item.id === params.section) || sections[0];
   const [preferences, setPreferences] = useState(defaultPreferences);
   const [message, setMessage] = useState("");
@@ -37,6 +40,7 @@ export default function PlayerAccountSectionPage() {
       const saved = window.localStorage.getItem("edilbet-player-preferences");
       if (saved) setPreferences({ ...defaultPreferences, ...JSON.parse(saved) });
       setPhone(user?.phone || "");
+      setTheme(window.localStorage.getItem("edilbet-player-theme") === "light" ? "light" : "dark");
       const savedBrand = window.localStorage.getItem("edilbet-player-brand");
       if (savedBrand && /^#[0-9a-fA-F]{6}$/.test(savedBrand)) setBrandColor(savedBrand);
     } catch { /* keep defaults if browser storage is unavailable */ }
@@ -47,19 +51,21 @@ export default function PlayerAccountSectionPage() {
     setPreferences(next);
     window.localStorage.setItem("edilbet-player-preferences", JSON.stringify(next));
     setMessage("Preference saved on this device.");
+    toast("Settings saved successfully.", "success");
   }
 
   function saveRequest(kind: "deposit" | "withdraw", event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
     const request = { amount: Number(amount), currency: "ETB", phone: phone.trim(), createdAt: new Date().toISOString(), status: "pending" };
     window.localStorage.setItem(kind === "deposit" ? "edilbet-last-deposit-request" : "edilbet-last-withdraw-request", JSON.stringify(request));
+    toast(kind === "deposit" ? "Deposit request details saved. No payment was processed." : "Withdrawal request details saved. No money was transferred.", "success");
     setMessage(`Your ${kind} request details were saved in this browser. No payment was processed and your wallet balance has not changed.`);
   }
 
   const Icon = section.icon;
   const inputClass = "w-full border border-slate-700 bg-slate-950 px-3 py-3 text-sm text-white outline-none focus:border-[var(--player-brand)]";
   return (
-    <main className="player-root min-h-screen bg-slate-950 text-slate-100" style={{ "--player-brand": brandColor } as React.CSSProperties}>
+    <main className="player-root min-h-screen bg-slate-950 text-slate-100" data-player-theme={theme} style={{ "--player-brand": brandColor } as React.CSSProperties}>
       <header className="border-b border-slate-800 bg-slate-900 px-4 py-4 sm:px-6">
         <div className="mx-auto flex max-w-5xl items-center justify-between gap-3">
           <Link href="/player" className="text-lg font-black tracking-widest text-white"><span className="bg-[var(--player-brand)] px-2 py-1 text-slate-950">EDIL</span> BET</Link>
@@ -83,7 +89,7 @@ export default function PlayerAccountSectionPage() {
             {section.id === "main-account" && <><div className="border border-slate-800 bg-slate-950 p-5"><p className="text-xs text-slate-400">Main account balance</p><p className="mt-2 text-3xl font-black">ETB 0.00</p><p className="mt-2 text-xs text-slate-500">Your displayed balance is not connected to a live wallet ledger yet.</p></div><div className="grid gap-3 sm:grid-cols-2"><Link href="/player/account/deposit" className="flex items-center gap-3 border border-slate-700 p-4 hover:border-[var(--player-brand)]"><ArrowDownToLine size={19} className="text-[var(--player-brand)]"/> Make a deposit</Link><Link href="/player/account/withdraw" className="flex items-center gap-3 border border-slate-700 p-4 hover:border-[var(--player-brand)]"><ArrowUpFromLine size={19} className="text-[var(--player-brand)]"/> Withdraw funds</Link></div></>}
             {section.id === "unsettled-bets" && <div className="border border-slate-800 bg-slate-950 p-5"><p className="text-3xl font-black">0</p><p className="mt-2 text-sm font-semibold">No unsettled bets</p><p className="mt-1 text-xs leading-5 text-slate-500">This section will show open wagers once a server-backed betting and settlement system is connected.</p></div>}
             {(section.id === "deposit" || section.id === "withdraw") && <form onSubmit={(event) => saveRequest(section.id as "deposit" | "withdraw", event)} className="space-y-4"><div className="border border-amber-400/30 bg-amber-400/5 p-3 text-xs leading-5 text-amber-100">{section.id === "deposit" ? "Payment processing is not connected. Saving a request here does not transfer money or credit your wallet." : "Withdrawals are not connected to a live wallet. Saving a request does not send money."}</div><div><label className="mb-1.5 block text-xs font-semibold text-slate-300">Amount (ETB)</label><input type="number" min="50" max="100000" step="50" required value={amount} onChange={(event) => setAmount(event.target.value)} className={inputClass}/></div><div><label className="mb-1.5 block text-xs font-semibold text-slate-300">Payment account / phone number</label><input required value={phone} onChange={(event) => setPhone(event.target.value)} placeholder="09XXXXXXXX" className={inputClass}/></div><button className="w-full bg-[var(--player-brand)] px-4 py-3 text-sm font-bold text-white">{section.id === "deposit" ? "Save deposit request" : "Save withdrawal request"}</button></form>}
-            {section.id === "invite-friends" && <div className="space-y-3"><p className="text-sm leading-6 text-slate-300">Invite friends to discover EdilBet. Referral tracking and rewards are not connected yet.</p><div className="border border-slate-700 bg-slate-950 p-3 text-sm text-slate-400">Referral link is not available until a referral service is configured.</div><button onClick={() => { navigator.clipboard?.writeText(window.location.origin + "/player"); setMessage("Player link copied if clipboard access is available."); }} className="bg-[var(--player-brand)] px-4 py-3 text-sm font-bold text-white">Copy player link</button></div>}
+            {section.id === "invite-friends" && <div className="space-y-3"><p className="text-sm leading-6 text-slate-300">Invite friends to discover EdilBet. Referral tracking and rewards are not connected yet.</p><div className="border border-slate-700 bg-slate-950 p-3 text-sm text-slate-400">Referral link is not available until a referral service is configured.</div><button onClick={() => { navigator.clipboard?.writeText(window.location.origin + "/player"); setMessage("Player link copied if clipboard access is available."); toast("Player link copied.", "success"); }} className="bg-[var(--player-brand)] px-4 py-3 text-sm font-bold text-white">Copy player link</button></div>}
             {section.id === "profile" && <div className="space-y-3">{[["Full name", user?.name || "Not signed in"],["Phone number", user?.phone || "—"],["Account role", user?.role || "Player"],["Account security","Change password from the profile menu"]].map(([label,value]) => <div key={label} className="flex flex-col gap-1 border-b border-slate-800 py-3 sm:flex-row sm:items-center sm:justify-between"><span className="text-xs text-slate-400">{label}</span><span className="text-sm font-semibold">{value}</span></div>)}</div>}
             {section.id === "bet-history" && <div className="border border-slate-800 bg-slate-950 p-5"><History size={22} className="text-[var(--player-brand)]"/><p className="mt-3 text-sm font-semibold">No bet history available</p><p className="mt-1 text-xs leading-5 text-slate-500">Historical wagers will appear here when betting, settlement and account history are backed by a server.</p></div>}
             {section.id === "messages" && <div className="border border-slate-800 bg-slate-950 p-5"><MessageSquare size={22} className="text-[var(--player-brand)]"/><p className="mt-3 text-sm font-semibold">You're all caught up</p><p className="mt-1 text-xs leading-5 text-slate-500">There are no account messages stored on this device. A real inbox requires server-side notifications.</p><Link href="/player" className="mt-4 inline-flex items-center gap-2 text-sm font-semibold text-[var(--player-brand)]">Browse matches <ChevronRight size={15}/></Link></div>}
