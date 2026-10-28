@@ -195,9 +195,11 @@ export default function PlayerPage() {
   function togglePick(match: Match, index: number) {
     const selection = ["1", "X", "2"][index];
     const key = `${match.id}-${selection}`;
-    setPicks((current) => current.some((pick) => `${pick.matchId}-${pick.selection}` === key)
+    const alreadySelected = picks.some((pick) => `${pick.matchId}-${pick.selection}` === key);
+    setPicks((current) => alreadySelected
       ? current.filter((pick) => `${pick.matchId}-${pick.selection}` !== key)
       : [...current.filter((pick) => pick.matchId !== match.id), { matchId: match.id, teams: `${match.home} vs ${match.away}`, selection, odd: match.odds[index] }]);
+    toast(alreadySelected ? "Selection removed from bet slip." : "Selection added to bet slip.", alreadySelected ? "info" : "success");
   }
 
   return (
