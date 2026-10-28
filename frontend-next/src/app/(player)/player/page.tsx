@@ -132,7 +132,7 @@ export default function PlayerPage() {
       setPasswordError("Current password is incorrect.");
       return;
     }
-    const changed = await updatePassword(user.phone, user.role, await hashPassword(newPassword));
+    const changed = await updatePassword(user.phone, user.role, await hashPassword(newPassword), user.name);
     if (!changed) {
       setPasswordError("Unable to update password. Please try again.");
       return;
