@@ -24,19 +24,21 @@ const defaultPreferences = { oddsFormat: "Decimal (2.20)", marketView: "Full", l
 
 export default function PlayerAccountSectionPage() {
   const params = useParams<{ section: string }>();
-  const router = useRouter();
   const user = useAuthStore((state) => state.user);
   const section = sections.find((item) => item.id === params.section) || sections[0];
   const [preferences, setPreferences] = useState(defaultPreferences);
   const [message, setMessage] = useState("");
   const [amount, setAmount] = useState("500");
   const [phone, setPhone] = useState("");
+  const [brandColor, setBrandColor] = useState("#16a34a");
 
   useEffect(() => {
     try {
       const saved = window.localStorage.getItem("edilbet-player-preferences");
       if (saved) setPreferences({ ...defaultPreferences, ...JSON.parse(saved) });
       setPhone(user?.phone || "");
+      const savedBrand = window.localStorage.getItem("edilbet-player-brand");
+      if (savedBrand && /^#[0-9a-fA-F]{6}$/.test(savedBrand)) setBrandColor(savedBrand);
     } catch { /* keep defaults if browser storage is unavailable */ }
   }, [user?.phone]);
 
@@ -57,7 +59,7 @@ export default function PlayerAccountSectionPage() {
   const Icon = section.icon;
   const inputClass = "w-full border border-slate-700 bg-slate-950 px-3 py-3 text-sm text-white outline-none focus:border-[var(--player-brand)]";
   return (
-    <main className="player-root min-h-screen bg-slate-950 text-slate-100" style={{ "--player-brand": "#16a34a" } as React.CSSProperties}>
+    <main className="player-root min-h-screen bg-slate-950 text-slate-100" style={{ "--player-brand": brandColor } as React.CSSProperties}>
       <header className="border-b border-slate-800 bg-slate-900 px-4 py-4 sm:px-6">
         <div className="mx-auto flex max-w-5xl items-center justify-between gap-3">
           <Link href="/player" className="text-lg font-black tracking-widest text-white"><span className="bg-[var(--player-brand)] px-2 py-1 text-slate-950">EDIL</span> BET</Link>
