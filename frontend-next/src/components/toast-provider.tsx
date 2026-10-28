@@ -20,7 +20,7 @@ export function ToastProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     if (!items.length) return;
     const timers = items.map((item) => window.setTimeout(() => setItems((current) => current.filter((toastItem) => toastItem.id !== item.id)), item.kind === "error" ? 6500 : 4200));
-    return () => timers.forEach(window.clearTimeout);
+    return () => timers.forEach((timer) => window.clearTimeout(timer));
   }, [items]);
 
   return <ToastContext.Provider value={{ toast }}>
