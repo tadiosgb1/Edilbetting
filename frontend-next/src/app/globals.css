@@ -375,3 +375,39 @@
 .player-root .player-choice-active { background:color-mix(in srgb, var(--player-brand) 13%, transparent); border-color:var(--player-brand); color:var(--player-brand); }
 .player-root .player-brand-reset { background:var(--player-brand); color:#fff; }
 .player-root .player-brand-panel input[type="color"] { background:var(--player-panel); border-color:var(--player-line); }
+
+/* Player interactions inherit the selected brand accent. */
+.player-root button,
+.player-root a,
+.player-root input,
+.player-root select {
+  accent-color: var(--player-brand);
+}
+
+.player-root button:focus-visible,
+.player-root a:focus-visible,
+.player-root input:focus-visible,
+.player-root select:focus-visible {
+  outline: 2px solid var(--player-brand);
+  outline-offset: 2px;
+}
+
+.player-root button:hover svg,
+.player-root a:hover svg {
+  color: var(--player-brand);
+}
+
+.player-root .player-brand-reset:hover {
+  background: color-mix(in srgb, var(--player-brand) 12%, transparent);
+}
+
+.player-root .player-choice-active {
+  border-color: var(--player-brand);
+  color: var(--player-brand);
+  background: color-mix(in srgb, var(--player-brand) 10%, transparent);
+}
+
+.player-root .player-choice:hover {
+  border-color: color-mix(in srgb, var(--player-brand) 60%, #64748b);
+}
+
