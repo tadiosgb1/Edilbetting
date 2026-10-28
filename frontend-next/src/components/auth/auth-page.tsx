@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { ArrowRight, LockKeyhole, UserPlus, X } from "lucide-react";
+import { useToast } from "@/components/toast-provider";
 import { hashPassword, normalizePhone, useAuthStore, type UserRole } from "@/stores/auth-store";
 
 type AuthMode = "login" | "register";
@@ -41,6 +42,7 @@ export default function AuthPage({
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
   const router = useRouter();
+  const toast = useToast();
   const user = useAuthStore((state) => state.user);
   const accounts = useAuthStore((state) => state.accounts);
   const addAccount = useAuthStore((state) => state.addAccount);
@@ -51,6 +53,11 @@ export default function AuthPage({
   useEffect(() => {
     if (!isModal && user?.role === role) router.replace(destinations[role]);
   }, [user, role, router, isModal]);
+
+  function notifyError(message: string) {
+    setError(message);
+    toast(message, "error");
+  }
 
   function switchMode(nextMode: AuthMode) {
     setCurrentMode(nextMode);
@@ -66,29 +73,29 @@ export default function AuthPage({
     try {
       if (currentMode === "register") {
         if (!name.trim()) {
-          setError("Enter your name.");
+          notifyError("Enter your name.");
           return;
         }
         if (normalized.length !== 10 || !normalized.startsWith("0")) {
-          setError("Enter a valid 10-digit phone number.");
+          notifyError("Enter a valid 10-digit phone number.");
           return;
         }
         if (password.length < 4) {
-          setError("Use at least 4 characters for your password.");
+          notifyError("Use at least 4 characters for your password.");
           return;
         }
         if (password !== confirmPassword) {
-          setError("Passwords do not match.");
+          notifyError("Passwords do not match.");
           return;
         }
         if (localAccounts[normalized] || accounts.some((item) => normalizePhone(item.phone) === normalized)) {
-          setError("An account with this phone number already exists.");
+          notifyError("An account with this phone number already exists.");
           return;
         }
         const passwordHash = await hashPassword(password);
         const registered = addAccount({ phone: normalized, name: name.trim(), role, passwordHash });
         if (!registered) {
-          setError("An account with this phone number already exists.");
+          notifyError("An account with this phone number already exists.");
           return;
         }
         setUser({ id: `local-${normalized}`, name: name.trim(), phone: normalized, role });
@@ -96,19 +103,20 @@ export default function AuthPage({
         const account = accounts.find((item) => normalizePhone(item.phone) === normalized && item.role === role);
         if (account) {
           if (await hashPassword(password) !== account.passwordHash) {
-            setError("Phone number or password is incorrect.");
+            notifyError("Phone number or password is incorrect.");
             return;
           }
           setUser({ id: `local-${normalized}`, name: account.name, phone: normalized, role: account.role });
         } else {
           const localAccount = localAccounts[normalized];
           if (!localAccount || password !== "1234" || localAccount.role !== role) {
-            setError("Phone number or password is incorrect.");
+            notifyError("Phone number or password is incorrect.");
             return;
           }
           setUser({ id: `account-${localAccount.role}`, name: localAccount.name, phone: normalized, role });
         }
       }
+      toast(currentMode === "login" ? "You are signed in successfully." : "Your account has been created successfully.", "success");
       if (onSuccess) onSuccess();
       else router.replace(destinations[role]);
     } catch {
