@@ -2,8 +2,8 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import { useParams, useRouter } from "next/navigation";
-import { ArrowDownToLine, ArrowLeft, ArrowUpFromLine, BadgePercent, Bell, Check, ChevronRight, CircleHelp, CreditCard, Gift, History, Mail, MessageSquare, Settings, ShieldCheck, Ticket, UserRound, Users, Wallet } from "lucide-react";
+import { useParams } from "next/navigation";
+import { ArrowDownToLine, ArrowLeft, ArrowUpFromLine, Check, ChevronRight, Gift, History, Mail, MessageSquare, Settings, ShieldCheck, Ticket, UserRound, Users, Wallet } from "lucide-react";
 import { useAuthStore } from "@/stores/auth-store";
 
 const sections = [
