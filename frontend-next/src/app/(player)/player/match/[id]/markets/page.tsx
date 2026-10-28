@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { useState } from "react";
-import { Activity, ArrowDownToLine, ArrowLeft, CalendarDays, ChevronDown, Clock3, Dribbble, Mail, Search, Settings, ShieldCheck, Target, Ticket, Trophy, UserRound, Wallet, X, Zap } from "lucide-react";
+import { Activity, ArrowLeft, CalendarDays, ChevronDown, Clock3, Dribbble, Mail, Search, Settings, ShieldCheck, Target, Ticket, Trophy, UserRound, Wallet, X, Zap } from "lucide-react";
 import { useAuthStore } from "@/stores/auth-store";
 import { LanguageSelector } from "@/components/language-provider";
 
