@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useAuthStore } from "@/stores/auth-store";
+import AuthPage from "@/components/auth/auth-page";
 import { LanguageSelector, useLanguage } from "@/components/language-provider";
 import {
   Activity, CalendarDays, Check, ChevronDown, CircleHelp, Clock3, Dribbble,
@@ -51,6 +52,7 @@ export default function PlayerPage() {
   const user = useAuthStore((state) => state.user);
   const clearUser = useAuthStore((state) => state.clearUser);
   const [authHydrated, setAuthHydrated] = useState(false);
+  const [authMode, setAuthMode] = useState<"login" | "register" | null>(null);
   const [appearanceOpen, setAppearanceOpen] = useState(false);
   const [brandColor, setBrandColor] = useState("#16a34a");
   const [theme, setTheme] = useState<"dark" | "light">("dark");
@@ -118,7 +120,7 @@ export default function PlayerPage() {
 
   return (
     <main style={{ "--player-brand": brandColor, "--player-custom-surface": darkSurfaceColor } as React.CSSProperties} data-player-theme={theme} data-player-palette={darkPalette} className="player-root min-h-screen bg-slate-950 pb-16 font-sans text-slate-100 lg:pb-0">
-      <header className="sticky top-0 z-40 border-b border-slate-800 bg-slate-900 shadow-lg">
+      <header className="sticky top-0 z-40 border-b border-slate-800 bg-slate-900">
         <div className="flex h-14 items-center justify-between gap-3 px-3 sm:px-5">
           <div className="flex min-w-0 items-center gap-3">
             <button aria-label="Toggle sports menu" onClick={() => setMobileMenu(!mobileMenu)} className="grid h-9 w-9 shrink-0 place-items-center rounded-lg text-slate-400 hover:bg-slate-800 hover:text-white lg:hidden">
@@ -139,8 +141,8 @@ export default function PlayerPage() {
               <div className="hidden items-center gap-2 rounded-lg border border-slate-700 bg-slate-800 px-3 py-2 sm:flex"><UserRound size={15} className="text-slate-400" /><span className="max-w-28 truncate text-xs font-semibold text-slate-200">{user.name}</span><span className="rounded bg-slate-700 px-1.5 py-0.5 text-[9px] font-bold uppercase text-slate-300">{user.role}</span></div>
               <button onClick={signOut} className="flex items-center gap-1.5 rounded-lg px-2.5 py-2 text-xs font-semibold text-slate-300 transition hover:bg-slate-800 hover:text-white sm:px-3 sm:text-sm"><LogOut size={14} /> Sign out</button>
             </> : authHydrated ? <>
-              <Link href="/auth/login" className="rounded-lg px-2.5 py-2 text-xs font-semibold text-slate-300 transition hover:bg-slate-800 hover:text-white sm:px-3 sm:text-sm">Login</Link>
-              <Link href="/auth/register" className="rounded-lg px-3 py-2 text-xs font-black text-slate-950 shadow-md transition hover:brightness-110 sm:px-4 sm:text-sm" style={{ backgroundColor: brandColor }}>Register</Link>
+              <button onClick={() => setAuthMode("login")} className="rounded-lg px-2.5 py-2 text-xs font-semibold text-slate-300 transition hover:bg-slate-800 hover:text-[var(--player-brand)] sm:px-3 sm:text-sm">Login</button>
+              <button onClick={() => setAuthMode("register")} className="rounded-lg px-3 py-2 text-xs font-semibold text-white transition-opacity hover:opacity-90 sm:px-4 sm:text-sm" style={{ backgroundColor: brandColor }}>Register</button>
             </> : <span className="px-2 py-2 text-xs text-slate-500">Checking session…</span>}
             <button onClick={() => setAppearanceOpen((open) => !open)} aria-label="Brand appearance settings" aria-expanded={appearanceOpen} title="Brand appearance" className="grid h-9 w-9 place-items-center rounded-lg border border-slate-700 bg-slate-800 text-slate-300 transition hover:text-white"><Palette size={16} /></button>
           </div>
@@ -198,7 +200,7 @@ export default function PlayerPage() {
 
         <section className="min-w-0 flex-1 bg-slate-950">
           <div className="space-y-4 p-3 sm:p-4 xl:p-5">
-            <div className="relative overflow-hidden rounded-xl border border-[var(--player-brand)]/15 bg-gradient-to-r from-[var(--player-brand)] via-[var(--player-brand)] to-slate-900 p-5 shadow-xl sm:p-6">
+            <div className="relative overflow-hidden rounded-xl border border-[var(--player-brand)]/15 bg-[var(--player-brand)] p-5 sm:p-6">
               <div className="absolute -right-10 -top-16 h-56 w-56 rounded-full border-[28px] border-white/5"/>
               <div className="relative">
                 <span className="mb-2 inline-flex items-center gap-2 rounded bg-black/25 px-2 py-1 text-[10px] font-black uppercase tracking-widest text-amber-100"><Trophy size={13} />Upcoming Football & Sports</span>
@@ -226,7 +228,7 @@ export default function PlayerPage() {
                 </div>
               </article>)}
             </div>
-            <p className="text-[10px] leading-5 text-slate-600">Fixtures and odds shown here are illustrative preview data. No wagers are placed.</p>
+            <p className="text-[10px] leading-5 text-slate-600">Fixtures and odds are for preview only. No wagers are placed.</p>
           </div>
         </section>
 
@@ -234,11 +236,12 @@ export default function PlayerPage() {
           <div className="flex items-center justify-between border-b border-slate-800 px-4 py-4"><div className="flex items-center gap-2"><Trophy size={16} className="text-[var(--player-brand)]"/><h2 className="text-xs font-black uppercase tracking-wide">Bet Slip</h2></div><span className="rounded-full bg-slate-800 px-2 py-0.5 text-[10px] text-slate-400">{picks.length}</span></div>
           <div className="space-y-3 p-3">
             {picks.length === 0 ? <div className="rounded-xl border border-dashed border-slate-700 px-4 py-8 text-center"><div className="mx-auto grid h-10 w-10 place-items-center rounded-full bg-slate-800"><Trophy size={17} className="text-slate-500"/></div><p className="mt-3 text-xs font-bold text-slate-300">{t("Your slip is empty")}</p><p className="mt-1 text-[10px] leading-4 text-slate-500">Choose odds from a match to add a selection.</p></div> : picks.map((pick) => <div key={pick.matchId} className="rounded-xl border border-slate-700 bg-slate-800/70 p-3"><div className="flex items-start justify-between gap-2"><p className="text-[11px] font-semibold leading-5">{pick.teams}</p><button aria-label="Remove selection" onClick={() => setPicks((current) => current.filter((item) => item.matchId !== pick.matchId))} className="text-slate-500 hover:text-white"><X size={13}/></button></div><div className="mt-3 flex items-center justify-between text-[10px]"><span className="text-slate-400">Selection {pick.selection}</span><span className="font-black text-[var(--player-brand)]">{pick.odd}</span></div></div>)}
-            <div className="rounded-xl border border-slate-800 bg-slate-950 p-3"><div className="flex items-center justify-between text-xs"><span className="text-slate-500">Combined odds</span><strong className="text-[var(--player-brand)]">{picks.length ? picks.reduce((total, pick) => total * Number(pick.odd), 1).toFixed(2) : "—"}</strong></div>{user ? <div className="mt-4 rounded-lg border border-emerald-500/20 bg-emerald-500/10 px-3 py-3 text-xs font-semibold text-emerald-300"><Check size={14} className="mr-2 inline" />Signed in as {user.name}. This is a demo slip; wagers are not submitted.</div> : <Link href="/auth/login" className="mt-4 flex w-full items-center justify-center gap-2 rounded-lg px-3 py-3 text-xs font-black text-slate-950 transition hover:brightness-110" style={{ backgroundColor: brandColor }}>{t("Continue to sign in")} <Wallet size={14}/></Link>}<p className="mt-3 text-center text-[9px] leading-4 text-slate-600">{user ? "Demo only. No wagers are placed." : "Demo only. Sign in to continue."}</p></div>
+            <div className="rounded-xl border border-slate-800 bg-slate-950 p-3"><div className="flex items-center justify-between text-xs"><span className="text-slate-500">Combined odds</span><strong className="text-[var(--player-brand)]">{picks.length ? picks.reduce((total, pick) => total * Number(pick.odd), 1).toFixed(2) : "—"}</strong></div>{user ? <div className="mt-4 rounded-lg border border-emerald-500/20 bg-emerald-500/10 px-3 py-3 text-xs font-semibold text-emerald-300"><Check size={14} className="mr-2 inline" />Signed in as {user.name}. Wagers are not submitted.</div> : <button onClick={() => setAuthMode("login")} className="mt-4 flex w-full items-center justify-center gap-2 rounded-lg px-3 py-3 text-xs font-semibold text-white transition-opacity hover:opacity-90" style={{ backgroundColor: brandColor }}>{t("Continue to sign in")} <Wallet size={14}/></button>}<p className="mt-3 text-center text-[9px] leading-4 text-slate-600">{user ? "No wagers are placed." : "Sign in to continue."}</p></div>
             <div className="flex items-start gap-2 rounded-lg bg-slate-800/60 p-3 text-[10px] leading-4 text-slate-500"><CircleHelp size={14} className="mt-0.5 shrink-0"/>Select a price to add it to your slip. A selection can be removed at any time.</div>
           </div>
         </aside>
       </div>
+      {authMode && <AuthPage key={authMode} mode={authMode} role="player" presentation="modal" onClose={() => setAuthMode(null)} onSuccess={() => setAuthMode(null)} />}
       <footer className="border-t border-slate-800 bg-slate-900 px-4 py-4 text-center text-[10px] text-slate-600">EdilBet · Play responsibly · 18+ only</footer>
       <nav className="fixed inset-x-0 bottom-0 z-30 grid grid-cols-3 border-t border-slate-800 bg-slate-900/95 backdrop-blur lg:hidden">{([{id:"home",label:"Home",icon:<CalendarDays size={16}/>},{id:"sports",label:"Sports",icon:<Trophy size={16}/>},{id:"live",label:"Live",icon:<Zap size={16}/>} ] as const).map((item) => <button key={item.id} onClick={() => { setTab(item.id); setDay(item.id === "live" ? "Live" : "All"); }} className={`flex flex-col items-center gap-1 py-2 text-[10px] font-bold ${tab === item.id ? "text-[var(--player-brand)]" : "text-slate-500"}`}>{item.icon}{item.label}</button>)}</nav>
     </main>
