@@ -444,3 +444,12 @@
 .player-root[data-player-theme="light"] .player-count-badge {
   color: #fff !important;
 }
+
+
+/* Player sportsbook brand/theme consistency across home and match-market routes. */
+.player-root [class*="bg-emerald-500"] { background-color: var(--player-brand) !important; }
+.player-root [class*="border-emerald-500"] { border-color: var(--player-brand) !important; }
+.player-root [class*="text-emerald-400"],
+.player-root [class*="text-emerald-300"] { color: var(--player-brand) !important; }
+.player-root [class*="hover\\:border-emerald-500"]:hover { border-color: var(--player-brand) !important; }
+.player-root[data-player-theme="light"] .player-accent-solid-text { color: #fff !important; }
