@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import "./globals.css";
 import { LanguageProvider } from "@/components/language-provider";
+import { ToastProvider } from "@/components/toast-provider";
 
 export const metadata: Metadata = {
   title: "EdilBet | Sportsbook & Operations",
@@ -8,5 +9,5 @@ export const metadata: Metadata = {
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
-  return <html lang="en"><body><LanguageProvider>{children}</LanguageProvider></body></html>;
+  return <html lang="en"><body><ToastProvider><LanguageProvider>{children}</LanguageProvider></ToastProvider></body></html>;
 }
