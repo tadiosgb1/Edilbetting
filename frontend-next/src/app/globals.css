@@ -418,3 +418,22 @@
 .player-root .player-accent-icon:hover {
   color: var(--player-brand) !important;
 }
+
+
+/* Make interactive controls in the player clearly indicate they are clickable. */
+.player-root button:not(:disabled),
+.player-root a[href],
+.player-root [role="button"],
+.player-root [role="link"],
+.player-root [onclick],
+.player-root summary,
+.player-root select,
+.player-root input[type="button"],
+.player-root input[type="submit"],
+.player-root input[type="reset"] {
+  cursor: pointer;
+}
+.player-root button:disabled,
+.player-root [aria-disabled="true"] {
+  cursor: not-allowed;
+}
