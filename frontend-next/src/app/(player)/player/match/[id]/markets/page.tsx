@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { useState } from "react";
-import { ArrowLeft, ChevronDown, Clock3, Search, Trophy } from "lucide-react";
+import { ArrowLeft, Clock3, Search, Trophy } from "lucide-react";
 
 type Option = { label: string; odd: string };
 type Market = { name: string; options: Option[] };
@@ -97,7 +97,6 @@ export default function MatchMarketsPage() {
   const [search, setSearch] = useState("");
   const [selected, setSelected] = useState<string[]>([]);
   const [oddsFormat, setOddsFormat] = useState("Decimal");
-  const [expanded, setExpanded] = useState<string | null>(null);
   const formatOdd = (raw: string) => {
     const value = Number(raw);
     if (oddsFormat === "US") return value >= 2 ? "+" + Math.round((value - 1) * 100) : "-" + Math.round(100 / (value - 1));
@@ -126,7 +125,7 @@ export default function MatchMarketsPage() {
         </aside>
         <section className="min-w-0">
           <div className="mb-3 flex flex-wrap items-center justify-between gap-3"><div><h2 className="text-sm font-black text-white">{active.name}</h2><p className="mt-1 text-[10px] text-slate-500">{active.markets.length} market groups · choose a price to highlight it</p></div><div className="flex items-center gap-2"><label className="sr-only" htmlFor="market-search">Search markets</label><div className="relative"><Search size={13} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-500"/><input id="market-search" value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Find a market…" className="w-44 rounded-md border border-slate-700 bg-slate-900 py-2 pl-8 pr-2 text-xs outline-none focus:border-emerald-500"/></div><select value={oddsFormat} onChange={(event) => setOddsFormat(event.target.value)} className="rounded-md border border-slate-700 bg-slate-900 px-2 py-2 text-xs text-slate-300"><option value="Decimal">Decimal</option><option value="US">US (+500)</option><option value="Hong Kong">Hong Kong</option></select></div></div>
-          <div className="space-y-3">{filteredMarkets.map((market) => <article key={market.name} className="overflow-hidden rounded-xl border border-slate-800 bg-slate-900"><button onClick={() => setExpanded(expanded === market.name ? null : market.name)} className="flex w-full items-center justify-between gap-3 border-b border-slate-800 px-4 py-3 text-left"><span className="text-xs font-extrabold text-slate-200">{market.name}<span className="ml-2 text-[10px] font-normal text-slate-500">{market.options.length} outcomes</span></span><ChevronDown size={14} className={expanded === market.name ? "rotate-180 text-emerald-400" : "text-slate-500"}/></button><div className="grid grid-cols-2 gap-2 p-3 sm:grid-cols-3 xl:grid-cols-4">{market.options.map((option) => {const key=market.name+"::"+option.label;const isSelected=selected.includes(key);return <button key={option.label} onClick={() => setSelected((current) => current.includes(key) ? current.filter((item) => item !== key) : [...current,key])} className={isSelected ? "rounded-md border border-emerald-500 bg-emerald-500/15 px-3 py-2 text-left" : "rounded-md border border-slate-800 bg-slate-950 px-3 py-2 text-left transition hover:border-emerald-500/50 hover:bg-slate-800"}><span className="block text-[10px] leading-4 text-slate-400">{option.label}</span><strong className="mt-1 block text-xs font-black tabular-nums text-white">{formatOdd(option.odd)}</strong></button>;})}</div></article>)}</div>
+          <div className="space-y-3">{filteredMarkets.map((market) => <article key={market.name} className="overflow-hidden rounded-xl border border-slate-800 bg-slate-900"><div className="flex items-center justify-between gap-3 border-b border-slate-800 px-4 py-3"><span className="text-xs font-extrabold text-slate-200">{market.name}</span><span className="text-[10px] text-slate-500">{market.options.length} outcomes</span></div><div className="grid grid-cols-2 gap-2 p-3 sm:grid-cols-3 xl:grid-cols-4">{market.options.map((option) => {const key=market.name+"::"+option.label;const isSelected=selected.includes(key);return <button key={option.label} onClick={() => setSelected((current) => current.includes(key) ? current.filter((item) => item !== key) : [...current,key])} className={isSelected ? "rounded-md border border-emerald-500 bg-emerald-500/15 px-3 py-2 text-left" : "rounded-md border border-slate-800 bg-slate-950 px-3 py-2 text-left transition hover:border-emerald-500/50 hover:bg-slate-800"}><span className="block text-[10px] leading-4 text-slate-400">{option.label}</span><strong className="mt-1 block text-xs font-black tabular-nums text-white">{formatOdd(option.odd)}</strong></button>;})}</div></article>)}</div>
           <p className="mt-4 text-[10px] leading-5 text-slate-600">This page contains illustrative market names and prices for UI preview. It is not connected to live sportsbook feeds, and selections are not submitted as wagers. Actual market availability varies by event and provider.</p>
         </section>
       </div>
