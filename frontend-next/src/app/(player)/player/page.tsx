@@ -5,6 +5,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { hashPassword, normalizePhone, useAuthStore } from "@/stores/auth-store";
 import AuthPage from "@/components/auth/auth-page";
+import { useToast } from "@/components/toast-provider";
 import { LanguageSelector, useLanguage } from "@/components/language-provider";
 import {
   Activity, ArrowDownToLine, ArrowUpFromLine, CalendarDays, Check, ChevronDown, CircleHelp, Clock3, Dribbble,
@@ -49,6 +50,7 @@ type Pick = { matchId: string; teams: string; selection: string; odd: string };
 export default function PlayerPage() {
   const { t } = useLanguage();
   const router = useRouter();
+  const toast = useToast();
   const user = useAuthStore((state) => state.user);
   const clearUser = useAuthStore((state) => state.clearUser);
   const accounts = useAuthStore((state) => state.accounts);
@@ -121,6 +123,7 @@ export default function PlayerPage() {
   function signOut() {
     clearUser();
     setAppearanceOpen(false);
+    toast("You have been logged out.", "success");
     router.replace("/player");
   }
 
@@ -130,31 +133,37 @@ export default function PlayerPage() {
     setPasswordNotice("");
     if (newPassword.length < 4) {
       setPasswordError("Use at least 4 characters for the new password.");
+      toast("Use at least 4 characters for the new password.", "error");
       return;
     }
     if (newPassword !== confirmNewPassword) {
       setPasswordError("The new passwords do not match.");
+      toast("The new passwords do not match.", "error");
       return;
     }
     if (!user) return;
     const account = accounts.find((item) => normalizePhone(item.phone) === normalizePhone(user.phone) && item.role === user.role);
     if (!account) {
       setPasswordError("Password changes are available for accounts created in this app.");
+      toast("Password changes are available for accounts created in this app.", "error");
       return;
     }
     if (await hashPassword(currentPassword) !== account.passwordHash) {
       setPasswordError("Current password is incorrect.");
+      toast("Current password is incorrect.", "error");
       return;
     }
     const changed = await updatePassword(user.phone, user.role, await hashPassword(newPassword), user.name);
     if (!changed) {
       setPasswordError("Unable to update password. Please try again.");
+      toast("Unable to update password. Please try again.", "error");
       return;
     }
     setCurrentPassword("");
     setNewPassword("");
     setConfirmNewPassword("");
     setPasswordNotice("Password updated.");
+    toast("Password updated successfully.", "success");
   }
 
   const visibleMatches = useMemo(() => matches.filter((match) => {
@@ -247,8 +256,8 @@ export default function PlayerPage() {
           <p className="mb-5 text-xs leading-5 player-appearance-muted">Customize player theme and accent colors. Preferences are saved in this browser, separately from the admin dashboard.</p>
           <h3 className="mb-2 text-xs font-semibold">Appearance</h3>
           <div className="mb-5 grid grid-cols-2 gap-2">
-            <button onClick={() => { setTheme("dark"); window.localStorage.setItem("edilbet-player-theme", "dark"); }} aria-pressed={theme === "dark"} className={`rounded-xl border p-3 text-xs font-medium ${theme === "dark" ? "player-choice-active" : "player-choice"}`}><Moon size={15} className="mb-2 inline" /> Dark mode</button>
-            <button onClick={() => { setTheme("light"); window.localStorage.setItem("edilbet-player-theme", "light"); }} aria-pressed={theme === "light"} className={`rounded-xl border p-3 text-xs font-medium ${theme === "light" ? "player-choice-active" : "player-choice"}`}><Sun size={15} className="mb-2 inline" /> Light mode</button>
+            <button onClick={() => { setTheme("dark"); window.localStorage.setItem("edilbet-player-theme", "dark"); toast("Dark mode enabled.", "success"); }} aria-pressed={theme === "dark"} className={`rounded-xl border p-3 text-xs font-medium ${theme === "dark" ? "player-choice-active" : "player-choice"}`}><Moon size={15} className="mb-2 inline" /> Dark mode</button>
+            <button onClick={() => { setTheme("light"); window.localStorage.setItem("edilbet-player-theme", "light"); toast("Light mode enabled.", "success"); }} aria-pressed={theme === "light"} className={`rounded-xl border p-3 text-xs font-medium ${theme === "light" ? "player-choice-active" : "player-choice"}`}><Sun size={15} className="mb-2 inline" /> Light mode</button>
           </div>
           <h3 className="mb-2 text-xs font-semibold">Dark mode colors</h3>
           <div className="mb-5 grid grid-cols-1 gap-2">
@@ -335,7 +344,7 @@ export default function PlayerPage() {
           <button onClick={() => setDepositOpen(false)} aria-label="Close deposit" className="absolute right-4 top-4 rounded-md p-2 text-slate-400 hover:bg-slate-800"><X size={18}/></button>
           <div className="flex items-center gap-3"><div className="grid h-11 w-11 place-items-center rounded-full" style={{backgroundColor: brandColor}}><Wallet size={20} className="text-white"/></div><div><h2 className="text-xl font-bold">Deposit to wallet</h2><p className="mt-1 text-xs text-slate-300">Choose a payment method and enter your deposit details.</p></div></div>
           <div className="mt-5 rounded-xl border border-slate-700 bg-slate-950 p-4"><p className="text-xs text-slate-300">Available balance</p><p className="mt-1 text-2xl font-black text-white">ETB 0.00</p></div>
-          <form className="mt-5 grid gap-4 sm:grid-cols-2" onSubmit={(event) => { event.preventDefault(); const request = { amount: Number(depositAmount), currency: "ETB", method: depositMethod, phone: depositPhone.trim(), createdAt: new Date().toISOString(), status: "pending" }; window.localStorage.setItem("edilbet-last-deposit-request", JSON.stringify(request)); setDepositNotice("Your deposit request details were saved in this browser. No payment was processed and your balance has not changed."); }}>
+          <form className="mt-5 grid gap-4 sm:grid-cols-2" onSubmit={(event) => { event.preventDefault(); const request = { amount: Number(depositAmount), currency: "ETB", method: depositMethod, phone: depositPhone.trim(), createdAt: new Date().toISOString(), status: "pending" }; window.localStorage.setItem("edilbet-last-deposit-request", JSON.stringify(request)); setDepositNotice("Your deposit request details were saved in this browser. No payment was processed and your balance has not changed."); toast("Deposit request saved. No payment was processed.", "success"); }}>
             <div><label htmlFor="deposit-amount" className="mb-1.5 block text-xs font-semibold text-slate-300">Amount (ETB)</label><input id="deposit-amount" type="number" min="50" max="100000" step="50" required value={depositAmount} onChange={(event) => setDepositAmount(event.target.value)} className="w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-3 text-sm text-white outline-none focus:border-[var(--player-brand)]"/></div>
             <div><label htmlFor="deposit-method" className="mb-1.5 block text-xs font-semibold text-slate-300">Payment method</label><select id="deposit-method" value={depositMethod} onChange={(event) => setDepositMethod(event.target.value)} className="w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-3 text-sm text-white outline-none focus:border-[var(--player-brand)]"><option>Telebirr</option><option>CBE Birr</option><option>Bank transfer</option><option>Other payment provider</option></select></div>
             <div className="sm:col-span-2"><label htmlFor="deposit-phone" className="mb-1.5 block text-xs font-semibold text-slate-300">Payment account / phone number</label><input id="deposit-phone" type="tel" required value={depositPhone} onChange={(event) => setDepositPhone(event.target.value)} placeholder="Enter the account or phone used for payment" className="w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-3 text-sm text-white outline-none focus:border-[var(--player-brand)]"/></div>
@@ -349,7 +358,7 @@ export default function PlayerPage() {
         <section role="dialog" aria-modal="true" aria-label="Become an agent" className="relative my-auto w-full max-w-2xl border border-slate-700 bg-slate-900 p-5 text-slate-100 shadow-2xl sm:p-7">
           <button onClick={() => setAgentOpen(false)} aria-label="Close agent application" className="absolute right-4 top-4 rounded-md p-2 text-slate-400 hover:bg-slate-800"><X size={18}/></button>
           <h2 className="text-xl font-bold">Become an EdilBet agent</h2><p className="mt-2 max-w-lg text-sm leading-6 text-slate-300">Tell us about your business and location to start an agent partnership application.</p>
-          <form className="mt-5 space-y-4" onSubmit={(event) => { event.preventDefault(); window.localStorage.setItem("edilbet-agent-application", JSON.stringify({ business: agentBusiness.trim(), location: agentLocation.trim(), applicant: user?.name || "", phone: user?.phone || "", createdAt: new Date().toISOString(), status: "pending" })); setAgentNotice("Application details saved in this browser only. A server-side application and review workflow still needs to be connected."); }}>
+          <form className="mt-5 space-y-4" onSubmit={(event) => { event.preventDefault(); window.localStorage.setItem("edilbet-agent-application", JSON.stringify({ business: agentBusiness.trim(), location: agentLocation.trim(), applicant: user?.name || "", phone: user?.phone || "", createdAt: new Date().toISOString(), status: "pending" })); setAgentNotice("Application details saved in this browser only. A server-side application and review workflow still needs to be connected."); toast("Agent application details saved.", "success"); }}>
             <div><label htmlFor="agent-business" className="mb-1.5 block text-xs font-semibold text-slate-300">Business / applicant name</label><input id="agent-business" required value={agentBusiness} onChange={(event) => setAgentBusiness(event.target.value)} className="w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-3 text-sm outline-none focus:border-[var(--player-brand)]" placeholder="Business or full name"/></div>
             <div><label htmlFor="agent-location" className="mb-1.5 block text-xs font-semibold text-slate-300">City / operating location</label><input id="agent-location" required value={agentLocation} onChange={(event) => setAgentLocation(event.target.value)} className="w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-3 text-sm outline-none focus:border-[var(--player-brand)]" placeholder="City and area"/></div>
             <p className="rounded-lg border border-slate-700 bg-slate-950 p-3 text-xs leading-5 text-slate-300">Agent onboarding, identity checks, commission rules, and approval need to be handled by the server and operations team.</p>
