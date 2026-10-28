@@ -308,7 +308,7 @@ export default function PlayerPage() {
         </aside>
       </div>
       {depositOpen && <div className="fixed inset-0 z-[110] grid place-items-center overflow-y-auto bg-black/70 p-4" onMouseDown={(event) => { if (event.target === event.currentTarget) setDepositOpen(false); }}>
-        <section role="dialog" aria-modal="true" aria-label="Deposit funds" className="relative my-auto w-full max-w-2xl rounded-2xl border border-slate-700 bg-slate-900 p-5 text-slate-100 shadow-2xl sm:p-7">
+        <section role="dialog" aria-modal="true" aria-label="Deposit funds" className="relative my-auto w-full max-w-2xl border border-slate-700 bg-slate-900 p-5 text-slate-100 shadow-2xl sm:p-7">
           <button onClick={() => setDepositOpen(false)} aria-label="Close deposit" className="absolute right-4 top-4 rounded-md p-2 text-slate-400 hover:bg-slate-800"><X size={18}/></button>
           <div className="flex items-center gap-3"><div className="grid h-11 w-11 place-items-center rounded-full" style={{backgroundColor: brandColor}}><Wallet size={20} className="text-white"/></div><div><h2 className="text-xl font-bold">Deposit to wallet</h2><p className="mt-1 text-xs text-slate-300">Choose a payment method and enter your deposit details.</p></div></div>
           <div className="mt-5 rounded-xl border border-slate-700 bg-slate-950 p-4"><p className="text-xs text-slate-300">Available balance</p><p className="mt-1 text-2xl font-black text-white">ETB 0.00</p></div>
