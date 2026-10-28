@@ -7,8 +7,8 @@ import { hashPassword, normalizePhone, useAuthStore } from "@/stores/auth-store"
 import AuthPage from "@/components/auth/auth-page";
 import { LanguageSelector, useLanguage } from "@/components/language-provider";
 import {
-  Activity, ArrowDownToLine, ArrowUpFromLine, BadgePercent, CalendarDays, Check, ChevronDown, CircleHelp, Clock3, Dribbble,
-  Flame, Gift, Globe, History, LockKeyhole, LogOut, Mail, Menu, MessageSquare, Moon, Palette, Search, Settings, Shield, ShieldCheck, Snowflake,
+  Activity, ArrowDownToLine, ArrowUpFromLine, CalendarDays, Check, ChevronDown, CircleHelp, Clock3, Dribbble,
+  Flame, Gift, Globe, History, LockKeyhole, LogOut, Mail, Menu, Moon, Palette, Search, Settings, Shield, ShieldCheck, Snowflake,
   Sun, Target, Ticket, Trophy, UserRound, Users, Wallet, X, Zap, CircleDot,
 } from "lucide-react";
 
