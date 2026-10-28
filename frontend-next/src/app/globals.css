@@ -437,3 +437,10 @@
 .player-root [aria-disabled="true"] {
   cursor: not-allowed;
 }
+
+
+/* Count badges keep high-contrast white numerals in both light and dark player themes. */
+.player-root .player-count-badge,
+.player-root[data-player-theme="light"] .player-count-badge {
+  color: #fff !important;
+}
