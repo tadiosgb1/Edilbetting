@@ -120,7 +120,7 @@ export default function AuthPage({
       if (onSuccess) onSuccess();
       else router.replace(destinations[role]);
     } catch {
-      setError(currentMode === "login" ? "Unable to sign in. Please try again." : "Unable to create your account. Please try again.");
+      notifyError(currentMode === "login" ? "Unable to sign in. Please try again." : "Unable to create your account. Please try again.");
     } finally {
       setBusy(false);
     }
