@@ -145,7 +145,7 @@ export default function AuthPage({
 
   if (isModal) {
     return <div className="fixed inset-0 z-[100] grid place-items-center bg-black/65 p-4" role="presentation" onMouseDown={(event) => { if (event.target === event.currentTarget) onClose?.(); }}>
-      <div role="dialog" aria-modal="true" aria-label={currentMode === "login" ? "Sign in" : "Create account"}>{form}</div>
+      <div role="dialog" aria-modal="true" aria-label={currentMode === "login" ? "Sign in" : "Create account"} className="w-full max-w-4xl">{form}</div>
     </div>;
   }
 
