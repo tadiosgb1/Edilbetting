@@ -153,7 +153,7 @@ export default function PlayerPage() {
 
       {appearanceOpen && <>
         <button aria-label="Close brand settings" onClick={() => setAppearanceOpen(false)} className="fixed inset-0 z-40 bg-black/30" />
-        <aside aria-label="Player brand appearance settings" className="player-brand-panel fixed inset-y-0 right-0 z-50 w-[340px] max-w-[90vw] overflow-y-auto overscroll-contain border-l p-5 shadow-2xl">
+        <aside aria-label="Player brand appearance settings" className="player-brand-panel fixed inset-y-0 right-0 z-50 w-[340px] max-w-[90vw] overflow-y-auto overscroll-contain border-l p-5">
           <div className="mb-6 flex items-center justify-between"><h2 className="text-sm font-semibold">Brand appearance</h2><button onClick={() => setAppearanceOpen(false)} aria-label="Close brand settings" className="player-appearance-button rounded-lg border p-2"><X size={17} /></button></div>
           <p className="mb-5 text-xs leading-5 player-appearance-muted">Customize player theme and accent colors. Preferences are saved in this browser, separately from the admin dashboard.</p>
           <h3 className="mb-2 text-xs font-semibold">Appearance</h3>
