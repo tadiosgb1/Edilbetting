@@ -42,7 +42,6 @@ const sports = [
   ["American Football", "8"], ["Ice Hockey", "11"], ["Cricket", "5"],
 ];
 const sportIcons = { Football: CircleDot, Basketball: Dribbble, Tennis: Target, "American Football": Shield, "Ice Hockey": Snowflake, Cricket: Trophy } as const;
-const brandChoices = ["#fbbf24", "#22c55e", "#38bdf8", "#f472b6", "#a78bfa"];
 
 type Pick = { matchId: string; teams: string; selection: string; odd: string };
 
