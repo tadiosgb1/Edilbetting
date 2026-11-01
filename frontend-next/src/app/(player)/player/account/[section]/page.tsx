@@ -30,7 +30,7 @@ export default function PlayerAccountSectionPage() {
   const toast = useToast();
   const { t } = useLanguage();
   const [theme, setTheme] = useState<"light" | "dark">("dark");
-  const section = sections.find((item) => item.id === params.section) || sections[0];
+  const section = sections.find((item) => item.id === params?.section) || sections[0];
   const [preferences, setPreferences] = useState(defaultPreferences);
   const [message, setMessage] = useState("");
   const [amount, setAmount] = useState("500");

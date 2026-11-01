@@ -96,7 +96,7 @@ const categoriesNames = categories.map((category) => category.name);
 export default function MatchMarketsPage() {
   const { t } = useLanguage();
   const params = useParams<{ id: string }>();
-  const match = fixtures[params.id] || fixtures.m1;
+  const match = fixtures[params?.id ?? ""] || fixtures.m1;
   const [activeCategory, setActiveCategory] = useState(categories[0].name);
   const [search, setSearch] = useState("");
   const [selected, setSelected] = useState<string[]>([]);
