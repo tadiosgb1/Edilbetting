@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { ArrowRight, LockKeyhole, UserPlus, X } from "lucide-react";
 import { useToast } from "@/components/toast-provider";
-import { useLanguage } from "@/components/language-provider";
+import { LanguageSelector, useLanguage } from "@/components/language-provider";
 import { hashPassword, normalizePhone, useAuthStore, type UserRole } from "@/stores/auth-store";
 
 type AuthMode = "login" | "register";
@@ -159,5 +159,12 @@ export default function AuthPage({
     </div>;
   }
 
-  return <main className="grid min-h-screen place-items-center bg-slate-950 px-4 py-8">{form}</main>;
+  return (
+    <main className="relative grid min-h-screen place-items-center bg-slate-950 px-4 py-8">
+      <div className="fixed right-4 top-4 z-20">
+        <LanguageSelector compact />
+      </div>
+      {form}
+    </main>
+  );
 }
