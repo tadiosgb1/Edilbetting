@@ -34,7 +34,7 @@ export function ToastProvider({ children }: { children: ReactNode }) {
         return <div key={item.id} role={item.kind === "error" ? "alert" : "status"} className={`pointer-events-auto flex items-start gap-3 border px-4 py-3 shadow-2xl ${palette}`}>
           <Icon size={19} className="mt-0.5 shrink-0" />
           <p className="min-w-0 flex-1 text-sm leading-5">{t(item.message)}</p>
-          <button type="button" aria-label={t("Dismiss notification")} onClick={() => setItems((current) => current.filter((toastItem) => toastItem.id !== item.id))} className="shrink-0 p-0.5 opacity-75 hover:opacity-100"><X size={16}/></button>
+          <button type="button" aria-label={t("dismissNotification")} onClick={() => setItems((current) => current.filter((toastItem) => toastItem.id !== item.id))} className="shrink-0 p-0.5 opacity-75 hover:opacity-100"><X size={16}/></button>
         </div>;
       })}
     </div>
