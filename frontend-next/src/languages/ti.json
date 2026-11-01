@@ -435,5 +435,13 @@
   "twoToFourGoals": "2–4 ሸቶታት",
   "fourToSixGoals": "4–6 ሸቶታት",
   "homeToQualify": "ጋንታ ገዛ ትሓልፍ",
-  "awayToQualify": "ጋንታ ኣጋይሽ ትሓልፍ"
+  "awayToQualify": "ጋንታ ኣጋይሽ ትሓልፍ",
+  "mainAccount": "ቀንዲ ሕሳብ",
+  "login": "እቶ",
+  "register": "ተመዝገብ",
+  "applyToPartnerWithEdilBet": "ምስ EdilBet ንምሽራኽ ኣመልክት",
+  "tryAnotherSearchOrDateFilter": "ካልእ ምድላይ ወይ መጻረዪ ዕለት ፈትን።",
+  "markets": "ዕዳጋታት",
+  "fixturesPreviewDisclaimer": "መደባት ጸወታን ዕድላትን ንቅድመ ርኢቶ ጥራይ እዮም። ውርርድ ኣይግበርን።",
+  "betSlip": "ዝርዝር ውርርድ"
 }
