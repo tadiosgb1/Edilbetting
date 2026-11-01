@@ -217,5 +217,15 @@
   "customDarkSurface": "ፍሉይ ጸልማት ገጽ",
   "brandAccent": "ሕብሪ ብራንድ",
   "customBrandColor": "ፍሉይ ሕብሪ ብራንድ",
-  "resetToGreen": "ናብ ቀጠልያ መልስ"
+  "resetToGreen": "ናብ ቀጠልያ መልስ",
+  "depositFunds": "ገንዘብ ኣእቱ",
+  "closeDeposit": "መስኮት ተቐማጢ ዕጸ",
+  "depositToWallet": "ገንዘብ ናብ ዋሌት ኣእቱ",
+  "choosePaymentMethodAndEnterDepositDetails": "ኣገባብ ክፍሊት ምረጽ እሞ ዝርዝር ተቐማጢ ኣእቱ።",
+  "availableBalance": "ዘሎ ቀሪ ሕሳብ",
+  "paymentMethod": "ኣገባብ ክፍሊት",
+  "enterPaymentAccountOrPhone": "ንክፍሊት እትጥቀመሉ ሕሳብ ወይ ቁጽሪ ተሌፎን ኣእቱ",
+  "depositModalPaymentDisclaimer": "መስርሕ ክፍሊት ገና ኣይተራኸበን። እዚ ናይ ከባቢ ሕቶ ጥራይ ይዕቅብ፤ ገንዘብ ኣየመሓላልፍን ወይ ዋሌት ኣይውስኽን። ሓቀኛ ተቐማጢ ቅድሚ ምቕባል ዝተረጋገጸ ናይ ሰርቨር ክፍሊት ምትእስሳር የድሊ።",
+  "close": "ዕጸ",
+  "depositModalRequestSaved": "ዝርዝር ሕቶ ተቐማጢ ኣብዚ ብራውዘር ተቐሚጡ። ክፍሊት ኣይተፈጸመን እና ቀሪ ሕሳብካ ኣይተቐየረን።"
 }
