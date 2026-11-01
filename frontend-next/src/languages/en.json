@@ -343,5 +343,18 @@
   "under15": "Under 1.5",
   "under25": "Under 2.5",
   "under35": "Under 3.5",
-  "under45": "Under 4.5"
+  "under45": "Under 4.5",
+  "dashboard": "dashboard",
+  "coffeeAndOrange": "Coffee & orange",
+  "slateAndBlue": "Slate & blue",
+  "midnightAndViolet": "Midnight & violet",
+  "graphiteAndSilver": "Graphite & silver",
+  "forestAndJade": "Forest & jade",
+  "navyAndSky": "Navy & sky",
+  "green": "Green",
+  "emerald": "Emerald",
+  "orange": "Orange",
+  "teal": "Teal",
+  "blue": "Blue",
+  "violet": "Violet"
 }
