@@ -148,14 +148,14 @@ export default function AuthPage({
         {t(currentMode === "login" ? "newHere" : "alreadyHaveAccount")}
         {isModal
           ? <button type="button" onClick={() => switchMode(currentMode === "login" ? "register" : "login")} className="font-semibold text-[var(--auth-accent)] hover:opacity-80">{t(currentMode === "login" ? "createAccount" : "signIn")}</button>
-          : <Link href={currentMode === "login" ? "/auth/register" : "/auth/login"} onClick={() => setCurrentMode(currentMode === "login" ? "register" : "login")} className="font-semibold text-[var(--auth-accent)] hover:opacity-80">{currentMode === "login" ? "Create account" : "Sign in"}</Link>}
+          : <Link href={currentMode === "login" ? "/auth/register" : "/auth/login"} onClick={() => setCurrentMode(currentMode === "login" ? "register" : "login")} className="font-semibold text-[var(--auth-accent)] hover:opacity-80">{t(currentMode === "login" ? "createAccount" : "signIn")}</Link>}
       </p>
     </section>
   );
 
   if (isModal) {
     return <div className="fixed inset-0 z-[100] grid place-items-center bg-black/65 p-4" role="presentation" onMouseDown={(event) => { if (event.target === event.currentTarget) onClose?.(); }}>
-      <div role="dialog" aria-modal="true" aria-label={currentMode === "login" ? "Sign in" : "Create account"} className="w-full max-w-2xl">{form}</div>
+      <div role="dialog" aria-modal="true" aria-label={t(currentMode === "login" ? "signIn" : "createAccount")} className="w-full max-w-2xl">{form}</div>
     </div>;
   }
 
