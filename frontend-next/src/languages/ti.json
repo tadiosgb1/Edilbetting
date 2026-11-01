@@ -103,5 +103,16 @@
   "No matches found": "ዝተረኽበ ጸወታ የለን",
   "Play responsibly": "ብሓላፍነት ተጻወቱ",
   "Your slip is empty": "ዝርዝር ውርርድኩም ባዶ እዩ",
-  "Continue to sign in": "ንምእታው ቀጽሉ"
+  "Continue to sign in": "ንምእታው ቀጽሉ",
+  "Enter your name.": "ስምካ ኣእቱ።",
+  "Enter a valid 10-digit phone number.": "ቅኑዕ 10 ኣሃዝ ዘለዎ ቁጽሪ ተሌፎን ኣእቱ።",
+  "Use at least 4 characters for your password.": "ንመሕለፊ ቃልካ እንተወሓደ 4 ፊደላት ተጠቐም።",
+  "Passwords do not match.": "እቶም መሕለፊ ቃላት ኣይሰማምዑን።",
+  "An account with this phone number already exists.": "በዚ ቁጽሪ ተሌፎን ዝተመዝገበ ሕሳብ ድሮ ኣሎ።",
+  "Phone number or password is incorrect.": "ቁጽሪ ተሌፎን ወይ መሕለፊ ቃል ጌጋ እዩ።",
+  "You are signed in successfully.": "ብዓወት ኣቲኻ ኣለኻ።",
+  "Your account has been created successfully.": "ሕሳብካ ብዓወት ተፈጢሩ ኣሎ።",
+  "Unable to sign in. Please try again.": "ምእታው ኣይተኻእለን። በጃኻ እንደገና ፈትን።",
+  "Unable to create your account. Please try again.": "ሕሳብካ ምፍጣር ኣይተኻእለን። በጃኻ እንደገና ፈትን።",
+  "Dismiss notification": "እቲ ምልክታ ዕጸዎ"
 }
