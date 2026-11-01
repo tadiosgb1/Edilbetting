@@ -443,5 +443,10 @@
   "tryAnotherSearchOrDateFilter": "ሌላ ፍለጋ ወይም የቀን ማጣሪያ ይሞክሩ።",
   "markets": "ገበያዎች",
   "fixturesPreviewDisclaimer": "የጨዋታ መርሃ ግብሮች እና ዕድሎች ለቅድመ እይታ ብቻ ናቸው። ምንም ውርርድ አይደረግም።",
-  "betSlip": "የውርርድ ዝርዝር"
+  "betSlip": "የውርርድ ዝርዝር",
+  "loadingMoreMarkets": "ተጨማሪ ገበያዎች በመጫን ላይ…",
+  "chooseOutcomePrice": "ምርጫ ለመጨመር የውጤት ዋጋ ይምረጡ።",
+  "selections": "ምርጫዎች",
+  "selectionsLocalNotSubmitted": "ምርጫዎች በዚህ ገጽ ላይ ብቻ ተቀምጠዋል እና አልተላኩም።",
+  "us500": "US (+500)"
 }
