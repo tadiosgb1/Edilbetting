@@ -41,7 +41,20 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
     window.localStorage.setItem("edilbet-language", language);
   }, [language]);
 
-  const t = (text: string) => translations[language][text] ?? text;
+  const toTranslationKey = (text: string) => {
+    // Accept camelCase keys and normalize legacy English phrases.
+    if (/^[a-z][A-Za-z0-9]*$/.test(text)) return text;
+    const words = text.normalize("NFKD").match(/[A-Za-z0-9]+/g) || [];
+    return words.map((word, index) =>
+      index === 0 ? word.toLowerCase() : word[0].toUpperCase() + word.slice(1).toLowerCase()
+    ).join("");
+  };
+
+  const t = (text: string) => {
+    const key = toTranslationKey(text);
+    // Missing Amharic or Tigrigna translations safely use the English value.
+    return translations[language][key] ?? translations.en[key] ?? text;
+  };
 
   return (
     <LanguageContext.Provider value={{ language, setLanguage, t }}>
