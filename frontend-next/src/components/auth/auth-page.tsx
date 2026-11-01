@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { ArrowRight, LockKeyhole, UserPlus, X } from "lucide-react";
 import { useToast } from "@/components/toast-provider";
+import { useLanguage } from "@/components/language-provider";
 import { hashPassword, normalizePhone, useAuthStore, type UserRole } from "@/stores/auth-store";
 
 type AuthMode = "login" | "register";
@@ -43,6 +44,7 @@ export default function AuthPage({
   const [busy, setBusy] = useState(false);
   const router = useRouter();
   const toast = useToast();
+  const { t } = useLanguage();
   const user = useAuthStore((state) => state.user);
   const accounts = useAuthStore((state) => state.accounts);
   const addAccount = useAuthStore((state) => state.addAccount);
@@ -139,7 +141,7 @@ export default function AuthPage({
         <div><label htmlFor="auth-phone" className="mb-1.5 block text-xs font-medium text-slate-300">Phone number</label><input id="auth-phone" type="tel" inputMode="tel" autoComplete="tel" value={phone} onChange={(event) => setPhone(event.target.value)} placeholder="09XXXXXXXX" required className="w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2.5 text-sm outline-none focus:border-[var(--auth-accent)]" /></div>
         <div><label htmlFor="auth-password" className="mb-1.5 block text-xs font-medium text-slate-300">Password</label><input id="auth-password" type="password" autoComplete={currentMode === "login" ? "current-password" : "new-password"} value={password} onChange={(event) => setPassword(event.target.value)} placeholder="Password" minLength={currentMode === "register" ? 4 : undefined} required className="w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2.5 text-sm outline-none focus:border-[var(--auth-accent)]" /></div>
         {currentMode === "register" && <div><label htmlFor="auth-confirm" className="mb-1.5 block text-xs font-medium text-slate-300">Confirm password</label><input id="auth-confirm" type="password" autoComplete="new-password" value={confirmPassword} onChange={(event) => setConfirmPassword(event.target.value)} placeholder="Repeat password" required className="w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2.5 text-sm outline-none focus:border-[var(--auth-accent)]" /></div>}
-        {error && <p role="alert" className="rounded-md bg-red-500/10 px-3 py-2 text-xs text-red-300">{error}</p>}
+        {error && <p role="alert" className="rounded-md bg-red-500/10 px-3 py-2 text-xs text-red-300">{t(error)}</p>}
         <button type="submit" disabled={busy} className="flex w-full items-center justify-center gap-2 rounded-lg px-4 py-2.5 text-sm font-semibold text-white transition-opacity hover:opacity-90 disabled:opacity-60" style={{ backgroundColor: "var(--auth-accent)" }}>{busy ? "Please wait…" : currentMode === "login" ? <>Sign in <ArrowRight size={15}/></> : <>Create account <ArrowRight size={15}/></>}</button>
       </form>
       <p className="mt-4 text-center text-xs text-slate-400">
