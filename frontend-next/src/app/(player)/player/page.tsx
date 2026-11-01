@@ -385,7 +385,7 @@ export default function PlayerPage() {
         </section>
       </div>}
       {authMode && <AuthPage key={authMode} mode={authMode} role="player" presentation="modal" onClose={() => setAuthMode(null)} onSuccess={() => setAuthMode(null)} />}
-      <footer className="border-t border-slate-800 bg-slate-900 px-4 py-4 text-center text-[10px] text-slate-600">EdilBet · Play responsibly · 18+ only</footer>
+      <footer className="border-t border-slate-800 bg-slate-900 px-4 py-4 text-center text-[10px] text-slate-600">EdilBet · {t("Play responsibly")} · 18+ only</footer>
       <nav className="fixed inset-x-0 bottom-0 z-30 grid grid-cols-3 border-t border-slate-800 bg-slate-900/95 backdrop-blur lg:hidden">{([{id:"home",label:"Home",icon:<CalendarDays size={16}/>},{id:"sports",label:"Sports",icon:<Trophy size={16}/>},{id:"live",label:"Live",icon:<Zap size={16}/>} ] as const).map((item) => <button key={item.id} onClick={() => { setTab(item.id); setDay(item.id === "live" ? "Live" : "All"); }} className={`flex flex-col items-center gap-1 py-2 text-[10px] font-bold ${tab === item.id ? "text-[var(--player-brand)]" : "text-slate-500"}`}>{item.icon}{t(item.label)}</button>)}</nav>
     </main>
   );
