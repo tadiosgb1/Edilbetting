@@ -343,5 +343,18 @@
   "under15": "ከ 1.5 በታች",
   "under25": "ከ 2.5 በታች",
   "under35": "ከ 3.5 በታች",
-  "under45": "ከ 4.5 በታች"
+  "under45": "ከ 4.5 በታች",
+  "dashboard": "ዳሽቦርድ",
+  "coffeeAndOrange": "ቡናማ እና ብርቱካናማ",
+  "slateAndBlue": "ስሌት እና ሰማያዊ",
+  "midnightAndViolet": "የእኩለ ሌሊት እና ሐምራዊ",
+  "graphiteAndSilver": "ግራፋይት እና ብር",
+  "forestAndJade": "ደን እና ጄድ",
+  "navyAndSky": "ኔቪ እና ሰማያዊ ሰማይ",
+  "green": "አረንጓዴ",
+  "emerald": "ኤመራልድ",
+  "orange": "ብርቱካናማ",
+  "teal": "ቲል",
+  "blue": "ሰማያዊ",
+  "violet": "ሐምራዊ"
 }
