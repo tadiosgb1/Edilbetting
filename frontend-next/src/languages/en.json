@@ -217,5 +217,15 @@
   "customDarkSurface": "Custom dark surface",
   "brandAccent": "Brand accent",
   "customBrandColor": "Custom brand color",
-  "resetToGreen": "Reset to green"
+  "resetToGreen": "Reset to green",
+  "depositFunds": "Deposit funds",
+  "closeDeposit": "Close deposit",
+  "depositToWallet": "Deposit to wallet",
+  "choosePaymentMethodAndEnterDepositDetails": "Choose a payment method and enter your deposit details.",
+  "availableBalance": "Available balance",
+  "paymentMethod": "Payment method",
+  "enterPaymentAccountOrPhone": "Enter the account or phone used for payment",
+  "depositModalPaymentDisclaimer": "Payment processing is not connected yet. This saves a local request only; it does not transfer money or credit the wallet. A verified server-side payment integration is required before accepting real deposits.",
+  "close": "Close",
+  "depositModalRequestSaved": "Your deposit request details were saved in this browser. No payment was processed and your balance has not changed."
 }
