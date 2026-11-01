@@ -103,5 +103,16 @@
   "No matches found": "ምንም ጨዋታ አልተገኘም",
   "Play responsibly": "በኃላፊነት ይጫወቱ",
   "Your slip is empty": "የውርርድ ዝርዝርዎ ባዶ ነው",
-  "Continue to sign in": "ለመግባት ይቀጥሉ"
+  "Continue to sign in": "ለመግባት ይቀጥሉ",
+  "Enter your name.": "ስምዎን ያስገቡ።",
+  "Enter a valid 10-digit phone number.": "ትክክለኛ ባለ 10 አሃዝ ስልክ ቁጥር ያስገቡ።",
+  "Use at least 4 characters for your password.": "ለይለፍ ቃልዎ ቢያንስ 4 ቁምፊዎችን ይጠቀሙ።",
+  "Passwords do not match.": "የይለፍ ቃሎቹ አይዛመዱም።",
+  "An account with this phone number already exists.": "በዚህ ስልክ ቁጥር የተመዘገበ መለያ አስቀድሞ አለ።",
+  "Phone number or password is incorrect.": "የስልክ ቁጥሩ ወይም የይለፍ ቃሉ ትክክል አይደለም።",
+  "You are signed in successfully.": "በተሳካ ሁኔታ ገብተዋል።",
+  "Your account has been created successfully.": "መለያዎ በተሳካ ሁኔታ ተፈጥሯል።",
+  "Unable to sign in. Please try again.": "መግባት አልተቻለም። እባክዎ እንደገና ይሞክሩ።",
+  "Unable to create your account. Please try again.": "መለያዎን መፍጠር አልተቻለም። እባክዎ እንደገና ይሞክሩ።",
+  "Dismiss notification": "ማሳወቂያውን ዝጋ"
 }
