@@ -391,5 +391,13 @@
   "cricket": "Cricket",
   "chooseAPriceToHighlightIt": "choose a price to highlight it",
   "decimal": "Decimal",
-  "hongKong": "Hong Kong"
+  "hongKong": "Hong Kong",
+  "bonusPoints": "Bonus points",
+  "unsettledBets": "Unsettled bets",
+  "inviteFriends": "Invite friends",
+  "shareEdilbetWithFriends": "Share EdilBet with friends",
+  "personalProfile": "Personal profile",
+  "betHistory": "Bet history",
+  "accountSettings": "Account settings",
+  "messages": "Messages"
 }
