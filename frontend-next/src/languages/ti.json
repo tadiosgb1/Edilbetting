@@ -249,5 +249,19 @@
   "currentPasswordIncorrect": "ናይ ሕጂ መሕለፊ ቃል ቅኑዕ ኣይኮነን።",
   "unableToUpdatePassword": "መሕለፊ ቃል ምሕዳስ ኣይተኻእለን። በጃኻ እንደገና ፈትን።",
   "passwordUpdated": "መሕለፊ ቃል ተሓዲሱ።",
-  "passwordUpdatedSuccessfully": "መሕለፊ ቃል ብዓወት ተሓዲሱ።"
+  "passwordUpdatedSuccessfully": "መሕለፊ ቃል ብዓወት ተሓዲሱ።",
+  "makeADeposit": "ተቐማጢ ግበር",
+  "withdrawFunds": "ገንዘብ ኣውጽእ",
+  "yourRewardsAndBonusActivity": "ንጥፈት ሽልማትን ቦነስን",
+  "mainAccountEtb": "ቀንዲ ሕሳብ (ETB)",
+  "walletBalanceAndAccountActivity": "ቀሪ ሕሳብ ዋሌትን ንጥፈት ሕሳብን",
+  "betsAwaitingSettlement": "ምዝዛም ዝጽበዩ ውርርዳት",
+  "addFundsToYourWallet": "ገንዘብ ናብ ዋሌትካ ወስኽ",
+  "requestAWalletWithdrawal": "ካብ ዋሌት ገንዘብ ንምውጻእ ሕቶ",
+  "shareEdilBetWithFriends": "EdilBet ምስ ኣዕሩኽትኻ ኣካፍል",
+  "yourAccountDetails": "ዝርዝር ሕሳብካ",
+  "reviewPreviousBets": "ዝሓለፉ ውርርዳት ርአ",
+  "oddsMarketViewAndDisplayOptions": "ኣማራጺታት ዕድል፣ ርኢቶ ዕዳጋን ምርኢትን",
+  "notificationsAndAccountMessages": "ምልክታታትን መልእኽትታት ሕሳብን",
+  "managePlayersAssignedToYourAgentAccount": "ንሕሳብ ወኪልካ ዝተመደቡ ተጻወትቲ ኣመሓድር።"
 }
