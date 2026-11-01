@@ -5,7 +5,7 @@ import { LanguageProvider } from "@/components/language-provider";
 import { ToastProvider } from "@/components/toast-provider";
 
 export const metadata: Metadata = {
-  title: "EdilBet | Sportsbook & Operations",
+  title: "EdilBet",
   description: "EdilBet sports betting and operations platform",
 };
 
@@ -17,9 +17,11 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body>
-        <ToastProvider>
-          <LanguageProvider>{children}</LanguageProvider>
-        </ToastProvider>
+       <LanguageProvider>
+      <ToastProvider>
+        {children}
+      </ToastProvider>
+    </LanguageProvider>
       </body>
     </html>
   );
