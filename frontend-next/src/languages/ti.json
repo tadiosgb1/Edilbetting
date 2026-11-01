@@ -443,5 +443,10 @@
   "tryAnotherSearchOrDateFilter": "ካልእ ምድላይ ወይ መጻረዪ ዕለት ፈትን።",
   "markets": "ዕዳጋታት",
   "fixturesPreviewDisclaimer": "መደባት ጸወታን ዕድላትን ንቅድመ ርኢቶ ጥራይ እዮም። ውርርድ ኣይግበርን።",
-  "betSlip": "ዝርዝር ውርርድ"
+  "betSlip": "ዝርዝር ውርርድ",
+  "loadingMoreMarkets": "ተወሳኺ ዕዳጋታት ይጽዓኑ ኣለዉ…",
+  "chooseOutcomePrice": "ምርጫ ንምውሳኽ ዋጋ ውጽኢት ምረጽ።",
+  "selections": "ምርጫታት",
+  "selectionsLocalNotSubmitted": "ምርጫታት ኣብዚ ገጽ ጥራይ ተቐሚጦም እዮም እሞ ኣይተላእኩን።",
+  "us500": "US (+500)"
 }
