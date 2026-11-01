@@ -17,11 +17,9 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body>
-       <LanguageProvider>
-      <ToastProvider>
-        {children}
-      </ToastProvider>
-    </LanguageProvider>
+        <LanguageProvider>
+          <ToastProvider>{children}</ToastProvider>
+        </LanguageProvider>
       </body>
     </html>
   );

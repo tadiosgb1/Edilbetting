@@ -103,5 +103,16 @@
   "No matches found": "No matches found",
   "Play responsibly": "Play responsibly",
   "Your slip is empty": "Your slip is empty",
-  "Continue to sign in": "Continue to sign in"
+  "Continue to sign in": "Continue to sign in",
+  "Enter your name.": "Enter your name.",
+  "Enter a valid 10-digit phone number.": "Enter a valid 10-digit phone number.",
+  "Use at least 4 characters for your password.": "Use at least 4 characters for your password.",
+  "Passwords do not match.": "Passwords do not match.",
+  "An account with this phone number already exists.": "An account with this phone number already exists.",
+  "Phone number or password is incorrect.": "Phone number or password is incorrect.",
+  "You are signed in successfully.": "You are signed in successfully.",
+  "Your account has been created successfully.": "Your account has been created successfully.",
+  "Unable to sign in. Please try again.": "Unable to sign in. Please try again.",
+  "Unable to create your account. Please try again.": "Unable to create your account. Please try again.",
+  "Dismiss notification": "Dismiss notification"
 }
