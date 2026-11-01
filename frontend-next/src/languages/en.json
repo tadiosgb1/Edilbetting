@@ -249,5 +249,19 @@
   "currentPasswordIncorrect": "Current password is incorrect.",
   "unableToUpdatePassword": "Unable to update password. Please try again.",
   "passwordUpdated": "Password updated.",
-  "passwordUpdatedSuccessfully": "Password updated successfully."
+  "passwordUpdatedSuccessfully": "Password updated successfully.",
+  "makeADeposit": "Make a deposit",
+  "withdrawFunds": "Withdraw funds",
+  "yourRewardsAndBonusActivity": "Your rewards and bonus activity",
+  "mainAccountEtb": "Main account (ETB)",
+  "walletBalanceAndAccountActivity": "Wallet balance and account activity",
+  "betsAwaitingSettlement": "Bets awaiting settlement",
+  "addFundsToYourWallet": "Add funds to your wallet",
+  "requestAWalletWithdrawal": "Request a wallet withdrawal",
+  "shareEdilBetWithFriends": "Share EdilBet with friends",
+  "yourAccountDetails": "Your account details",
+  "reviewPreviousBets": "Review previous bets",
+  "oddsMarketViewAndDisplayOptions": "Odds, market view and display options",
+  "notificationsAndAccountMessages": "Notifications and account messages",
+  "managePlayersAssignedToYourAgentAccount": "Manage players assigned to your agent account."
 }
