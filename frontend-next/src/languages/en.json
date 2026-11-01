@@ -443,5 +443,10 @@
   "tryAnotherSearchOrDateFilter": "Try another search or date filter.",
   "markets": "Markets",
   "fixturesPreviewDisclaimer": "Fixtures and odds are for preview only. No wagers are placed.",
-  "betSlip": "Bet slip"
+  "betSlip": "Bet slip",
+  "loadingMoreMarkets": "Loading more markets…",
+  "chooseOutcomePrice": "Choose an outcome price to add a selection.",
+  "selections": "Selections",
+  "selectionsLocalNotSubmitted": "Selections are currently local to this page and are not submitted.",
+  "us500": "US (+500)"
 }
