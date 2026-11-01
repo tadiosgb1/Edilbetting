@@ -217,5 +217,15 @@
   "customDarkSurface": "ፍሉይ ጸልማት ሕብሪ",
   "brandAccent": "ቀንዲ ሕብሪ",
   "customBrandColor": "ፍሉይ ሕብሪ ብራንድ",
-  "resetToGreen": "ናብ ቀጠልያ መልስ"
+  "resetToGreen": "ናብ ቀጠልያ መልስ",
+  "depositFunds": "ገንዘብ ያስገቡ",
+  "closeDeposit": "ተቀማጭ መስኮቱን ዝጋ",
+  "depositToWallet": "ወደ ዋሌት ገንዘብ ያስገቡ",
+  "choosePaymentMethodAndEnterDepositDetails": "የክፍያ ዘዴ ይምረጡ እና የተቀማጭ ዝርዝሮችዎን ያስገቡ።",
+  "availableBalance": "ያለው ቀሪ ሂሳብ",
+  "paymentMethod": "የክፍያ ዘዴ",
+  "enterPaymentAccountOrPhone": "ለክፍያ የሚጠቀሙበትን መለያ ወይም ስልክ ያስገቡ",
+  "depositModalPaymentDisclaimer": "የክፍያ ሂደት ገና አልተገናኘም። ይህ የአካባቢ ጥያቄን ብቻ ያስቀምጣል፤ ገንዘብ አያስተላልፍም ወይም ዋሌትን አይጨምርም። እውነተኛ ተቀማጭ ከመቀበል በፊት የተረጋገጠ የአገልጋይ ክፍያ ግንኙነት ያስፈልጋል።",
+  "close": "ዝጋ",
+  "depositModalRequestSaved": "የተቀማጭ ጥያቄዎ ዝርዝሮች በዚህ አሳሽ ተቀምጠዋል። ምንም ክፍያ አልተፈጸመም እና ቀሪ ሂሳብዎ አልተቀየረም።"
 }
