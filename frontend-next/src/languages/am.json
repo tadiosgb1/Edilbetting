@@ -249,5 +249,19 @@
   "currentPasswordIncorrect": "የአሁኑ የይለፍ ቃል ትክክል አይደለም።",
   "unableToUpdatePassword": "የይለፍ ቃልን ማዘመን አልተቻለም። እባክዎ እንደገና ይሞክሩ።",
   "passwordUpdated": "የይለፍ ቃል ተዘምኗል።",
-  "passwordUpdatedSuccessfully": "የይለፍ ቃል በተሳካ ሁኔታ ተዘምኗል።"
+  "passwordUpdatedSuccessfully": "የይለፍ ቃል በተሳካ ሁኔታ ተዘምኗል።",
+  "makeADeposit": "ተቀማጭ ያድርጉ",
+  "withdrawFunds": "ገንዘብ ያውጡ",
+  "yourRewardsAndBonusActivity": "የሽልማት እና የቦነስ እንቅስቃሴዎ",
+  "mainAccountEtb": "ዋና መለያ (ETB)",
+  "walletBalanceAndAccountActivity": "የዋሌት ቀሪ ሂሳብ እና የመለያ እንቅስቃሴ",
+  "betsAwaitingSettlement": "ማጠናቀቂያ የሚጠብቁ ውርርዶች",
+  "addFundsToYourWallet": "ወደ ዋሌትዎ ገንዘብ ያስገቡ",
+  "requestAWalletWithdrawal": "ከዋሌት ገንዘብ ለማውጣት ጥያቄ",
+  "shareEdilBetWithFriends": "EdilBetን ከጓደኞችዎ ጋር ያጋሩ",
+  "yourAccountDetails": "የመለያዎ ዝርዝሮች",
+  "reviewPreviousBets": "ያለፉ ውርርዶችን ይመልከቱ",
+  "oddsMarketViewAndDisplayOptions": "የዕድል፣ የገበያ እይታ እና የማሳያ አማራጮች",
+  "notificationsAndAccountMessages": "ማሳወቂያዎች እና የመለያ መልዕክቶች",
+  "managePlayersAssignedToYourAgentAccount": "ለወኪል መለያዎ የተመደቡ ተጫዋቾችን ያስተዳድሩ።"
 }
