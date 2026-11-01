@@ -435,5 +435,13 @@
   "twoToFourGoals": "2–4 goals",
   "fourToSixGoals": "4–6 goals",
   "homeToQualify": "Home to qualify",
-  "awayToQualify": "Away to qualify"
+  "awayToQualify": "Away to qualify",
+  "mainAccount": "Main account",
+  "login": "Login",
+  "register": "Register",
+  "applyToPartnerWithEdilBet": "Apply to partner with EdilBet",
+  "tryAnotherSearchOrDateFilter": "Try another search or date filter.",
+  "markets": "Markets",
+  "fixturesPreviewDisclaimer": "Fixtures and odds are for preview only. No wagers are placed.",
+  "betSlip": "Bet slip"
 }
