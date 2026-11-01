@@ -1,0 +1,162 @@
+'use strict';
+const fs = require('fs');
+const path = require('path');
+const crypto = require('crypto');
+const { sequelize, PaymentProof, AuditLog, User, Bet } = require('../Models');
+const { adjustBalance, getOrCreateWallet } = require('../services/walletService');
+
+const UPLOADS_DIR = path.join(__dirname, '..', 'uploads');
+const PUBLIC_BASE_URL = (process.env.PUBLIC_BASE_URL || 'http://localhost:3000').replace(/\/$/, '');
+
+function persistScreenshot(dataUrl, proofId) {
+  const match = String(dataUrl || '').match(/^data:(image\/(?:jpeg|jpg|png|webp|gif));base64,(.+)$/i);
+  if (!match) throw Object.assign(new Error('Payment screenshot must be a supported image.'), { statusCode: 400 });
+  fs.mkdirSync(UPLOADS_DIR, { recursive: true });
+  const ext = match[1].toLowerCase() === 'image/jpeg' || match[1].toLowerCase() === 'image/jpg' ? 'jpg' : match[1].split('/')[1];
+  const filename = 'payment-proof-' + (proofId || crypto.randomUUID()) + '.' + ext;
+  fs.writeFileSync(path.join(UPLOADS_DIR, filename), Buffer.from(match[2], 'base64'));
+  return PUBLIC_BASE_URL + '/uploads/' + filename;
+}
+
+async function requireAdmin(req, res, suppliedAdminUserId) {
+  if (!req.auth) { res.status(401).json({ success: false, error: 'Authentication required.' }); return false; }
+  const adminUserId = req.auth.userId || req.auth.id || suppliedAdminUserId;
+  if (!adminUserId) { res.status(401).json({ success: false, error: 'Authenticated admin user id is missing.' }); return false; }
+  return adminUserId;
+}
+
+async function submitDepositRequest(req, res) {
+  const { userId, betId, method, amount, txReference, senderName, senderPhone, screenshotUrl, imageHash } = req.body;
+  if (!userId || !betId || !method || !amount || !screenshotUrl) return res.status(400).json({ success: false, error: 'userId, betId, method, amount and screenshotUrl are required.' });
+  const bet = await Bet.findOne({ where: { betId, userId } });
+  if (!bet) return res.status(404).json({ success: false, error: 'Bet not found for this user.' });
+  if (bet.status !== 'pending') return res.status(409).json({ success: false, error: 'Only pending bets can receive payment proof.' });
+  const existingProof = await PaymentProof.findOne({ where: { betId, status: 'pending' } });
+  if (existingProof) return res.status(409).json({ success: false, error: 'This bet already has a payment proof awaiting review.' });
+  await getOrCreateWallet(userId);
+
+  // screenshot_url is NOT NULL, so persist the file before inserting the proof row.
+  let persistedScreenshotUrl;
+  try {
+    persistedScreenshotUrl = persistScreenshot(screenshotUrl);
+  } catch (error) {
+    return res.status(error.statusCode || 400).json({ success: false, error: error.message || 'Could not save payment screenshot.' });
+  }
+
+  try {
+    var proof = await PaymentProof.create({
+      userId, betId, direction: 'deposit', method, amount, txReference,
+      senderName, senderPhone, screenshotUrl: persistedScreenshotUrl, imageHash, status: 'pending'
+    });
+  } catch (error) {
+    try {
+      const filename = persistedScreenshotUrl.split('/').pop();
+      if (filename) fs.unlinkSync(path.join(UPLOADS_DIR, filename));
+    } catch (_) {}
+    throw error;
+  }
+  res.status(201).json({ success: true, message: 'Deposit request submitted for review.', data: proof });
+}
+
+async function normalizeScreenshot(proof) {
+  if (typeof proof.screenshotUrl === 'string' && proof.screenshotUrl.startsWith('data:image/')) {
+    proof.screenshotUrl = persistScreenshot(proof.screenshotUrl, proof.id);
+    await proof.save();
+  }
+  return proof;
+}
+
+async function listPayments(req, res) {
+  const adminUserId = await requireAdmin(req, res, req.query.adminUserId);
+  if (!adminUserId) return;
+  const payments = await PaymentProof.findAll({
+    include: [
+      { model: User, attributes: ['userId', 'fullName', 'phoneNumber'] },
+      {
+        model: Bet,
+        as: 'Bet',
+        include: [
+          { model: User, attributes: ['userId', 'fullName', 'phoneNumber'] },
+          {
+            model: require('../Models/BetSelection'),
+            as: 'selections',
+            include: [{ model: require('../Models/Event'), attributes: ['eventId', 'homeTeam', 'awayTeam', 'commenceTime', 'status'] }]
+          }
+        ]
+      }
+    ],
+    order: [['createdAt', 'DESC']] });
+  await Promise.all(payments.map(normalizeScreenshot));
+  res.json({ success: true, count: payments.length, data: payments });
+}
+
+async function listPending(req, res) {
+  const adminUserId = await requireAdmin(req, res, req.query.adminUserId);
+  if (!adminUserId) return;
+  const pending = await PaymentProof.findAll({
+    where: { status: 'pending' },
+    include: [
+      { model: User, attributes: ['userId', 'fullName', 'phoneNumber'] },
+      {
+        model: Bet,
+        as: 'Bet',
+        include: [
+          { model: User, attributes: ['userId', 'fullName', 'phoneNumber'] },
+          {
+            model: require('../Models/BetSelection'),
+            as: 'selections',
+            include: [{ model: require('../Models/Event'), attributes: ['eventId', 'homeTeam', 'awayTeam', 'commenceTime', 'status'] }]
+          }
+        ]
+      }
+    ],
+    order: [['createdAt', 'ASC']] });
+  await Promise.all(pending.map(normalizeScreenshot));
+  res.json({ success: true, count: pending.length, data: pending });
+}
+
+async function approvePayment(req, res) {
+  const suppliedAdminUserId = req.body.adminUserId;
+  const adminUserId = await requireAdmin(req, res, suppliedAdminUserId);
+  if (!adminUserId) return;
+  const result = await sequelize.transaction(async (t) => {
+    const proof = await PaymentProof.findByPk(req.params.id, { transaction: t, lock: t.LOCK.UPDATE });
+    if (!proof) throw Object.assign(new Error('Payment proof not found.'), { statusCode: 404 });
+    if (proof.status !== 'pending') throw Object.assign(new Error('Already ' + proof.status + '.'), { statusCode: 409 });
+    const delta = proof.direction === 'deposit' ? parseFloat(proof.amount) : -parseFloat(proof.amount);
+    await adjustBalance(proof.userId, delta, proof.direction, 'payment_proof', String(proof.id), t);
+    proof.status = 'approved'; proof.reviewedBy = adminUserId; proof.reviewedAt = new Date();
+    await proof.save({ transaction: t });
+    let bet = null;
+    if (proof.betId) {
+      bet = await Bet.findOne({ where: { betId: proof.betId, userId: proof.userId }, transaction: t, lock: t.LOCK.UPDATE });
+      if (!bet) throw Object.assign(new Error('Linked bet not found.'), { statusCode: 404 });
+      if (bet.status !== 'pending') throw Object.assign(new Error('Linked bet is already ' + bet.status + '.'), { statusCode: 409 });
+      bet.status = 'completed'; bet.settledAt = new Date(); await bet.save({ transaction: t });
+    }
+    await AuditLog.create({ adminUserId, action: 'approve_payment', targetType: 'payment_proof', targetId: String(proof.id), detailsJson: { amount: proof.amount, direction: proof.direction, userId: proof.userId, betId: proof.betId || null } }, { transaction: t });
+    return { proof, bet };
+  });
+  res.json({ success: true, message: 'Payment approved, wallet updated, and linked bet completed.', data: result.proof, bet: result.bet });
+}
+
+async function rejectPayment(req, res) {
+  const { reason } = req.body;
+  const suppliedAdminUserId = req.body.adminUserId;
+  const adminUserId = await requireAdmin(req, res, suppliedAdminUserId);
+  if (!adminUserId) return;
+  const rejectionReason = String(reason || '').trim();
+  if (!rejectionReason) return res.status(400).json({ success: false, error: 'A rejection reason is required.' });
+  const result = await sequelize.transaction(async (t) => {
+    const proof = await PaymentProof.findByPk(req.params.id, { transaction: t, lock: t.LOCK.UPDATE });
+    if (!proof) throw Object.assign(new Error('Payment proof not found.'), { statusCode: 404 });
+    if (proof.status !== 'pending') throw Object.assign(new Error('Already ' + proof.status + '.'), { statusCode: 409 });
+    proof.status = 'rejected'; proof.reviewedBy = adminUserId; proof.reviewedAt = new Date(); proof.rejectionReason = rejectionReason;
+    await proof.save({ transaction: t });
+    await AuditLog.create({ adminUserId, action: 'reject_payment', targetType: 'payment_proof', targetId: String(proof.id), detailsJson: { reason: rejectionReason, userId: proof.userId, betId: proof.betId || null } }, { transaction: t });
+    return proof;
+  });
+  res.json({ success: true, message: 'Payment rejected.', data: result });
+}
+
+module.exports = { submitDepositRequest, listPayments, listPending, approvePayment, rejectPayment };

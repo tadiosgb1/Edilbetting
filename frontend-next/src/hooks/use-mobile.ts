@@ -1,0 +1,1 @@
+"use client";import {useEffect,useState} from "react";export function useMobile(breakpoint=768){const [mobile,setMobile]=useState(false);useEffect(()=>{const m=window.matchMedia(`(max-width: ${breakpoint-1}px)`);const update=()=>setMobile(m.matches);update();m.addEventListener("change",update);return()=>m.removeEventListener("change",update)},[breakpoint]);return mobile}

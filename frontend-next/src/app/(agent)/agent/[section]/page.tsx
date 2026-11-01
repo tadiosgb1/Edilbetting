@@ -1,0 +1,1 @@
+import {SectionPage} from "@/components/dashboard/section-page";export default async function AgentSection({params}:{params:Promise<{section:string}>}){const {section}=await params;return <SectionPage role="agent" section={section}/>}

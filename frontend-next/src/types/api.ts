@@ -1,0 +1,1 @@
+export type ApiResponse<T>={data:T;message?:string;meta?:{page:number;pageSize:number;total:number}};export type ApiError={message:string;code?:string;status?:number};export type PaginatedQuery={page?:number;pageSize?:number;search?:string};
