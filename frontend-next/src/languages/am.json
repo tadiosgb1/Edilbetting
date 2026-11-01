@@ -435,5 +435,13 @@
   "twoToFourGoals": "2–4 ጎሎች",
   "fourToSixGoals": "4–6 ጎሎች",
   "homeToQualify": "የቤት ቡድን ያልፋል",
-  "awayToQualify": "የእንግዳ ቡድን ያልፋል"
+  "awayToQualify": "የእንግዳ ቡድን ያልፋል",
+  "mainAccount": "ዋና መለያ",
+  "login": "ግባ",
+  "register": "ተመዝገብ",
+  "applyToPartnerWithEdilBet": "ከEdilBet ጋር ለመተባበር ያመልክቱ",
+  "tryAnotherSearchOrDateFilter": "ሌላ ፍለጋ ወይም የቀን ማጣሪያ ይሞክሩ።",
+  "markets": "ገበያዎች",
+  "fixturesPreviewDisclaimer": "የጨዋታ መርሃ ግብሮች እና ዕድሎች ለቅድመ እይታ ብቻ ናቸው። ምንም ውርርድ አይደረግም።",
+  "betSlip": "የውርርድ ዝርዝር"
 }
