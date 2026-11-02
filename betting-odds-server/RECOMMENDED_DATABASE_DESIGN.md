@@ -58,6 +58,172 @@ The key rules are:
 
 ## 2. Sports, countries, competitions, and seasons
 
+### 2.0 How these records are populated from The Odds API
+
+The Odds API does not provide a dedicated countries endpoint or a general-purpose season endpoint in the sports discovery flow. The backend therefore builds the platform's navigation hierarchy from the sports response and its own classification data.
+
+#### Upstream endpoint: list sports and competitions
+
+~~~http
+GET https://api.the-odds-api.com/v4/sports
+GET https://api.the-odds-api.com/v4/sports?all=true
+~~~
+
+The response is an array. A representative item is:
+
+~~~json
+{
+  "key": "soccer_epl",
+  "group": "Soccer",
+  "title": "EPL",
+  "description": "English Premier League",
+  "active": true,
+  "has_outrights": false
+}
+~~~
+
+Interpret the fields as follows:
+
+| Odds API field | Meaning | Backend use |
+|---|---|---|
+| key | Unique Odds API sport/competition key | Store unchanged in odds_api_competitions.odds_api_sport_key |
+| group | Broad sport family | Normalize into sports, for example Soccer → Football (or retain Soccer as the display name) |
+| title | Competition/league label | Competition display name, for example EPL |
+| description | Human-readable competition description, when present | Competition description |
+| active | Whether the competition is currently active/in season | Source status; do not confuse with our platform enabled flag |
+| has_outrights | Whether outright markets are available for this competition | Competition capability hint; still check actual event/market availability |
+
+**Important hierarchy:** one Odds API item such as soccer_epl represents a competition within the Soccer group. It is not a separate sport. Therefore:
+- sports contains one canonical row for Soccer/Football.
+- competitions contains one row for the Premier League.
+- odds_api_competitions connects the internal competition to soccer_epl.
+- sport types for the frontend are distinct normalized sports groups, not every Odds API key.
+
+#### Building the countries list without a countries endpoint
+
+For every Odds API sports item, the backend should resolve its competition country in this order:
+
+1. Exact reviewed mapping: for example, soccer_epl → England, soccer_spain_la_liga → Spain, basketball_nba → United States.
+2. A conservative key parser for predictable domestic keys, such as soccer_germany_bundesliga → Germany.
+3. A reviewed international/continental mapping: soccer_uefa_champs_league → International / UEFA, not a country.
+4. If no safe classification exists, set country_id to NULL and classification_status to review. Do not guess.
+
+Store this resolution in competitions.country_id and retain the reason/source in fields such as country_resolution_method (manual, parsed, reviewed_international, unresolved) and classification_status. The countries table is a curated backend reference table populated from the mappings and standard country codes; it is not fetched from a non-existent Odds API countries endpoint.
+
+Examples:
+
+| Odds API key | Sport group | Competition | Country/region classification |
+|---|---|---|---|
+| soccer_epl | Soccer | Premier League | England |
+| soccer_spain_la_liga | Soccer | La Liga | Spain |
+| soccer_germany_bundesliga | Soccer | Bundesliga | Germany |
+| basketball_nba | Basketball | NBA | United States |
+| soccer_uefa_champs_league | Soccer | UEFA Champions League | International / UEFA |
+| soccer_fifa_world_cup | Soccer | FIFA World Cup | International / FIFA |
+
+A region such as UEFA is not a country. If the UI needs a country-navigation level, return it as a separate region group or place international competitions in an International group. Do not insert UEFA or FIFA into countries as if either were a sovereign country.
+
+#### Recommended country classification fields
+
+Add these fields to competitions (or to a dedicated competition_classifications table if classifications need history):
+
+| Field | Example | Purpose |
+|---|---|---|
+| country_id | England row ID | Nullable FK to countries |
+| region_code | UEFA | Optional continental/organizing region |
+| scope | domestic, continental, international | Explains the competition's geographic scope |
+| country_resolution_method | manual | Explains how country was assigned |
+| classification_status | confirmed, review, unresolved | Prevents guessed classifications being treated as facts |
+
+The backend should expose only confirmed country classifications in the country navigation by default. International and unresolved competitions should be discoverable through their own groups or filters.
+
+#### How to implement sports synchronization
+
+1. Call GET /v4/sports (and use all=true when the synchronization job needs inactive/out-of-season competitions too).
+2. Upsert one sports row for each normalized group value.
+3. Upsert one competitions row for each distinct Odds API sport key, using the group's internal sport_id.
+4. Upsert odds_api_competitions with the exact key, group, title, active and has_outrights values.
+5. Resolve the competition country/region using the classification procedure above.
+6. Mark source records not seen in a complete successful response as inactive only after the complete response has been validated. Never deactivate everything because a request failed.
+7. Keep platform visibility (enabled, featured, sort_order) separate from the Odds API active flag.
+
+Pseudo-code:
+
+~~~js
+for (const item of oddsApiSports) {
+  const sport = await Sport.findOrCreate({
+    where: { slug: normalizeSportGroup(item.group) },
+    defaults: { name: normalizeSportGroup(item.group), isActive: true }
+  });
+
+  const classification = resolveCompetitionClassification(item.key, item.group, item.title);
+
+  const competition = await Competition.upsert({
+    sportId: sport.id,
+    countryId: classification.countryId,
+    name: item.title,
+    slug: makeStableCompetitionSlug(item.key),
+    scope: classification.scope,
+    regionCode: classification.regionCode,
+    countryResolutionMethod: classification.method,
+    classificationStatus: classification.status
+  });
+
+  await OddsApiCompetition.upsert({
+    competitionId: competition.id,
+    oddsApiSportKey: item.key,
+    oddsApiGroup: item.group,
+    oddsApiTitle: item.title,
+    oddsApiActive: item.active,
+    hasOutrights: item.has_outrights,
+    lastSyncedAt: new Date()
+  });
+}
+~~~
+
+This is a synchronization outline. Implement the upsert and association operations in a transaction and use the actual Sequelize instance-return conventions in the service.
+
+#### Seasons: what data is available and how to create them
+
+The sports discovery response above does not contain a season name, season ID, start date or end date. The standard event-list response also does not provide a dependable competition-season identifier. Do not invent an Odds API season ID.
+
+Create competition_seasons from a controlled season calendar. For example:
+
+~~~json
+{
+  "competition": "Premier League",
+  "season": {
+    "name": "2026/2027",
+    "start_date": "2026-08-01",
+    "end_date": "2027-05-31",
+    "is_current": true,
+    "odds_api_season_ref": null
+  }
+}
+~~~
+
+A season record would look like:
+
+| id | competition_id | name | start_date | end_date | is_current |
+|---:|---:|---|---|---|---|
+| 31 | 7 | 2025/2026 | 2025-08-01 | 2026-05-31 | false |
+| 32 | 7 | 2026/2027 | 2026-08-01 | 2027-05-31 | true |
+
+When an event is synchronized, assign season_id by checking which configured season window contains the event's start_time. If no season window matches, leave season_id NULL and queue the event/competition for classification. Cup competitions and tournaments may use calendar-year names such as 2026 rather than 2026/2027.
+
+A season is a competition's time-bounded edition. For example, the Premier League 2026/2027 is one season; the Premier League 2027/2028 is another. It is not a separate competition and it is not a sport.
+
+#### Frontend navigation examples from these models
+
+- GET /api/sports/types returns normalized sport families.
+- GET /api/sports returns competitions with their sport and classification summary.
+- GET /api/sports/:sportType/countries returns confirmed domestic countries plus an optional International group.
+- GET /api/sports/:sportType/countries/:countryCode/competitions returns competitions in that country.
+- GET /api/competitions/:competitionId/seasons returns configured seasons for that competition.
+
+The full response contracts are specified in the frontend API section near the end of this document.
+
+
 ### 2.1 `sports`
 
 One row per actual sport.
@@ -326,6 +492,102 @@ Unique: `(sport_id, odds_api_market_key)` (handle nullable sport-specific mappin
 Unknown Odds API markets should be recorded as `review` or `unsupported`; do not guess their settlement meaning from their names.
 
 ### 5.3 Market catalogue guidance
+
+#### Market groups, meanings, and examples
+
+A category is a navigation/display group. It is not a promise that every market in that category is offered for every sport or every event.
+
+| Group | Meaning | Examples | Typical frontend use |
+|---|---|---|---|
+| featured | Main, commonly requested markets suitable for the primary match card | h2h, spreads, totals; outright markets where relevant | Compact match card and quick bet panel |
+| additional | Other standard markets that add choice beyond the main three | btts, draw_no_bet, h2h_3_way, team_totals, alternate_totals | Expanded market list |
+| game_period | Markets limited to a part of a contest | h2h_h1, totals_q1, spreads_h2, h2h_s1, totals_p1 | Half/quarter/period/set tabs |
+| sport_specific | Markets whose meaning depends on the sport | corners, cards, innings, sets, player props | Sport-aware market sections |
+| player_props | Markets about an individual player's statistical performance | anytime goalscorer, shots on target, assists, player points | Player selection/prop builder |
+| outrights | Futures markets on the eventual winner or final position in a competition | Premier League winner, NBA champion, tournament winner | Competition-level futures page |
+
+The exact Odds API keys are stored separately from canonical market keys. For example, Odds API h2h can map to the canonical market match_winner, while an internal label can vary by sport (Match Result for soccer, Match Winner for basketball, Match Winner for tennis). Do not infer a settlement rule from a category or display label.
+
+#### What the main Odds API market keys mean
+
+| Odds API key | Meaning | Example outcomes |
+|---|---|---|
+| h2h | Head-to-head / winner market for the event | Arsenal, Draw, Chelsea; or Lakers, Celtics |
+| spreads | Handicap market; a team/side is assigned a positive or negative line | Arsenal -0.5; Chelsea +0.5 |
+| totals | Total-statistic line for the event | Over 2.5 goals; Under 2.5 goals |
+| outrights | Future winner/placement market for a competition | Manchester City to win the league |
+| h2h_lay | Exchange-style lay version of a head-to-head selection, where supported | Lay Arsenal |
+| outrights_lay | Exchange-style lay version of an outright selection, where supported | Lay Manchester City |
+| alternate_spreads | Multiple handicap lines rather than one main line | Arsenal -0.5, -1.0, -1.5 |
+| alternate_totals | Multiple total lines rather than one main total | Over/Under 1.5, 2.5, 3.5 |
+| btts | Both Teams To Score | Yes / No |
+| draw_no_bet | A team selection where a draw returns the stake | Arsenal / Chelsea |
+| h2h_3_way | Three-outcome head-to-head market | Home / Draw / Away |
+| team_totals | Total statistic for one team | Arsenal over 1.5 goals |
+| alternate_team_totals | Several team-specific total lines | Arsenal over 0.5 / 1.5 / 2.5 |
+| correct_score | Exact final score | 1-0, 1-1, 2-1 |
+| double_chance | Covers two of the three 1X2 outcomes | Home or Draw (1X) |
+| halftime_fulltime | Combined half-time and full-time result | Home/Home, Draw/Home |
+| to_qualify | Which side advances from a tie | Arsenal to qualify |
+| player_* | A player-specific proposition | Player to score, player shots, player assists |
+
+**Terms made simple:**
+- **Outright:** a bet on a future competition outcome, not the result of one scheduled match. Example: “Arsenal to win the Premier League 2026/2027.”
+- **Handicap/spread:** a virtual head start or deficit applied to a team/player. Example: Arsenal -1.0 means Arsenal must win by more than one for a full win; exact settlement depends on the line type and rules.
+- **Total:** a bet on whether a combined statistic is above or below a line. Example: Over 2.5 goals wins if at least three goals are scored.
+- **Both Teams To Score (BTTS):** whether each team scores at least once.
+- **Alternate line:** another available handicap or total line, usually with a different price.
+- **Period market:** a market settled using only the specified half, quarter, inning, period or set, not the whole event.
+- **Player prop:** a market settled using an individual player's recorded performance.
+- **Bookmaker:** the betting operator whose quote is shown. It is not the odds data source; The Odds API aggregates the bookmaker's prices.
+
+#### Sport-specific market applicability
+
+Do not assume that a market key applies to every sport. Use a reviewed sport-market capability matrix and validate actual event availability from The Odds API before presenting a market as selectable.
+
+| Sport | Typical primary markets | Sport-specific examples | Important interpretation |
+|---|---|---|---|
+| Soccer / Football | h2h, totals, spreads where offered | btts, draw_no_bet, h2h_3_way, corners, cards, correct_score, halftime_fulltime, player goal props | h2h commonly has three outcomes: home, draw, away. |
+| Basketball | h2h, spreads, totals | quarter/half markets, team totals, player points/rebounds/assists props when offered | h2h is normally a two-side winner market; draw is not a normal outcome. |
+| Tennis | h2h, spreads, totals | set winner, set handicap, set totals, player props where offered | Periods may mean sets, not halves or quarters. |
+| Cricket | h2h and outrights where offered | innings-related markets and player/batter/bowler props only when the feed supports them | Do not automatically show soccer BTTS, corners or card markets. Match/tournament formats change settlement meaning. |
+| American Football | h2h, spreads, totals | quarter/half markets, team totals, player passing/rushing/receiving props | Period markets are quarters/halves; player props need player-stat settlement data. |
+| Baseball | h2h, spreads/run lines, totals where offered | inning markets, batter/pitcher props | A run line is not a soccer goal handicap; model the sport-specific settlement rule. |
+| Ice Hockey | h2h, spreads, totals | period markets, team totals, player props where offered | Decide whether the market includes overtime/shootout; the settlement rule must say so. |
+| Golf / MMA / Boxing | outrights and/or h2h depending on event | tournament winner, placement, fight winner, method of victory if supplied | Some events are tournament/futures-style rather than ordinary home/away fixtures. |
+
+This table is a product-design starting point, not a guarantee of live availability. Actual availability depends on the sport key, event, bookmaker region, Odds API subscription and market response. Persist a capability such as supported_by_product separately from currently_available_for_event.
+
+Recommended additional table: sport_market_capabilities.
+
+| Column | Type | Notes |
+|---|---|---|
+| id | BIGINT PK | |
+| sport_id | BIGINT FK | |
+| market_catalog_id | BIGINT FK | |
+| is_enabled | BOOLEAN | Product decision: show this market family for this sport |
+| is_featured | BOOLEAN | Whether it appears in the sport's featured list |
+| display_order | INT | |
+| applicability_note | VARCHAR(500) NULL | Human-readable qualification |
+| validation_status | VARCHAR(20) | reviewed, provisional, disabled |
+
+Unique: (sport_id, market_catalog_id). Keep Odds API key mapping in odds_api_market_mappings. Keep actual event availability in event_markets. These three records answer different questions: is it a known market, should this sport offer it in our product, and is it actually available for this event right now?
+
+#### Example sport-market capability rows
+
+| Sport | Canonical market | Enabled | Featured | Note |
+|---|---|---:|---:|---|
+| Soccer | Match winner (1X2) | true | true | Home/draw/away where the feed supplies three outcomes |
+| Soccer | Both teams to score | true | false | Only show when the event returns this market |
+| Soccer | Total corners | true | false | Separate corners statistic and settlement rule |
+| Basketball | Match winner | true | true | Usually two team outcomes |
+| Basketball | Point spread | true | true | Handicap expressed in points |
+| Basketball | Total points | true | true | Combined points |
+| Cricket | Match winner | true | true | Verify format and draw/tie handling |
+| Cricket | Both teams to score | false | false | Not a generic cricket market |
+| Tennis | Match winner | true | true | Competitor A / competitor B |
+| Tennis | Set handicap | true | false | Only where supplied and supported by settlement facts |
+
 
 The market catalogue may organize markets into display groups such as featured, additional, game periods, sport-specific markets, and player props.
 
@@ -1063,3 +1325,752 @@ These product and engineering decisions should be confirmed before implementatio
 7. What is the accepted policy for result corrections after a ticket has been paid?
 
 **Architecture principle:** use stable internal IDs for sports, competitions, events, and markets; retain Odds API identifiers in clearly named mapping tables and columns; and normalize Odds API data before it is used by betting and settlement logic.
+
+
+
+## 20. Odds API ingestion examples and frontend API contract
+
+This section connects the source payloads to the internal records and defines the JSON contract the frontend should consume. The frontend should call our backend only; it should never need the Odds API key, upstream URL, or raw provider-specific payload structure.
+
+### 20.1 Odds API endpoint: sports discovery
+
+~~~http
+GET /v4/sports
+GET /v4/sports?all=true
+~~~
+
+Representative response item:
+
+~~~json
+{
+  "key": "soccer_epl",
+  "group": "Soccer",
+  "title": "EPL",
+  "description": "English Premier League",
+  "active": true,
+  "has_outrights": false
+}
+~~~
+
+Maps to:
+- sports: Soccer.
+- competitions: Premier League.
+- odds_api_competitions: exact key soccer_epl, source title/group/status and last_synced_at.
+- countries: resolved by backend classification, not by this response.
+- competition_seasons: created from the maintained season calendar, not from this response.
+
+### 20.2 Odds API endpoint: event list
+
+~~~http
+GET /v4/sports/{sport_key}/events?dateFormat=iso
+~~~
+
+Representative response:
+
+~~~json
+[
+  {
+    "id": "a512a48a58c4329048174217b2cc7ce0",
+    "sport_key": "soccer_epl",
+    "sport_title": "EPL",
+    "commence_time": "2026-11-08T16:30:00Z",
+    "home_team": "Arsenal",
+    "away_team": "Chelsea"
+  }
+]
+~~~
+
+Maps to:
+- odds_api_events: source event ID and source sport key.
+- events: internal event ID, competition_id, optional season_id, start_time and status.
+- event_participants: home and away participant-name snapshots; optionally link to canonical teams.
+- Do not assume the payload contains a season ID, country, venue or canonical team ID.
+
+### 20.3 Odds API endpoint: event market discovery
+
+~~~http
+GET /v4/sports/{sport_key}/events/{event_id}/markets?regions=eu&dateFormat=iso
+~~~
+
+This endpoint is used to discover which market keys are offered for the requested event and region. The normalized result should be treated as an availability snapshot, not as prices. The response structure identifies bookmaker/market availability; preserve the exact returned bookmaker key, market key and source update time where supplied.
+
+Representative normalized data after ingestion:
+
+~~~json
+{
+  "eventId": 501,
+  "markets": [
+    {
+      "marketKey": "h2h",
+      "bookmakerKey": "pinnacle",
+      "isAvailable": true,
+      "lastUpdateAt": "2026-11-02T10:15:00Z"
+    },
+    {
+      "marketKey": "totals",
+      "bookmakerKey": "pinnacle",
+      "isAvailable": true,
+      "lastUpdateAt": "2026-11-02T10:15:00Z"
+    }
+  ]
+}
+~~~
+
+Maps to event_markets. Do not create odds_current rows from a discovery-only response because it does not provide outcome prices.
+
+### 20.4 Odds API endpoint: event odds
+
+~~~http
+GET /v4/sports/{sport_key}/events/{event_id}/odds?regions=eu&markets=h2h,totals&oddsFormat=decimal&dateFormat=iso
+~~~
+
+Representative response:
+
+~~~json
+{
+  "id": "a512a48a58c4329048174217b2cc7ce0",
+  "sport_key": "soccer_epl",
+  "sport_title": "EPL",
+  "commence_time": "2026-11-08T16:30:00Z",
+  "home_team": "Arsenal",
+  "away_team": "Chelsea",
+  "bookmakers": [
+    {
+      "key": "pinnacle",
+      "title": "Pinnacle",
+      "last_update": "2026-11-02T10:15:00Z",
+      "markets": [
+        {
+          "key": "h2h",
+          "last_update": "2026-11-02T10:15:00Z",
+          "outcomes": [
+            { "name": "Arsenal", "price": 2.10 },
+            { "name": "Draw", "price": 3.30 },
+            { "name": "Chelsea", "price": 3.60 }
+          ]
+        },
+        {
+          "key": "totals",
+          "last_update": "2026-11-02T10:15:00Z",
+          "outcomes": [
+            { "name": "Over", "point": 2.5, "price": 1.90 },
+            { "name": "Under", "point": 2.5, "price": 1.95 }
+          ]
+        }
+      ]
+    }
+  ]
+}
+~~~
+
+Maps to:
+- event_markets: event + bookmaker + market.
+- odds_current: one row per bookmaker + market + outcome + line identity.
+- odds_history: append a history row when the quote or selectable state changes.
+- bookmaker identity is the bookmaker key (Pinnacle in this example); The Odds API is the data source.
+
+Never use a quote's price as part of its unique identity. If the price changes from 2.10 to 2.05, update the same current quote and append a history record.
+
+### 20.5 Odds API endpoint: sport-level bulk odds
+
+~~~http
+GET /v4/sports/{sport_key}/odds?regions=eu&markets=h2h&oddsFormat=decimal&dateFormat=iso
+~~~
+
+This returns event odds for a sport/competition in one response. It is useful for a compact list feed when the selected market combination is supported by the endpoint and the account's product. The backend should still normalize each event, bookmaker, market and outcome into the same internal tables used by event-specific odds. Do not create a separate frontend data model for bulk odds.
+
+### 20.6 Odds API endpoint: scores
+
+~~~http
+GET /v4/sports/{sport_key}/scores?daysFrom=1&dateFormat=iso
+~~~
+
+Representative response:
+
+~~~json
+[
+  {
+    "id": "a512a48a58c4329048174217b2cc7ce0",
+    "sport_key": "soccer_epl",
+    "sport_title": "EPL",
+    "commence_time": "2026-11-08T16:30:00Z",
+    "completed": false,
+    "home_team": "Arsenal",
+    "away_team": "Chelsea",
+    "scores": [
+      { "name": "Arsenal", "score": "1" },
+      { "name": "Chelsea", "score": "0" }
+    ],
+    "last_update": "2026-11-08T17:20:00Z"
+  }
+]
+~~~
+
+Maps to event_results for the current score/final state and event_result_facts for additional sport-specific facts. Match the source event ID through odds_api_events; do not match events by team names alone when a source event ID is available. Scores may be absent while a match has not started. A final score is not enough to settle every market (for example, corners, cards, player props or period markets require their own facts).
+
+### 20.7 Endpoint availability and quota behavior
+
+| Upstream endpoint | Purpose | Typical use in backend |
+|---|---|---|
+| GET /v4/sports | Discover sport groups and competitions | Scheduled catalogue sync; cache locally |
+| GET /v4/sports?all=true | Include inactive/out-of-season competitions | Less frequent full catalogue sync |
+| GET /v4/sports/{sport_key}/events | Event IDs and fixture participants | Scheduled event sync |
+| GET /v4/sports/{sport_key}/events/{event_id}/markets | Event market availability | Discover before requesting selected event markets |
+| GET /v4/sports/{sport_key}/events/{event_id}/odds | Odds for one event and selected markets | Event detail/market refresh |
+| GET /v4/sports/{sport_key}/odds | Bulk event odds for selected markets | List feed where supported |
+| GET /v4/sports/{sport_key}/scores | Live and recent scores | Score polling and result ingestion |
+
+Sports discovery and event-list calls are used to build/cache catalogue data. Odds and score calls consume quota according to the Odds API plan, regions, markets and endpoint rules. Cache and schedule requests; do not call upstream once per frontend render. Store usage headers/logs and handle quota exhaustion without deleting the last successful data.
+
+Do not make the platform depend on a generic participant-directory endpoint unless that endpoint is explicitly available in the subscribed Odds API product. The event response's home_team and away_team values are sufficient to create event_participants snapshots. Canonical team directories can be built incrementally from those snapshots and reviewed matching.
+
+### 20.8 Frontend API design principles
+
+All frontend endpoints below are recommended application endpoints. They are served from our database/cache and normalized services, not forwarded directly to The Odds API.
+
+Use one consistent envelope:
+
+~~~json
+{
+  "success": true,
+  "data": [],
+  "meta": {
+    "count": 0,
+    "page": 1,
+    "limit": 20,
+    "generatedAt": "2026-11-02T10:20:00Z"
+  }
+}
+~~~
+
+For a single resource, data is an object. For a collection, data is an array. Use stable internal IDs in frontend routes; include Odds API keys as read-only source metadata only when the frontend genuinely needs them. Never expose the Odds API secret.
+
+### 20.9 Frontend sports and competition endpoints
+
+#### GET /api/sports
+
+Purpose: list normalized sport families and/or competitions. Support query parameters such as include=competitions and enabled=true.
+
+Example response:
+
+~~~json
+{
+  "success": true,
+  "data": [
+    {
+      "id": 1,
+      "name": "Soccer",
+      "slug": "soccer",
+      "displayName": "Football",
+      "competitionCount": 18,
+      "isActive": true
+    },
+    {
+      "id": 2,
+      "name": "Basketball",
+      "slug": "basketball",
+      "displayName": "Basketball",
+      "competitionCount": 6,
+      "isActive": true
+    }
+  ],
+  "meta": { "count": 2, "generatedAt": "2026-11-02T10:20:00Z" }
+}
+~~~
+
+#### GET /api/sports/types
+
+Purpose: return distinct sport families for navigation. This is a normalized view of sports, not a list of league keys.
+
+~~~json
+{
+  "success": true,
+  "data": [
+    { "key": "soccer", "name": "Soccer", "displayName": "Football", "competitionCount": 18 },
+    { "key": "basketball", "name": "Basketball", "competitionCount": 6 },
+    { "key": "cricket", "name": "Cricket", "competitionCount": 3 }
+  ],
+  "meta": { "count": 3 }
+}
+~~~
+
+#### GET /api/sports/top-leagues
+
+Purpose: return manually curated featured competitions. Store is_featured and sort_order on competitions (or a dedicated featured_competitions table); do not rely on array position or hardcoded controller logic.
+
+~~~json
+{
+  "success": true,
+  "data": [
+    {
+      "competitionId": 7,
+      "sport": { "key": "soccer", "name": "Soccer" },
+      "name": "Premier League",
+      "slug": "premier-league",
+      "country": { "code": "GB", "name": "England" },
+      "oddsApiSportKey": "soccer_epl",
+      "hasOutrights": false
+    }
+  ],
+  "meta": { "count": 1 }
+}
+~~~
+
+#### GET /api/sports/:sportType/countries
+
+Purpose: return countries/regions that have competitions in the requested sport family. Countries are generated from our competition classifications.
+
+~~~json
+{
+  "success": true,
+  "sportType": "soccer",
+  "data": [
+    {
+      "code": "GB",
+      "name": "England",
+      "scope": "domestic",
+      "competitionCount": 3
+    },
+    {
+      "code": "ES",
+      "name": "Spain",
+      "scope": "domestic",
+      "competitionCount": 2
+    },
+    {
+      "code": "INT-UEFA",
+      "name": "International — UEFA",
+      "scope": "continental",
+      "competitionCount": 3
+    }
+  ],
+  "meta": { "count": 3 }
+}
+~~~
+
+For international groups, use a region identifier such as INT-UEFA; do not pretend it is an ISO country code.
+
+#### GET /api/sports/:sportType/countries/:countryCode/competitions
+
+Purpose: list competitions for one sport family and country/region.
+
+~~~json
+{
+  "success": true,
+  "sportType": "soccer",
+  "countryCode": "GB",
+  "data": [
+    {
+      "id": 7,
+      "name": "Premier League",
+      "slug": "premier-league",
+      "description": "English Premier League",
+      "isActive": true,
+      "isEnabled": true,
+      "hasOutrights": false,
+      "currentSeason": {
+        "id": 32,
+        "name": "2026/2027"
+      }
+    }
+  ],
+  "meta": { "count": 1 }
+}
+~~~
+
+#### GET /api/competitions/:competitionId
+
+Purpose: competition detail, including sport, country/region and source mapping.
+
+~~~json
+{
+  "success": true,
+  "data": {
+    "id": 7,
+    "name": "Premier League",
+    "sport": { "id": 1, "name": "Soccer", "slug": "soccer" },
+    "country": { "id": 44, "iso2": "GB", "name": "England" },
+    "scope": "domestic",
+    "oddsApi": {
+      "sportKey": "soccer_epl",
+      "active": true,
+      "hasOutrights": false
+    }
+  }
+}
+~~~
+
+#### GET /api/competitions/:competitionId/seasons
+
+Purpose: show available season editions, including current and historical seasons.
+
+~~~json
+{
+  "success": true,
+  "data": [
+    {
+      "id": 31,
+      "name": "2025/2026",
+      "startDate": "2025-08-01",
+      "endDate": "2026-05-31",
+      "isCurrent": false
+    },
+    {
+      "id": 32,
+      "name": "2026/2027",
+      "startDate": "2026-08-01",
+      "endDate": "2027-05-31",
+      "isCurrent": true
+    }
+  ],
+  "meta": { "count": 2 }
+}
+~~~
+
+### 20.10 Frontend market endpoints
+
+#### GET /api/markets/categories
+
+Purpose: return display groups in a stable order, with a label and description.
+
+~~~json
+{
+  "success": true,
+  "data": [
+    { "key": "featured", "name": "Featured", "description": "Main markets for quick access", "sortOrder": 1 },
+    { "key": "additional", "name": "Additional", "description": "More standard markets", "sortOrder": 2 },
+    { "key": "game_period", "name": "Game Periods", "description": "Markets for halves, quarters, periods or sets", "sortOrder": 3 },
+    { "key": "player_props", "name": "Player Props", "description": "Markets based on individual player performance", "sortOrder": 4 }
+  ]
+}
+~~~
+
+#### GET /api/markets/catalog?sportType=soccer
+
+Purpose: return canonical market definitions filtered by sport capability, with exact source keys and explanatory descriptions.
+
+~~~json
+{
+  "success": true,
+  "sportType": "soccer",
+  "data": [
+    {
+      "marketKey": "match_winner_1x2",
+      "oddsApiMarketKey": "h2h",
+      "name": "Match Result",
+      "category": "featured",
+      "description": "Predict the home win, draw or away win.",
+      "outcomesExample": ["Home", "Draw", "Away"],
+      "isEnabledForSport": true,
+      "isFeatured": true
+    },
+    {
+      "marketKey": "both_teams_to_score",
+      "oddsApiMarketKey": "btts",
+      "name": "Both Teams To Score",
+      "category": "additional",
+      "description": "Predict whether both teams will score at least one goal.",
+      "outcomesExample": ["Yes", "No"],
+      "isEnabledForSport": true,
+      "isFeatured": false
+    }
+  ],
+  "meta": { "count": 2 }
+}
+~~~
+
+#### GET /api/sports/:sportType/market-capabilities
+
+Purpose: tell the frontend which market groups can be offered for the selected sport. This is product capability, not current event availability.
+
+~~~json
+{
+  "success": true,
+  "sportType": "cricket",
+  "data": [
+    { "marketKey": "match_winner", "isEnabled": true, "isFeatured": true },
+    { "marketKey": "outright_winner", "isEnabled": true, "isFeatured": false },
+    { "marketKey": "both_teams_to_score", "isEnabled": false, "isFeatured": false }
+  ]
+}
+~~~
+
+### 20.11 Frontend event and odds endpoints
+
+#### GET /api/events
+
+Purpose: searchable, filterable event list across sports. Support filters such as sportType, competitionId, seasonId, countryCode, status, from, to, and page.
+
+~~~http
+GET /api/events?sportType=soccer&competitionId=7&status=scheduled&from=2026-11-02T00:00:00Z&to=2026-11-09T00:00:00Z
+~~~
+
+Example response:
+
+~~~json
+{
+  "success": true,
+  "data": [
+    {
+      "id": 501,
+      "competition": { "id": 7, "name": "Premier League" },
+      "season": { "id": 32, "name": "2026/2027" },
+      "startTime": "2026-11-08T16:30:00Z",
+      "status": "scheduled",
+      "participants": [
+        { "role": "home", "name": "Arsenal" },
+        { "role": "away", "name": "Chelsea" }
+      ],
+      "hasMarkets": true
+    }
+  ],
+  "meta": { "count": 1, "page": 1, "limit": 20 }
+}
+~~~
+
+#### GET /api/events/upcoming
+
+Purpose: homepage upcoming feed. Support limit and optional sportType filters. Order by startTime ascending.
+
+#### GET /api/events/live
+
+Purpose: live event feed, ordered by start time/status update. Return score summary when available.
+
+#### GET /api/events/:eventId
+
+Purpose: event detail with competition, season, participants and status.
+
+~~~json
+{
+  "success": true,
+  "data": {
+    "id": 501,
+    "competition": { "id": 7, "name": "Premier League" },
+    "season": { "id": 32, "name": "2026/2027" },
+    "startTime": "2026-11-08T16:30:00Z",
+    "status": "scheduled",
+    "participants": [
+      { "role": "home", "name": "Arsenal" },
+      { "role": "away", "name": "Chelsea" }
+    ]
+  }
+}
+~~~
+
+#### GET /api/events/:eventId/markets
+
+Purpose: return only markets currently available for this event, optionally grouped by bookmaker or canonical category. It must combine event_markets with the canonical market catalogue and sport capability settings.
+
+~~~json
+{
+  "success": true,
+  "eventId": 501,
+  "data": [
+    {
+      "marketKey": "match_winner_1x2",
+      "oddsApiMarketKey": "h2h",
+      "name": "Match Result",
+      "category": "featured",
+      "bookmakers": ["pinnacle", "bet365"]
+    },
+    {
+      "marketKey": "match_total_goals",
+      "oddsApiMarketKey": "totals",
+      "name": "Total Goals",
+      "category": "featured",
+      "bookmakers": ["pinnacle"]
+    }
+  ],
+  "meta": { "count": 2, "asOf": "2026-11-02T10:15:00Z" }
+}
+~~~
+
+#### GET /api/events/:eventId/odds?marketKey=match_winner_1x2
+
+Purpose: return current selectable prices for one event. Use canonical market keys in frontend filters; source keys remain backend integration details.
+
+~~~json
+{
+  "success": true,
+  "eventId": 501,
+  "data": [
+    {
+      "marketKey": "match_winner_1x2",
+      "name": "Match Result",
+      "outcomes": [
+        { "selectionKey": "home", "name": "Arsenal", "price": 2.10, "line": null },
+        { "selectionKey": "draw", "name": "Draw", "price": 3.30, "line": null },
+        { "selectionKey": "away", "name": "Chelsea", "price": 3.60, "line": null }
+      ],
+      "updatedAt": "2026-11-02T10:15:00Z"
+    }
+  ]
+}
+~~~
+
+For totals, the same response would contain Over and Under outcomes with line 2.5. Include bookmaker information if the product displays bookmaker choice; otherwise return the selected customer-facing price and retain the source bookmaker internally.
+
+#### GET /api/events/:eventId/results
+
+Purpose: return score and result facts with a clear finality flag.
+
+~~~json
+{
+  "success": true,
+  "eventId": 501,
+  "data": {
+    "isFinal": false,
+    "homeScore": 1,
+    "awayScore": 0,
+    "facts": [
+      { "factType": "full_time_score", "participant": "Arsenal", "value": 1 },
+      { "factType": "full_time_score", "participant": "Chelsea", "value": 0 }
+    ],
+    "lastUpdatedAt": "2026-11-08T17:20:00Z"
+  }
+}
+~~~
+
+### 20.12 How the models work together: complete examples
+
+#### Example A — Create the sport and competition
+
+Odds API returns:
+
+~~~json
+{
+  "key": "soccer_epl",
+  "group": "Soccer",
+  "title": "EPL",
+  "active": true,
+  "has_outrights": false
+}
+~~~
+
+Internal records:
+
+~~~json
+{
+  "sports": {
+    "id": 1,
+    "name": "Soccer",
+    "slug": "soccer"
+  },
+  "countries": {
+    "id": 44,
+    "name": "England",
+    "iso2": "GB"
+  },
+  "competitions": {
+    "id": 7,
+    "sport_id": 1,
+    "country_id": 44,
+    "name": "Premier League",
+    "scope": "domestic",
+    "country_resolution_method": "manual",
+    "classification_status": "confirmed"
+  },
+  "odds_api_competitions": {
+    "competition_id": 7,
+    "odds_api_sport_key": "soccer_epl",
+    "odds_api_group": "Soccer",
+    "odds_api_title": "EPL",
+    "odds_api_active": true
+  }
+}
+~~~
+
+#### Example B — Add a season and assign an event
+
+~~~json
+{
+  "competition_seasons": {
+    "id": 32,
+    "competition_id": 7,
+    "name": "2026/2027",
+    "start_date": "2026-08-01",
+    "end_date": "2027-05-31",
+    "is_current": true,
+    "odds_api_season_ref": null
+  },
+  "events": {
+    "id": 501,
+    "competition_id": 7,
+    "season_id": 32,
+    "start_time": "2026-11-08T16:30:00Z",
+    "status": "scheduled"
+  },
+  "odds_api_events": {
+    "event_id": 501,
+    "odds_api_event_id": "a512a48a58c4329048174217b2cc7ce0",
+    "odds_api_sport_key": "soccer_epl"
+  },
+  "event_participants": [
+    { "event_id": 501, "participant_name": "Arsenal", "role": "home" },
+    { "event_id": 501, "participant_name": "Chelsea", "role": "away" }
+  ]
+}
+~~~
+
+#### Example C — Catalogue, availability and quotes are three different records
+
+For Arsenal vs Chelsea:
+- market_catalog says match_winner_1x2 means Match Result and uses a defined settlement rule.
+- odds_api_market_mappings maps that canonical market to Odds API key h2h for Soccer.
+- sport_market_capabilities says Match Result is enabled and featured for Soccer.
+- event_markets says h2h is currently available from Pinnacle for event 501.
+- odds_current stores Arsenal 2.10, Draw 3.30 and Chelsea 3.60 as three distinct outcome quotes.
+- odds_history stores later price changes without overwriting the historical record.
+
+This separation lets the frontend display only markets that are both allowed for the sport and available for the event.
+
+#### Example D — Outright competition market
+
+An outright is not an event such as Arsenal vs Chelsea. It is a future selection about the competition winner.
+
+Example customer selection:
+- Competition: Premier League 2026/2027.
+- Market: Outright Winner.
+- Selection: Arsenal.
+- Price at placement: 5.50.
+
+Store the competition/season reference on the outright market context, preserve the Odds API market and bookmaker quote, and snapshot the exact selection and price in the bet selection. Do not force an outright into a normal two-participant event with a fake home and away team. The settlement rule should evaluate the final competition winner after the season is officially decided.
+
+### 20.13 Model-to-endpoint responsibility map
+
+| Model | Populated from | Used by frontend |
+|---|---|---|
+| sports | Normalized group values from GET /v4/sports | /api/sports, /api/sports/types |
+| countries | Curated country reference and competition classification rules | /api/sports/:sportType/countries |
+| competitions | Each sport item returned by GET /v4/sports | top-leagues, country competitions, competition detail |
+| competition_seasons | Maintained competition season calendar | /api/competitions/:id/seasons |
+| odds_api_competitions | Exact key/group/title/active/has_outrights from sports response | Usually backend-only metadata |
+| teams | Incrementally canonicalized participant snapshots | Event detail and team pages |
+| odds_api_teams | Only reliable source participant IDs when available | Backend-only identity mapping |
+| event_participants | home_team and away_team from event payload | /api/events/:id |
+| events | Event list plus internal competition/season mapping | /api/events, /api/events/:id |
+| odds_api_events | id and sport_key from event payload | Backend-only source mapping |
+| market_catalog | Reviewed internal market definitions | /api/markets/catalog |
+| odds_api_market_mappings | Reviewed mapping from canonical market to exact Odds API market key | Backend-only source mapping |
+| sport_market_capabilities | Product configuration reviewed per sport | /api/sports/:sportType/market-capabilities |
+| event_markets | Event market discovery response | /api/events/:id/markets |
+| odds_current | Event odds response | /api/events/:id/odds |
+| odds_history | Changes in current odds quotes | Admin, audit and price-history views |
+| event_results | Scores endpoint | /api/events/:id/results |
+| event_result_facts | Score and sport-specific statistical facts | Result detail and settlement |
+| bets and bet_selections | Authenticated customer placement request and locked quote snapshot | Bet slip/history |
+| settlement_rules and settlement records | Versioned business rules applied to verified result facts | Bet status/history and audit |
+
+### 20.14 Frontend API implementation requirements
+
+1. Use internal numeric IDs for database relationships and public routes. Keep Odds API IDs/keys in source mapping tables.
+2. Use canonical market keys in frontend requests. Translate to Odds API keys only inside the backend adapter.
+3. Return a consistent response envelope, consistent date format (UTC ISO 8601), and predictable error shape.
+4. Add pagination to event and history lists; do not return an unbounded season's events in one response.
+5. Filter event markets by both sport capability and current event availability.
+6. Return current odds from the database/cache. Do not make an upstream request for every frontend request.
+7. Include quote updatedAt/asOf timestamps so the UI can indicate stale prices.
+8. Validate a price again at bet placement and persist the accepted price, market, line, bookmaker and participant context as an immutable snapshot.
+9. Treat unavailable, suspended, stale and unmapped markets as non-selectable.
+10. Keep country/season classification reviewable by administrators. An unknown classification must not silently appear under a guessed country.
+
