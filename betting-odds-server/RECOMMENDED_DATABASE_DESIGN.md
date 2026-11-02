@@ -2468,8 +2468,10 @@ Store the competition/season reference on the outright market context, preserve 
 | sports | Normalized group values from GET /v4/sports | /api/sports, /api/sports/types |
 | countries | Curated country reference and competition classification rules | /api/sports/:sportType/countries |
 | competitions | Automatically matched real competitions, trusted competition metadata, or admin-created records | top-leagues, country competitions, competition detail |
-| competition_season_rules | Reusable season-window rules, editable by administrators and applied by scheduled jobs | Admin season-rule editor; backend generation |\n| competition_seasons | Automatically generated from competition_season_rules and validated against event dates/official calendar data | /api/competitions/:id/seasons |
-| odds_api_catalog_entries | Every exact key/group/title/description/active/has_outrights item from GET /v4/sports, including formats and unknown entries | Admin catalogue review; usually backend-only for public users |\n| odds_api_competition_mappings | Verified link between an internal competition and an Odds API catalogue entry | Backend-only source mapping |
+| competition_season_rules | Reusable season-window rules, editable by administrators and applied by scheduled jobs | Admin season-rule editor; backend generation |
+| competition_seasons | Automatically generated from competition_season_rules and validated against event dates/official calendar data | /api/competitions/:id/seasons |
+| odds_api_catalog_entries | Every exact key/group/title/description/active/has_outrights item from GET /v4/sports, including formats and unknown entries | Admin catalogue review; usually backend-only for public users |
+| odds_api_competition_mappings | Verified link between an internal competition and an Odds API catalogue entry | Backend-only source mapping |
 | teams | Incrementally canonicalized participant snapshots | Event detail and team pages |
 | odds_api_teams | Only reliable source participant IDs when available | Backend-only identity mapping |
 | event_participants | home_team and away_team from event payload | /api/events/:id |
