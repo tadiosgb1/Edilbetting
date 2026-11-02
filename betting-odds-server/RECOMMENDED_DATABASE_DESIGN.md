@@ -24,18 +24,18 @@ sports
   ├── competitions
   │     ├── competition_seasons
   │     ├── competition_season_rules
+  │     ├── events
+  │     │     ├── event_participants
+  │     │     ├── event_markets
+  │     │     │     └── odds_current
+  │     │     │           └── odds_history
+  │     │     └── event_results
   │     └── odds_api_competition_mappings
   └── odds_api_catalog_entries
         └── odds_api_competition_mappings
 
-events (linked to internal competitions when identified)
-                    ├── event_participants
-                    ├── event_markets
-                    │     └── odds_current
-                    │           └── odds_history
-                    ├── event_results
-                    └── bet_selections
-                          └── selection_settlements
+bet_selections reference events or outright competition/season contexts
+  └── selection_settlements
 
 market_catalog
   ├── odds_api_market_mappings
