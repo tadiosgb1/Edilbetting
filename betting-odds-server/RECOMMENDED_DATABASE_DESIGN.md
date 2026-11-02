@@ -137,28 +137,9 @@ Stores the original Odds API sports-catalogue item and connects its sport key to
 
 The `original_response` field stores the individual object for the key, not the entire response array. Country resolution must be reviewed; never infer a country solely from an unverified title or group.
 
-## 3. Event participants
+## 3. Events
 
-### Model 6 — `event_participants`
-
-Stores the teams or individual competitors taking part in one specific event. Each row belongs to an event. This is enough for the current odds workflow; a separate permanent team directory or source-team mapping table is not required.
-
-| Column | Type | Description |
-|---|---|---|
-| `id` | BIGINT PK | Participant row ID |
-| `event_id` | BIGINT FK | References `events.id` |
-| `participant_name` | VARCHAR(180) | Name received for this event |
-| `role` | VARCHAR(20) | home, away, competitor, player |
-| `odds_api_participant_id` | VARCHAR(150) NULL | Source participant ID, only if supplied |
-| `created_at`, `updated_at` | DATETIME | Record timestamps |
-
-**Example — Arsenal vs Chelsea:** create one event, then add two participant rows: `Arsenal / home` and `Chelsea / away`. For an individual-player market, a participant row can instead identify the relevant player. Keep the event's participant name even if no external participant ID is provided.
-
-A participant is **not** a permanent team profile. It records who is involved in this particular event. A separate team directory would only be useful later if the platform needs reusable team profiles, team statistics, or team-level search across many events.
-
-## 4. Events
-
-### Model 7 — `events`
+### Model 6 — `events`
 
 One row per fixture or sporting event.
 
@@ -176,7 +157,7 @@ One row per fixture or sporting event.
 
 Useful indexes: `(competition_id, start_time)`, `(status, start_time)`, and `(start_time)`.
 
-### Model 8 — `odds_api_events`
+### Model 7 — `odds_api_events`
 
 Stores the Odds API event ID separately from the internal event.
 
@@ -190,6 +171,25 @@ Stores the Odds API event ID separately from the internal event.
 | `raw_metadata` | JSON NULL | Optional source metadata |
 
 The internal `events.id` is used by the application. The Odds API ID is retained for source lookups and synchronization.
+
+## 4. Event participants
+
+### Model 8 — `event_participants`
+
+Stores the teams or individual competitors taking part in one specific event. Each row belongs to an event. This is enough for the current odds workflow; a separate permanent team directory or source-team mapping table is not required.
+
+| Column | Type | Description |
+|---|---|---|
+| `id` | BIGINT PK | Participant row ID |
+| `event_id` | BIGINT FK | References `events.id` |
+| `participant_name` | VARCHAR(180) | Name received for this event |
+| `role` | VARCHAR(20) | home, away, competitor, player |
+| `odds_api_participant_id` | VARCHAR(150) NULL | Source participant ID, only if supplied |
+| `created_at`, `updated_at` | DATETIME | Record timestamps |
+
+**Example — Arsenal vs Chelsea:** create one event, then add two participant rows: `Arsenal / home` and `Chelsea / away`. For an individual-player market, a participant row can instead identify the relevant player. Keep the event's participant name even if no external participant ID is provided.
+
+A participant is **not** a permanent team profile. It records who is involved in this particular event. A separate team directory would only be useful later if the platform needs reusable team profiles, team statistics, or team-level search across many events.
 
 ## 5. Market catalogue and market availability
 
