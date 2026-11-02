@@ -141,13 +141,17 @@ The `original_response` field stores the individual object for the key, not the 
 
 ### Model 6 — `events`
 
-One row per fixture or sporting event.
+One row per fixture or sporting event. This is the single event record: store the Odds API event identity here as well as the application's internal competition and season foreign keys. Do not create a second `odds_api_events` table for the same event.
 
 | Column | Type | Description |
 |---|---|---|
 | `id` | BIGINT PK | Internal event ID |
 | `competition_id` | BIGINT FK | Competition hosting the event |
 | `season_id` | BIGINT FK NULL | Season, when known |
+| `odds_api_event_id` | VARCHAR(150) UNIQUE | Exact Odds API event ID |
+| `odds_api_sport_key` | VARCHAR(150) | Source sport key used to retrieve the event |
+| `last_seen_at` | DATETIME(3) NULL | Last time the source returned this event |
+| `raw_metadata` | JSON NULL | Optional original event data for traceability |
 | `start_time` | DATETIME(3) | Scheduled start time in UTC |
 | `status` | VARCHAR(30) | scheduled, live, completed, postponed, cancelled, abandoned |
 | `neutral_venue` | BOOLEAN NULL | Whether the venue is neutral |
@@ -157,24 +161,9 @@ One row per fixture or sporting event.
 
 Useful indexes: `(competition_id, start_time)`, `(status, start_time)`, and `(start_time)`.
 
-### Model 7 — `odds_api_events`
-
-Stores the Odds API event ID separately from the internal event.
-
-| Column | Type | Description |
-|---|---|---|
-| `id` | BIGINT PK | Mapping ID |
-| `event_id` | BIGINT FK | References `events.id` |
-| `odds_api_event_id` | VARCHAR(150) UNIQUE | Exact source event ID |
-| `odds_api_sport_key` | VARCHAR(150) | Sport key used for the request |
-| `last_seen_at` | DATETIME | Last time the event was returned |
-| `raw_metadata` | JSON NULL | Optional source metadata |
-
-The internal `events.id` is used by the application. The Odds API ID is retained for source lookups and synchronization.
-
 ## 4. Event participants
 
-### Model 8 — `event_participants`
+### Model 7 — `event_participants`
 
 Stores the teams or individual competitors taking part in one specific event. Each row belongs to an event. This is enough for the current odds workflow; a separate permanent team directory or source-team mapping table is not required.
 
@@ -193,9 +182,9 @@ A participant is **not** a permanent team profile. It records who is involved in
 
 ## 5. Market catalogue and market availability
 
-These tables have different jobs: the catalogue defines a market, sport capabilities say where it is applicable, and event markets record whether it is offered for a particular event.
+The catalogue defines each market, sport capabilities say where it is applicable, and the current odds quotes show which markets are actually returned for an event. We do not keep a separate `event_markets` table because its event/market availability would duplicate information already represented by the current quotes.
 
-### Model 9 — `market_catalog`
+### Model 8 — `market_catalog`
 
 Canonical market definitions used by the application.
 
@@ -205,15 +194,14 @@ Canonical market definitions used by the application.
 | `market_key` | VARCHAR(120) UNIQUE | Stable internal key |
 | `display_name` | VARCHAR(180) | Name shown to customers |
 | `category` | VARCHAR(60) | featured, goals, player_props, corners, periods, etc. |
-| `settlement_rule_key` | VARCHAR(120) | Rule used to settle this market |
 | `market_scope` | VARCHAR(30) | pre_match, in_play, both |
 | `is_enabled` | BOOLEAN | Whether the platform supports it |
 | `sort_order` | INT | Display order |
 | `created_at`, `updated_at` | DATETIME | Record timestamps |
 
-**Example:** `match_winner_1x2` is the internal key for a full-time match result market. It is separate from the Odds API market key.
+**Example:** `match_winner_1x2` is the internal key for a full-time match result market. The source key (such as `h2h`) is connected to it through `odds_api_market_mappings`. The applicable versioned settlement rule is stored in `market_settlement_rules`.
 
-### Model 10 — `odds_api_market_mappings`
+### Model 9 — `odds_api_market_mappings`
 
 Maps an Odds API market key to an internal market definition.
 
@@ -228,9 +216,9 @@ Maps an Odds API market key to an internal market definition.
 | `mapping_version` | INT | Mapping revision |
 | `created_at`, `updated_at` | DATETIME | Record timestamps |
 
-Unknown market keys should be marked for review, not assigned a guessed settlement meaning.
+Unique: `(sport_id, odds_api_market_key)`. Unknown market keys should still have a mapping row with `market_catalog_id = NULL` and be marked for review, not assigned a guessed settlement meaning.
 
-### Model 11 — `sport_market_capabilities`
+### Model 10 — `sport_market_capabilities`
 
 Defines which canonical markets are applicable and visible for each sport.
 
@@ -249,28 +237,11 @@ Unique: `(sport_id, market_catalog_id)`.
 
 **Example:** Both-teams-to-score may be enabled for Soccer but not automatically enabled for Tennis.
 
-### Model 12 — `event_markets`
-
-Records a market's availability for a particular event. It does not store the market's price.
-
-| Column | Type | Description |
-|---|---|---|
-| `id` | BIGINT PK | Event-market ID |
-| `event_id` | BIGINT FK | References `events.id` |
-| `market_catalog_id` | BIGINT FK NULL | Canonical market, if mapped |
-| `odds_api_market_key` | VARCHAR(150) | Exact source market key |
-| `is_available` | BOOLEAN | Whether the market is currently offered |
-| `is_suspended` | BOOLEAN | Whether selections are temporarily disabled |
-| `last_seen_at` | DATETIME(3) | Last source observation |
-| `created_at`, `updated_at` | DATETIME | Record timestamps |
-
-A market can be supported by a sport but absent from a particular event. Only create/update availability from actual endpoint responses.
-
 ## 6. Bookmakers and odds
 
 A bookmaker is the company offering the price (for example, a sportsbook). The Odds API is the data source that reports bookmaker prices; it is not itself a bookmaker.
 
-### Model 13 — `bookmakers`
+### Model 11 — `bookmakers`
 
 One row per bookmaker identity returned by the Odds API.
 
@@ -283,7 +254,7 @@ One row per bookmaker identity returned by the Odds API.
 | `sort_order` | INT | Display or preference order |
 | `created_at`, `updated_at` | DATETIME | Record timestamps |
 
-### Model 14 — `odds_current`
+### Model 12 — `odds_current`
 
 Stores the latest price for each event, bookmaker, market, and outcome/line.
 
@@ -291,9 +262,7 @@ Stores the latest price for each event, bookmaker, market, and outcome/line.
 |---|---|---|
 | `id` | BIGINT PK | Quote ID |
 | `event_id` | BIGINT FK | Event |
-| `event_market_id` | BIGINT FK NULL | Event-market availability row |
-| `market_catalog_id` | BIGINT FK NULL | Canonical market |
-| `odds_api_market_key` | VARCHAR(150) | Original source market key |
+| `odds_api_market_mapping_id` | BIGINT FK | References `odds_api_market_mappings.id`; identifies the source key and its internal market mapping |
 | `bookmaker_id` | BIGINT FK | Bookmaker offering the price |
 | `outcome_key` | VARCHAR(150) NULL | Source outcome ID, if supplied |
 | `outcome_name` | VARCHAR(180) | e.g. Arsenal, Draw, Over |
@@ -310,7 +279,7 @@ Stores the latest price for each event, bookmaker, market, and outcome/line.
 
 A quote is identified by its event, bookmaker, market, outcome, line, and period—not by its price. Keep source and display prices separate if the platform applies a margin.
 
-### Model 15 — `odds_history`
+### Model 13 — `odds_history`
 
 Append-only record of price changes for historical analysis and auditing.
 
@@ -320,7 +289,7 @@ Append-only record of price changes for historical analysis and auditing.
 | `odds_current_id` | BIGINT FK NULL | Current quote reference, if retained |
 | `event_id` | BIGINT FK | Event |
 | `bookmaker_id` | BIGINT FK | Bookmaker |
-| `odds_api_market_key` | VARCHAR(150) | Source market key |
+| `odds_api_market_mapping_id` | BIGINT FK | References `odds_api_market_mappings.id` |
 | `outcome_name` | VARCHAR(180) | Outcome |
 | `line_value` | DECIMAL(10,3) NULL | Handicap/total line |
 | `period_key` | VARCHAR(40) NULL | Market period |
@@ -334,7 +303,7 @@ Store a history row when a meaningful quote value or selectable state changes. K
 
 ## 7. Results
 
-### Model 16 — `event_results`
+### Model 14 — `event_results`
 
 Stores the latest accepted result summary for an event.
 
@@ -345,13 +314,12 @@ Stores the latest accepted result summary for an event.
 | `home_score` | INT NULL | Home score where applicable |
 | `away_score` | INT NULL | Away score where applicable |
 | `is_final` | BOOLEAN | Whether result is final |
-| `odds_api_event_id` | VARCHAR(150) NULL | Source event ID |
 | `source_updated_at` | DATETIME(3) NULL | Source update time |
 | `received_at` | DATETIME(3) | Time received |
 | `revision` | INT | Incremented when a correction is accepted |
 | `created_at`, `updated_at` | DATETIME | Record timestamps |
 
-### Model 17 — `event_result_facts`
+### Model 15 — `event_result_facts`
 
 Stores additional normalized result facts needed for specific markets, beyond the main score.
 
@@ -373,7 +341,7 @@ Only store validated facts that are needed by supported settlement rules.
 
 A bet stores the customer's ticket. Each selection stores exactly what the customer accepted, including the odds at placement time. This snapshot must not change when live odds later move.
 
-### Model 18 — `bets`
+### Model 16 — `bets`
 
 | Column | Type | Description |
 |---|---|---|
@@ -390,7 +358,7 @@ A bet stores the customer's ticket. Each selection stores exactly what the custo
 | `settled_at` | DATETIME(3) NULL | Final settlement time |
 | `created_at`, `updated_at` | DATETIME | Record timestamps |
 
-### Model 19 — `bet_selections`
+### Model 17 — `bet_selections`
 
 One row per selection/leg in a bet.
 
@@ -413,7 +381,7 @@ One row per selection/leg in a bet.
 | `settled_at` | DATETIME(3) NULL | Settlement time |
 | `created_at`, `updated_at` | DATETIME | Record timestamps |
 
-### Model 20 — `market_settlement_rules`
+### Model 18 — `market_settlement_rules`
 
 Defines how a supported market is settled. Keep rules versioned because rule changes must not silently change old bet outcomes.
 
@@ -430,7 +398,7 @@ Defines how a supported market is settled. Keep rules versioned because rule cha
 
 Unique: `(rule_key, version)`.
 
-### Model 21 — `selection_settlements`
+### Model 19 — `selection_settlements`
 
 Stores each settlement decision for a bet selection, including the result revision and rule used.
 
@@ -447,7 +415,7 @@ Stores each settlement decision for a bet selection, including the result revisi
 | `settled_at` | DATETIME(3) | Decision time |
 | `created_at` | DATETIME | Record timestamp |
 
-### Model 22 — `bet_settlements`
+### Model 20 — `bet_settlements`
 
 Stores the final ticket-level payout calculation.
 
@@ -466,7 +434,7 @@ Stores the final ticket-level payout calculation.
 
 Unique: `(bet_id, settlement_revision)`.
 
-### Model 23 — `settlement_runs`
+### Model 21 — `settlement_runs`
 
 Audit log for each automatic or administrator-triggered settlement run.
 
@@ -491,17 +459,15 @@ sports
         ├── competition_seasons
         ├── events
         │     ├── event_participants
-        │     ├── odds_api_events
-        │     ├── event_markets
-        │     │     └── odds_current ── bookmakers
-        │     │           └── odds_history
+        │     ├── odds_current ── bookmakers
+        │     │     └── odds_history
         │     └── event_results
         │           └── event_result_facts
         └── odds_api_sports_competition_mappings
 
 countries ── competitions
 sports ── sport_market_capabilities ── market_catalog
-market_catalog ── odds_api_market_mappings
+market_catalog ── odds_api_market_mappings ── odds_current / odds_history
 bets ── bet_selections ── events
 bet_selections ── selection_settlements
 bets ── bet_settlements
@@ -515,7 +481,7 @@ settlement_runs
 - The frontend reads the backend's API; it does not call The Odds API directly or receive the Odds API key.
 - Use internal database IDs for relationships. Keep Odds API keys and IDs in the relevant mapping tables.
 - Keep bookmaker identity separate from the Odds API source.
-- Do not show a market just because it exists in `market_catalog`: check sport capability and event-market availability.
+- Do not show a market just because it exists in `market_catalog`: check sport capability and the current odds returned for the event.
 - Keep raw source JSON for traceability, but use relational columns for normal queries and business rules.
 
 For extended explanations of country classification, seasons, market types, synchronization, and API examples, see [RECOMMENDED_DATABASE_DESIGN_DETAILS.md](./RECOMMENDED_DATABASE_DESIGN_DETAILS.md).
