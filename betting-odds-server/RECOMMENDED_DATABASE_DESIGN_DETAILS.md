@@ -1,6 +1,6 @@
-# Recommended Database Design — Detailed Reference
+# Recommended Database Design — Extended Explanations
 
-> Detailed explanations, classification rules, workflows, examples, and implementation guidance for the concise [Recommended Database Design](./RECOMMENDED_DATABASE_DESIGN.md).
+> Companion reference for the complete [Recommended Database Design](./RECOMMENDED_DATABASE_DESIGN.md). The main document remains the source of truth for the full database schema and model relationships. Use this document for extended reasoning, classification policies, workflows, endpoint behavior, market explanations, and implementation examples.
 
 # Betting Database Architecture — Detailed Reference
 
