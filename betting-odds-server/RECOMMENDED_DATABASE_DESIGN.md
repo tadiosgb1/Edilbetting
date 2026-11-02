@@ -21,18 +21,20 @@ The platform stores Odds API keys in dedicated mapping tables rather than using 
 
 ```text
 sports
-  ├── competitions
-  │     ├── competition_seasons
-  │     ├── competition_season_rules
-  │     ├── events
-  │     │     ├── event_participants
-  │     │     ├── event_markets
-  │     │     │     └── odds_current
-  │     │     │           └── odds_history
-  │     │     └── event_results
-  │     └── odds_api_sports_competition_mappings
-  └── odds_api_sports_competition_mappings
+  └── competitions
+        ├── competition_seasons
+        ├── competition_season_rules
+        ├── events
+        │     ├── event_participants
+        │     ├── event_markets
+        │     │     └── odds_current
+        │     │           └── odds_history
+        │     └── event_results
         └── odds_api_sports_competition_mappings
+
+countries
+  └── competitions
+      └── odds_api_sports_competition_mappings
 
 bet_selections reference events or outright competition/season contexts
   └── selection_settlements
@@ -704,7 +706,7 @@ Season information is Odds API-dependent. Treat season assignment as optional un
 
 ### 2.5 `odds_api_sports_competition_mappings`
 
-This is the only table needed to represent the Odds API `/v4/sports` catalogue and connect its sport-key entries to internal records. Do not create a separate `odds_api_sports_competition_mappings` table.
+This is the only table needed to represent the Odds API `/v4/sports` catalogue and connect its sport-key entries to internal records. Do not create a separate `odds_api_catalog_entries` table.
 
 Create one row per unique Odds API `key`, including entries classified as a competition, format, category or unknown. The `original_response` column stores the individual JSON object for that key, not the entire response array. The table therefore serves both as the source record and, where applicable, the internal mapping.
 
@@ -1418,7 +1420,6 @@ Models/
   Competition.js
   CompetitionSeason.js
   CompetitionSeasonRule.js
-  OddsApiSportsCompetitionMapping.js
   OddsApiSportsCompetitionMapping.js
   OddsApiEvent.js
   Team.js
