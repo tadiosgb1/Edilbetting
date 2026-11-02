@@ -149,7 +149,7 @@ One row per fixture or sporting event. This is the single event record: store th
 | `competition_id` | BIGINT FK | Competition hosting the event |
 | `season_id` | BIGINT FK NULL | Season, when known |
 | `odds_api_event_id` | VARCHAR(150) UNIQUE | Exact Odds API event ID |
-| `odds_api_sport_key` | VARCHAR(150) | Source sport key used to retrieve the event |
+| `odds_api_sports_competition_mapping_id` | BIGINT FK | References `odds_api_sports_competition_mappings.id`; identifies the source sport key |
 | `last_seen_at` | DATETIME(3) NULL | Last time the source returned this event |
 | `raw_metadata` | JSON NULL | Optional original event data for traceability |
 | `start_time` | DATETIME(3) | Scheduled start time in UTC |
@@ -281,25 +281,19 @@ A quote is identified by its event, bookmaker, market, outcome, line, and period
 
 ### Model 13 — `odds_history`
 
-Append-only record of price changes for historical analysis and auditing.
+Stores previous price states for a current quote. The quote identity (event, bookmaker, market and outcome) is already stored in `odds_current`, so history rows reference that quote instead of repeating those same foreign keys and identity fields.
 
 | Column | Type | Description |
 |---|---|---|
 | `id` | BIGINT PK | History row ID |
-| `odds_current_id` | BIGINT FK NULL | Current quote reference, if retained |
-| `event_id` | BIGINT FK | Event |
-| `bookmaker_id` | BIGINT FK | Bookmaker |
-| `odds_api_market_mapping_id` | BIGINT FK | References `odds_api_market_mappings.id` |
-| `outcome_name` | VARCHAR(180) | Outcome |
-| `line_value` | DECIMAL(10,3) NULL | Handicap/total line |
-| `period_key` | VARCHAR(40) NULL | Market period |
-| `source_price` | DECIMAL(12,5) | Source price |
-| `display_price` | DECIMAL(12,5) | Customer-facing price |
-| `is_suspended` | BOOLEAN | Suspension state |
+| `odds_current_id` | BIGINT FK | References `odds_current.id` |
+| `source_price` | DECIMAL(12,5) | Source price at this point in time |
+| `display_price` | DECIMAL(12,5) | Customer-facing price at this point in time |
+| `is_suspended` | BOOLEAN | Whether the quote was selectable |
 | `source_updated_at` | DATETIME(3) NULL | Source update time |
-| `recorded_at` | DATETIME(3) | Time saved in history |
+| `recorded_at` | DATETIME(3) | Time this price state was saved |
 
-Store a history row when a meaningful quote value or selectable state changes. Keep this table append-only.
+Store a history row when a meaningful price or selectable-state value changes. Keep this table append-only, and do not delete the referenced current quote while its history is retained.
 
 ## 7. Results
 
@@ -368,7 +362,6 @@ One row per selection/leg in a bet.
 | `bet_id` | CHAR(36) FK | References `bets.bet_id` |
 | `event_id` | BIGINT FK | Selected event |
 | `market_catalog_id` | BIGINT FK NULL | Canonical market |
-| `odds_api_market_key` | VARCHAR(150) NULL | Source market key |
 | `bookmaker_id` | BIGINT FK NULL | Bookmaker quote source |
 | `outcome_key` | VARCHAR(150) NULL | Source outcome ID |
 | `outcome_name` | VARCHAR(180) | Selected outcome |
@@ -457,7 +450,7 @@ Settlement must be idempotent: retrying a run must not pay the same bet twice. F
 sports
   └── competitions
         ├── competition_seasons
-        ├── events
+        ├── events ── odds_api_sports_competition_mappings
         │     ├── event_participants
         │     ├── odds_current ── bookmakers
         │     │     └── odds_history
@@ -467,7 +460,7 @@ sports
 
 countries ── competitions
 sports ── sport_market_capabilities ── market_catalog
-market_catalog ── odds_api_market_mappings ── odds_current / odds_history
+market_catalog ── odds_api_market_mappings ── odds_current ── odds_history
 bets ── bet_selections ── events
 bet_selections ── selection_settlements
 bets ── bet_settlements
