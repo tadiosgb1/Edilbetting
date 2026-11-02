@@ -34,7 +34,8 @@ sports
                           └── selection_settlements
 
 market_catalog
-  └── odds_api_market_mappings
+  ├── odds_api_market_mappings
+  └── sport_market_capabilities
 
 bets
   ├── bet_selections
