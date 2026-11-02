@@ -160,6 +160,27 @@ One row per fixture or sporting event. This is the single event record: store th
 
 Useful indexes: `(competition_id, start_time)`, `(status, start_time)`, and `(start_time)`.
 
+**Example — one event row, not two tables:**
+
+The Odds API event response supplies its own event ID and sport key. Our backend finds the matching row in `odds_api_sports_competition_mappings`, then saves the internal foreign keys on the same event row:
+
+```json
+{
+  "events": {
+    "id": 501,
+    "competition_id": 7,
+    "season_id": 32,
+    "odds_api_event_id": "a512a48a58c4329048174217b2cc7ce0",
+    "odds_api_sports_competition_mapping_id": 1,
+    "start_time": "2026-11-08T16:30:00Z",
+    "status": "scheduled"
+  }
+}
+```
+
+The API does not send our `competition_id` or `season_id`; the backend supplies them after resolving the source sport-key mapping. Participants are saved in `event_participants` using `event_id = 501`. There is no second event table.
+
+
 ## 4. Event participants
 
 ### Model 7 — `event_participants`
