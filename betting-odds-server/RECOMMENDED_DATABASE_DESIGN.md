@@ -87,18 +87,20 @@ Interpret the fields as follows:
 
 | Odds API field | Meaning | Backend use |
 |---|---|---|
-| key | Unique Odds API sport/competition key | Store unchanged in odds_api_competitions.odds_api_sport_key |
-| group | Broad sport family | Normalize into sports, for example Soccer → Football (or retain Soccer as the display name) |
-| title | Competition/league label | Competition display name, for example EPL |
-| description | Human-readable competition description, when present | Competition description |
-| active | Whether the competition is currently active/in season | Source status; do not confuse with our platform enabled flag |
-| has_outrights | Whether outright markets are available for this competition | Competition capability hint; still check actual event/market availability |
+| key | Unique Odds API catalogue key | Store unchanged in odds_api_catalog_entries.odds_api_key; use it in Odds API requests |
+| group | Broad sport family | Resolve to a canonical row in sports, for example Soccer |
+| title | Human-readable source catalogue label | Store as source metadata; it may name a competition (EPL) or a format/category (One Day Internationals) |
+| description | Human-readable source description, when present | Store as source metadata; useful classification evidence, not proof by itself |
+| active | Whether Odds API currently marks this catalogue entry active | Source status; do not confuse with our platform enabled flag |
+| has_outrights | Whether outright markets are available for this entry | Source capability hint; still check actual market availability |
 
-**Important hierarchy:** one Odds API item such as soccer_epl represents a competition within the Soccer group. It is not a separate sport. Therefore:
-- sports contains one canonical row for Soccer/Football.
-- competitions contains one row for the Premier League.
-- odds_api_competitions connects the internal competition to soccer_epl.
-- sport types for the frontend are distinct normalized sports groups, not every Odds API key.
+**Important hierarchy:** an Odds API sports-catalogue item is not automatically an internal competition. For example, `soccer_epl` identifies the English Premier League, while `cricket_odi` identifies a cricket format, not one specific tournament. The title is a label, not a universal guarantee that the item is a competition. Therefore:
+- `sports` contains canonical sport families such as Soccer and Cricket.
+- `odds_api_catalog_entries` stores every discovered Odds API item, including formats and entries not yet classified.
+- `competitions` contains actual leagues, cups, tours and tournaments that the application manages.
+- `odds_api_competition_mappings` connects a real internal competition to an Odds API key only when that relationship is valid.
+- A format/category entry such as `cricket_odi` remains in the Odds API catalogue and is not forced into `competitions`.
+- Sport types shown in the frontend are normalized sport families, not every Odds API key.
 
 #### Building the countries list without a countries endpoint
 
@@ -138,15 +140,121 @@ Add these fields to competitions (or to a dedicated competition_classifications 
 
 The backend should expose only confirmed country classifications in the country navigation by default. International and unresolved competitions should be discoverable through their own groups or filters.
 
+#### Separate the Odds API catalogue from the application's competition catalogue
+
+These are two related but different responsibilities. The Odds API catalogue records what the upstream service advertises. The internal competition catalogue records the actual leagues and tournaments your application chooses to support and display. Administrators must be able to manage the internal catalogue even when Odds API does not provide a matching key.
+
+##### Table: odds_api_catalog_entries
+
+Create one row for every item returned by GET /v4/sports. This table must also retain entries that represent formats, broad categories or unknown items.
+
+| Column | Type | Purpose |
+|---|---|---|
+| id | BIGINT PK | Internal catalogue row ID |
+| odds_api_key | VARCHAR(150) UNIQUE | Exact Odds API key, e.g. soccer_epl or cricket_odi |
+| group_name | VARCHAR(100) | Exact Odds API group, e.g. Soccer or Cricket |
+| title | VARCHAR(150) | Exact source title |
+| description | VARCHAR(255) NULL | Exact source description |
+| catalogue_type | ENUM | competition, format, category, unknown |
+| classification_status | ENUM | pending_review, auto_classified, verified, rejected |
+| classification_reason | TEXT NULL | Why the entry received this classification |
+| odds_api_active | BOOLEAN | Source active flag |
+| has_outrights | BOOLEAN | Source outright capability hint |
+| first_seen_at | DATETIME(3) | First successful discovery |
+| last_seen_at | DATETIME(3) | Most recent successful discovery |
+| last_synced_at | DATETIME(3) NULL | Last completed processing time |
+| raw_source_metadata | JSON NULL | Optional sanitized source fields for audit/debugging |
+
+Use a unique constraint on odds_api_key. Do not store the Odds API secret or request authorization data here.
+
+##### Table: competitions — the authoritative application catalogue
+
+Every real competition supported by the application has one row here, regardless of whether it was discovered through Odds API, another trusted competition metadata source, or created by an administrator.
+
+Recommended fields:
+
+| Column | Type | Purpose |
+|---|---|---|
+| id | BIGINT PK | Internal competition ID |
+| sport_id | BIGINT FK NOT NULL | Parent sport |
+| country_id | BIGINT FK NULL | Domestic country; NULL for international/unresolved |
+| name | VARCHAR(150) | Canonical full name, e.g. English Premier League |
+| short_name | VARCHAR(80) NULL | Display abbreviation, e.g. EPL |
+| slug | VARCHAR(180) UNIQUE | Stable frontend-friendly identifier |
+| competition_type | VARCHAR(40) | league, cup, tournament, tour, championship, other |
+| description | TEXT NULL | Application-managed description |
+| logo_url | VARCHAR(500) NULL | Competition logo/image |
+| scope | VARCHAR(30) | domestic, continental, international |
+| region_code | VARCHAR(30) NULL | e.g. UEFA or FIFA; not a country code |
+| source | VARCHAR(30) | odds_api, external_metadata, manual, mixed |
+| verification_status | VARCHAR(30) | pending_review, provisional, verified, rejected |
+| is_active | BOOLEAN | Competition is active in the domain catalogue |
+| is_enabled | BOOLEAN | Competition is enabled for the product |
+| is_featured | BOOLEAN | Show in featured competition areas |
+| display_order | INT | Admin-controlled ordering |
+| is_manually_managed | BOOLEAN | Protects administrator-owned fields from routine sync |
+| created_at / updated_at | DATETIME(3) | Audit timestamps |
+
+A competition may have no Odds API mapping. Do not require odds_api_sport_key on competitions and do not use an Odds API key as the internal competition identity. If an administrator creates ICC Cricket World Cup, for example, it remains a valid competition even if the Odds API catalogue only exposes cricket_odi as a format key.
+
+##### Table: odds_api_competition_mappings
+
+This table links an internal competition to a catalogue entry only when the relationship is confirmed.
+
+| Column | Type | Purpose |
+|---|---|---|
+| id | BIGINT PK | Mapping ID |
+| competition_id | BIGINT FK NOT NULL | Internal competition |
+| odds_api_catalog_entry_id | BIGINT FK NOT NULL | Discovered Odds API catalogue entry |
+| odds_api_sport_key | VARCHAR(150) | Exact key retained for efficient source lookup |
+| mapping_status | ENUM | pending_review, verified, disabled, rejected |
+| is_primary | BOOLEAN | Primary Odds API mapping for the competition |
+| match_method | VARCHAR(40) | exact_reviewed, admin_assigned, trusted_metadata |
+| verified_at | DATETIME(3) NULL | Verification timestamp |
+| created_at / updated_at | DATETIME(3) | Audit timestamps |
+
+Add a unique constraint on (competition_id, odds_api_catalog_entry_id), and normally a unique constraint on odds_api_catalog_entry_id when one Odds API key is allowed to map to only one competition. If the product later needs one source key to represent multiple actual competitions, do not force a one-to-many interpretation: model the relationship explicitly and require event-level competition identification from a trusted source.
+
+##### Table: competition_season_rules and competition_seasons
+
+Keep the previously defined season rules and generated season records. Both must be manageable from the admin interface. Add `is_manually_locked` to competition_seasons so a corrected season name or official date boundary is not overwritten by a routine generation job. Store who/when changed a record if the application has a general admin audit log.
+
+##### Classification examples
+
+| Odds API key | Catalogue type | Internal competition action |
+|---|---|---|
+| soccer_epl | competition | Match/create English Premier League, then map the key |
+| soccer_spain_la_liga | competition | Match/create Spanish La Liga, then map the key |
+| cricket_odi | format | Keep as a cricket format; do not create a competition named One Day Internationals |
+| An unrecognized new key | unknown | Keep it pending admin review; do not guess |
+
+These examples illustrate the intended classification. Maintain the exact reviewed key catalogue for the Odds API subscription and update it when new keys appear.
+
+##### Admin ownership and synchronization protection
+
+The admin interface is the management surface for `competitions`, `competition_seasons`, `competition_season_rules` and the classification/mapping records. Use field ownership rules:
+
+- Source-owned fields on odds_api_catalog_entries (key, group, title, description, active, has_outrights, last_seen_at) are refreshed from Odds API.
+- Application-owned fields on competitions (canonical name, short name, logo, description, display order, enabled/featured flags and manual verification decisions) are changed through admin workflows.
+- A synchronization job may propose a competition match, but must not silently overwrite an administrator's canonical fields or manually verified classification.
+- Use `is_manually_managed`, `is_manually_locked` and/or field-level override flags to preserve explicit admin decisions.
+- Prefer deactivation/archive over hard deletion when competitions have events, bets, settlement records or historical references. Enforce foreign keys and audit changes.
+- Record admin changes in an audit log with actor, action, entity, before/after values and timestamp. If there is no general audit table, add a competition-specific audit table.
+
+This separation lets the backend discover source data automatically while the application owner remains in control of what the betting product supports.
+
+
 #### How to implement sports synchronization
 
-1. Call GET /v4/sports (and use all=true when the synchronization job needs inactive/out-of-season competitions too).
-2. Upsert one sports row for each normalized group value.
-3. Upsert one competitions row for each distinct Odds API sport key, using the group's internal sport_id.
-4. Upsert odds_api_competitions with the exact key, group, title, active and has_outrights values.
-5. Resolve the competition country/region using the classification procedure above.
-6. Mark source records not seen in a complete successful response as inactive only after the complete response has been validated. Never deactivate everything because a request failed.
-7. Keep platform visibility (enabled, featured, sort_order) separate from the Odds API active flag.
+1. Call GET /v4/sports (and use all=true when the synchronization job needs inactive/out-of-season entries too).
+2. Upsert one canonical `sports` row for each normalized `group` value.
+3. Upsert one `odds_api_catalog_entries` row for every returned key. Preserve key, group, title, description, active, has_outrights, last_seen_at and sync status exactly as source metadata.
+4. Classify each catalogue entry using a reviewed classification catalogue/ruleset. The result must distinguish `competition`, `format`, `category` and `unknown`; do not classify from title alone.
+5. If the entry is confidently classified as an actual competition, find or create the corresponding internal `competitions` row, resolve its country/region, and create/update an `odds_api_competition_mappings` row.
+6. If the entry is a format/category (for example `cricket_odi`) or remains unknown, keep it in `odds_api_catalog_entries` without creating a fake competition. Mark uncertain entries `pending_review`.
+7. When a new real competition is discovered from another trusted competition source or by an administrator, create it in `competitions` even if it has no Odds API mapping. Mapping is optional, not a prerequisite for an internal competition.
+8. Mark source catalogue entries not seen in a complete successful response as no longer active/last seen only after the complete response has been validated. Never deactivate records because a request failed.
+9. Keep source activity, internal competition approval, and frontend visibility as separate fields.
 
 Pseudo-code:
 
@@ -157,29 +265,45 @@ for (const item of oddsApiSports) {
     defaults: { name: normalizeSportGroup(item.group), isActive: true }
   });
 
-  const classification = resolveCompetitionClassification(item.key, item.group, item.title);
-
-  const competition = await Competition.upsert({
-    sportId: sport.id,
-    countryId: classification.countryId,
-    name: item.title,
-    slug: makeStableCompetitionSlug(item.key),
-    scope: classification.scope,
-    regionCode: classification.regionCode,
-    countryResolutionMethod: classification.method,
-    classificationStatus: classification.status
-  });
-
-  await OddsApiCompetition.upsert({
-    competitionId: competition.id,
-    oddsApiSportKey: item.key,
-    oddsApiGroup: item.group,
-    oddsApiTitle: item.title,
+  const catalogueEntry = await OddsApiCatalogEntry.upsert({
+    oddsApiKey: item.key,
+    groupName: item.group,
+    title: item.title,
+    description: item.description ?? null,
     oddsApiActive: item.active,
     hasOutrights: item.has_outrights,
-    lastSyncedAt: new Date()
+    lastSeenAt: new Date()
+  });
+
+  const classification = await classifyOddsApiCatalogueEntry(item);
+  await catalogueEntry.update({
+    catalogueType: classification.type,
+    classificationStatus: classification.status,
+    classificationReason: classification.reason
+  });
+
+  if (classification.type !== 'competition' || !classification.competitionMatch) {
+    // Keep format/category/unknown entries reviewable; do not create a competition.
+    continue;
+  }
+
+  const competition = await findOrCreateOrMatchCompetition({
+    sportId: sport.id,
+    canonicalName: classification.competitionMatch.name,
+    countryId: classification.competitionMatch.countryId,
+    scope: classification.competitionMatch.scope
+  });
+
+  await OddsApiCompetitionMapping.upsert({
+    competitionId: competition.id,
+    oddsApiCatalogEntryId: catalogueEntry.id,
+    oddsApiSportKey: item.key,
+    mappingStatus: classification.status
   });
 }
+~~~
+
+The matching/classification functions must use reviewed exact mappings and safe rules, not fuzzy title matching alone. If two internal competitions could match, leave the entry pending review. The catalogue entry is the record of what Odds API said; the competition is the application's managed domain record.
 ~~~
 
 This is a synchronization outline. Implement the upsert and association operations in a transaction and use the actual Sequelize instance-return conventions in the service.
@@ -1189,7 +1313,9 @@ Models/
   Country.js
   Competition.js
   CompetitionSeason.js
-  OddsApiCompetition.js
+  CompetitionSeasonRule.js
+  OddsApiCatalogEntry.js
+  OddsApiCompetitionMapping.js
   OddsApiEvent.js
   Team.js
   OddsApiTeam.js
@@ -1756,7 +1882,7 @@ For a single resource, data is an object. For a collection, data is an array. Us
 
 #### GET /api/sports
 
-Purpose: list normalized sport families and/or competitions. Support query parameters such as include=competitions and enabled=true.
+Purpose: list normalized sport families and, optionally, actual internal competitions. Competition records come from the managed competitions catalogue, not directly from every Odds API key. Support query parameters such as include=competitions and enabled=true.
 
 Example response:
 
@@ -1936,7 +2062,85 @@ Purpose: show automatically generated season editions, including current and his
 }
 ~~~
 
-### 20.10 Frontend market endpoints
+### 20.10 Admin competition-management API endpoints
+
+Public browsing endpoints and admin management endpoints serve different purposes. Public endpoints expose only active/enabled and appropriately approved records. Admin endpoints expose the full catalogue, including provisional, disabled and pending-review records, and require authenticated administrator permissions.
+
+#### Competition administration
+
+| Method | Endpoint | Purpose |
+|---|---|---|
+| GET | /api/admin/competitions | Search/filter all internal competitions, including disabled and pending-review records |
+| POST | /api/admin/competitions | Create a competition manually |
+| GET | /api/admin/competitions/:id | Read full competition details, mappings and seasons |
+| PUT/PATCH | /api/admin/competitions/:id | Edit canonical competition information and product visibility |
+| DELETE | /api/admin/competitions/:id | Archive/deactivate by default; hard-delete only when no dependent records exist |
+| GET | /api/admin/competitions/:id/seasons | List all seasons and verification details |
+| POST | /api/admin/competitions/:id/seasons | Create a missing season manually |
+| PUT/PATCH | /api/admin/seasons/:id | Correct season name, dates, current flag or verification |
+| GET | /api/admin/competition-season-rules | List automatic season-generation rules |
+| POST | /api/admin/competition-season-rules | Add a rule |
+| PUT/PATCH | /api/admin/competition-season-rules/:id | Correct a rule |
+| POST | /api/admin/competitions/:id/generate-seasons | Preview or run generation for one competition |
+
+#### Odds API catalogue review and mapping
+
+| Method | Endpoint | Purpose |
+|---|---|---|
+| GET | /api/admin/odds-api-catalog | Browse every discovered Odds API catalogue entry |
+| GET | /api/admin/odds-api-catalog/:id | Inspect source fields, classification and mapping |
+| PUT/PATCH | /api/admin/odds-api-catalog/:id/classification | Classify as competition, format, category or unknown; record review decision |
+| POST | /api/admin/odds-api-competition-mappings | Map a catalogue entry to an internal competition |
+| PUT/PATCH | /api/admin/odds-api-competition-mappings/:id | Correct mapping or verification status |
+| DELETE | /api/admin/odds-api-competition-mappings/:id | Disable/remove a mapping without deleting the competition |
+| POST | /api/admin/odds-api-catalog/sync | Trigger a controlled catalogue sync; restrict to authorized admins |
+
+Admin list endpoints should support pagination and filters such as sportId, countryId, competitionType, enabled, verificationStatus, catalogueType, classificationStatus and mappingStatus. Write endpoints must validate foreign keys, uniqueness, season date ranges and mapping rules. Record every admin change in the audit log.
+
+Example manual competition creation request:
+
+~~~json
+{
+  "sportId": 3,
+  "countryId": null,
+  "name": "ICC Cricket World Cup",
+  "shortName": "Cricket World Cup",
+  "slug": "icc-cricket-world-cup",
+  "competitionType": "tournament",
+  "scope": "international",
+  "regionCode": "ICC",
+  "description": "International one-day cricket tournament",
+  "isActive": true,
+  "isEnabled": true,
+  "isFeatured": false
+}
+~~~
+
+Example catalogue classification request:
+
+~~~json
+{
+  "catalogueType": "format",
+  "classificationStatus": "verified",
+  "classificationReason": "This key identifies the One Day International match format, not one individual tournament."
+}
+~~~
+
+Example mapping request, only after confirming the relationship:
+
+~~~json
+{
+  "competitionId": 10,
+  "oddsApiCatalogEntryId": 1,
+  "mappingStatus": "verified",
+  "matchMethod": "admin_assigned",
+  "isPrimary": true
+}
+~~~
+
+The admin UI should provide: competition list/search/filter; create/edit form; competition detail with seasons and source mappings; season editor; Odds API catalogue review queue; classification editor; mapping editor; and sync/audit history. An administrator must be able to create a competition even when no Odds API key exists, and must be able to leave a catalogue entry unmapped when it is a format or its meaning is uncertain.
+
+### 20.11 Frontend market endpoints
 
 #### GET /api/markets/categories
 
@@ -2004,7 +2208,7 @@ Purpose: tell the frontend which market groups can be offered for the selected s
 }
 ~~~
 
-### 20.11 Frontend event and odds endpoints
+### 20.12 Frontend event and odds endpoints
 
 #### GET /api/events
 
@@ -2140,7 +2344,7 @@ Purpose: return score and result facts with a clear finality flag.
 }
 ~~~
 
-### 20.12 How the models work together: complete examples
+### 20.13 How the models work together: complete examples
 
 #### Example A — Create the sport and competition
 
@@ -2179,12 +2383,20 @@ Internal records:
     "country_resolution_method": "manual",
     "classification_status": "confirmed"
   },
-  "odds_api_competitions": {
-    "competition_id": 7,
-    "odds_api_sport_key": "soccer_epl",
-    "odds_api_group": "Soccer",
-    "odds_api_title": "EPL",
+  "odds_api_catalog_entries": {
+    "id": 1,
+    "odds_api_key": "soccer_epl",
+    "group_name": "Soccer",
+    "title": "EPL",
+    "catalogue_type": "competition",
+    "classification_status": "verified",
     "odds_api_active": true
+  },
+  "odds_api_competition_mappings": {
+    "competition_id": 7,
+    "odds_api_catalog_entry_id": 1,
+    "odds_api_sport_key": "soccer_epl",
+    "mapping_status": "verified"
   }
 }
 ~~~
@@ -2245,15 +2457,15 @@ Example customer selection:
 
 Store the competition/season reference on the outright market context, preserve the Odds API market and bookmaker quote, and snapshot the exact selection and price in the bet selection. Do not force an outright into a normal two-participant event with a fake home and away team. The settlement rule should evaluate the final competition winner after the season is officially decided.
 
-### 20.13 Model-to-endpoint responsibility map
+### 20.14 Model-to-endpoint responsibility map
 
 | Model | Populated from | Used by frontend |
 |---|---|---|
 | sports | Normalized group values from GET /v4/sports | /api/sports, /api/sports/types |
 | countries | Curated country reference and competition classification rules | /api/sports/:sportType/countries |
-| competitions | Each sport item returned by GET /v4/sports | top-leagues, country competitions, competition detail |
-| competition_season_rules | Reusable season-window rules applied by scheduled jobs | Backend-only configuration for automatic season generation |\n| competition_seasons | Automatically generated from competition_season_rules and validated against event dates/official calendar data | /api/competitions/:id/seasons |
-| odds_api_competitions | Exact key/group/title/active/has_outrights from sports response | Usually backend-only metadata |
+| competitions | Automatically matched real competitions, trusted competition metadata, or admin-created records | top-leagues, country competitions, competition detail |
+| competition_season_rules | Reusable season-window rules, editable by administrators and applied by scheduled jobs | Admin season-rule editor; backend generation |\n| competition_seasons | Automatically generated from competition_season_rules and validated against event dates/official calendar data | /api/competitions/:id/seasons |
+| odds_api_catalog_entries | Every exact key/group/title/description/active/has_outrights item from GET /v4/sports, including formats and unknown entries | Admin catalogue review; usually backend-only for public users |\n| odds_api_competition_mappings | Verified link between an internal competition and an Odds API catalogue entry | Backend-only source mapping |
 | teams | Incrementally canonicalized participant snapshots | Event detail and team pages |
 | odds_api_teams | Only reliable source participant IDs when available | Backend-only identity mapping |
 | event_participants | home_team and away_team from event payload | /api/events/:id |
@@ -2270,7 +2482,7 @@ Store the competition/season reference on the outright market context, preserve 
 | bets and bet_selections | Authenticated customer placement request and locked quote snapshot | Bet slip/history |
 | settlement_rules and settlement records | Versioned business rules applied to verified result facts | Bet status/history and audit |
 
-### 20.14 Frontend API implementation requirements
+### 20.15 Frontend API implementation requirements
 
 1. Use internal numeric IDs for database relationships and public routes. Keep Odds API IDs/keys in source mapping tables.
 2. Use canonical market keys in frontend requests. Translate to Odds API keys only inside the backend adapter.
