@@ -2,6 +2,7 @@
 
 import { createContext, useCallback, useContext, useEffect, useState, type ReactNode } from "react";
 import { CheckCircle2, Info, X, XCircle } from "lucide-react";
+import { useLanguage } from "@/components/language-provider";
 
 type ToastKind = "success" | "error" | "info";
 type ToastItem = { id: number; kind: ToastKind; message: string };
@@ -10,6 +11,7 @@ const ToastContext = createContext<ToastContextValue | null>(null);
 let toastSequence = 0;
 
 export function ToastProvider({ children }: { children: ReactNode }) {
+  const { t } = useLanguage();
   const [items, setItems] = useState<ToastItem[]>([]);
   const toast = useCallback((message: string, kind: ToastKind = "info") => {
     if (!message.trim()) return;
@@ -31,8 +33,8 @@ export function ToastProvider({ children }: { children: ReactNode }) {
         const palette = item.kind === "success" ? "border-emerald-500/40 bg-emerald-950 text-emerald-50" : item.kind === "error" ? "border-red-500/40 bg-red-950 text-red-50" : "border-sky-500/40 bg-slate-900 text-slate-50";
         return <div key={item.id} role={item.kind === "error" ? "alert" : "status"} className={`pointer-events-auto flex items-start gap-3 border px-4 py-3 shadow-2xl ${palette}`}>
           <Icon size={19} className="mt-0.5 shrink-0" />
-          <p className="min-w-0 flex-1 text-sm leading-5">{item.message}</p>
-          <button type="button" aria-label="Dismiss notification" onClick={() => setItems((current) => current.filter((toastItem) => toastItem.id !== item.id))} className="shrink-0 p-0.5 opacity-75 hover:opacity-100"><X size={16}/></button>
+          <p className="min-w-0 flex-1 text-sm leading-5">{t(item.message)}</p>
+          <button type="button" aria-label={t("dismissNotification")} onClick={() => setItems((current) => current.filter((toastItem) => toastItem.id !== item.id))} className="shrink-0 p-0.5 opacity-75 hover:opacity-100"><X size={16}/></button>
         </div>;
       })}
     </div>

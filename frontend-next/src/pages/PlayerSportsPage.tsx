@@ -1,6 +1,6 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import type { FormEvent } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useRouter } from 'next/router'
 import { initialMarkets, sports, categories } from '../data/markets'
 import type { Market, Pick } from '../types/sportsbook'
 import SportsbookStat from '../components/SportsbookStat'
@@ -16,8 +16,11 @@ export default function PlayerSportsPage() {
   const [authOpen, setAuthOpen] = useState<'login' | 'register' | null>(null)
   const [mobileOpen, setMobileOpen] = useState(false)
   const [notice, setNotice] = useState('')
-  const [isLoggedIn, setIsLoggedIn] = useState(Boolean(localStorage.getItem('token')))
-  const navigate = useNavigate()
+  const [isLoggedIn, setIsLoggedIn] = useState(false)
+  const router = useRouter()
+  useEffect(() => {
+    setIsLoggedIn(Boolean(window.localStorage.getItem('token')))
+  }, [])
   const visibleMarkets = useMemo(() => markets.filter((m) => {
     const categoryMatch = sport === 'All matches' || (sport === 'Live' ? m.live : sport === 'Upcoming' ? !m.live : m.sport === sport)
     const navMatch = activeNav !== 'Live' || m.live
@@ -47,10 +50,10 @@ export default function PlayerSportsPage() {
     </div>
     <header className="sticky top-0 z-30 border-b border-white/10 bg-[#101827]/95 backdrop-blur-xl">
       <div className="mx-auto flex h-[72px] max-w-[1500px] items-center justify-between gap-3 px-4 sm:px-6">
-        <button className="flex shrink-0 items-center gap-2" onClick={() => { navTo('Sports'); navigate('/') }} aria-label="EdilBet home"><span className="grid h-10 w-10 place-items-center rounded-xl bg-edil-green text-lg font-black italic text-slate-950 shadow-glow">E</span><span className="text-xl font-black tracking-tight">EDIL<span className="text-edil-green">BET</span><span className="ml-2 hidden rounded bg-white/5 px-1.5 py-1 align-middle text-[9px] font-bold tracking-[.2em] text-slate-400 sm:inline">SPORTS</span></span></button>
+        <button className="flex shrink-0 items-center gap-2" onClick={() => { navTo('Sports'); void router.push('/') }} aria-label="EdilBet home"><span className="grid h-10 w-10 place-items-center rounded-xl bg-edil-green text-lg font-black italic text-slate-950 shadow-glow">E</span><span className="text-xl font-black tracking-tight">EDIL<span className="text-edil-green">BET</span><span className="ml-2 hidden rounded bg-white/5 px-1.5 py-1 align-middle text-[9px] font-bold tracking-[.2em] text-slate-400 sm:inline">SPORTS</span></span></button>
         <nav className="hidden items-center gap-1 md:flex">{['Sports', 'Live', 'Results', 'Promotions'].map((item) => <button key={item} onClick={() => navTo(item)} className={`rounded-lg px-4 py-2.5 text-sm font-bold transition ${activeNav === item ? 'bg-edil-green/10 text-edil-green' : 'text-slate-400 hover:bg-white/5 hover:text-white'}`}>{item === 'Live' && <span className="mr-2 inline-block h-2 w-2 rounded-full bg-red-500"/>}{item}</button>)}</nav>
         <div className="flex items-center gap-2"><div className="hidden items-center gap-2 rounded-xl border border-white/10 bg-white/[.03] px-3 py-2.5 text-sm text-slate-400 lg:flex"><Wallet size={16}/><span>Balance</span><strong className="text-white">{isLoggedIn ? '0.00 ETB' : '— ETB'}</strong></div>
-          {isLoggedIn ? <button onClick={() => { localStorage.removeItem('token'); setIsLoggedIn(false) }} className="rounded-lg border border-white/10 px-3 py-2 text-sm font-bold hover:border-edil-green">Log out</button> : <><button onClick={() => setAuthOpen('login')} className="hidden rounded-lg px-3 py-2.5 text-sm font-bold text-slate-300 hover:text-white sm:block">Log in</button><button onClick={() => setAuthOpen('register')} className="rounded-lg bg-edil-green px-4 py-2.5 text-sm font-black text-slate-950 transition hover:bg-lime-300">Join now</button></>}
+          {isLoggedIn ? <button onClick={() => { window.localStorage.removeItem('token'); setIsLoggedIn(false) }} className="rounded-lg border border-white/10 px-3 py-2 text-sm font-bold hover:border-edil-green">Log out</button> : <><button onClick={() => setAuthOpen('login')} className="hidden rounded-lg px-3 py-2.5 text-sm font-bold text-slate-300 hover:text-white sm:block">Log in</button><button onClick={() => setAuthOpen('register')} className="rounded-lg bg-edil-green px-4 py-2.5 text-sm font-black text-slate-950 transition hover:bg-lime-300">Join now</button></>}
           <button onClick={() => setMobileOpen(!mobileOpen)} className="rounded-lg border border-white/10 p-2 md:hidden" aria-label="Open menu">{mobileOpen ? <X size={19}/> : <Menu size={19}/>}</button>
         </div>
       </div>

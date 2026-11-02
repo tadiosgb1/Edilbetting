@@ -8,13 +8,24 @@ const hostRoles: Record<string, TenantRole> = {
 }
 
 export function resolveTenant(): TenantRole {
-  const host = window.location.hostname.toLowerCase()
-  if (hostRoles[host]) return hostRoles[host]
-  const portRoles: Record<string, TenantRole> = { '5173': 'player', '5174': 'agent', '5175': 'admin' }
-  if (portRoles[window.location.port]) return portRoles[window.location.port]
-  const mode = import.meta.env.MODE
+  // Hostname selection is available in the browser. During server rendering,
+  // use the public role configured by the Next.js runtime instead.
+  if (typeof window !== 'undefined') {
+    const host = window.location.hostname.toLowerCase()
+    if (hostRoles[host]) return hostRoles[host]
+
+    const portRoles: Record<string, TenantRole> = {
+      '3000': 'player',
+      '3001': 'admin',
+      '3002': 'agent',
+    }
+    if (portRoles[window.location.port]) return portRoles[window.location.port]
+  }
+
+  const mode = process.env.NEXT_PUBLIC_APP_ROLE
   if (mode === 'agent' || mode === 'admin' || mode === 'player') return mode
-  const configured = import.meta.env.VITE_APP_TENANT
+
+  const configured = process.env.NEXT_PUBLIC_TENANT
   return configured === 'agent' || configured === 'admin' ? configured : 'player'
 }
 
