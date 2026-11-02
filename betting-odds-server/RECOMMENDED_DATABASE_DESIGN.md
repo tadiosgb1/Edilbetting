@@ -205,7 +205,7 @@ Unique: `(sport_id, odds_api_participant_id)`.
 
 **Example:** The NFL participant `Arizona Cardinals` is stored once with its Odds API participant ID. Every NFL event involving that team refers to the same internal `participants.id`. The source list may contain inactive participants, so presence in this table does not by itself mean the team is currently active.
 
-### Model 9 — `event_participants`
+### Model 8 — `event_participants`
 
 Links a specific event to the reusable participants taking part in it. This is a relationship table: it does not create another copy of the team's or player's identity.
 
@@ -227,7 +227,7 @@ For sports where the endpoint returns individual competitors, such as tennis pla
 
 The catalogue defines each market, sport capabilities say where it is applicable, and the current odds quotes show which markets are actually returned for an event. We do not keep a separate `event_markets` table because its event/market availability would duplicate information already represented by the current quotes.
 
-### Model 8 — `market_catalog`
+### Model 9 — `market_catalog`
 
 Canonical market definitions used by the application.
 
