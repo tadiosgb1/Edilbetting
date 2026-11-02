@@ -156,7 +156,6 @@ One row per fixture or sporting event. This is the single event record: store th
 | `status` | VARCHAR(30) | scheduled, live, completed, postponed, cancelled, abandoned |
 | `neutral_venue` | BOOLEAN NULL | Whether the venue is neutral |
 | `venue_name` | VARCHAR(180) NULL | Venue, if supplied reliably |
-| `last_synced_at` | DATETIME(3) NULL | Last successful sync |
 | `created_at`, `updated_at` | DATETIME | Record timestamps |
 
 Useful indexes: `(competition_id, start_time)`, `(status, start_time)`, and `(start_time)`.
@@ -293,7 +292,7 @@ Stores previous price states for a current quote. The quote identity (event, boo
 | `source_updated_at` | DATETIME(3) NULL | Source update time |
 | `recorded_at` | DATETIME(3) | Time this price state was saved |
 
-Store a history row when a meaningful price or selectable-state value changes. Keep this table append-only, and do not delete the referenced current quote while its history is retained.
+Store a history row when a meaningful price or selectable-state value changes. Keep this table append-only, and do not delete the referenced current quote while its history is retained. Event, bookmaker, market, and outcome are obtained through the referenced `odds_current` row, so they are not repeated here.
 
 ## 7. Results
 
@@ -304,10 +303,9 @@ Stores the latest accepted result summary for an event.
 | Column | Type | Description |
 |---|---|---|
 | `event_id` | BIGINT PK/FK | References `events.id` |
-| `status` | VARCHAR(30) | pending, provisional, final, corrected, abandoned |
+| `result_status` | VARCHAR(30) | pending, provisional, final, corrected, abandoned |
 | `home_score` | INT NULL | Home score where applicable |
 | `away_score` | INT NULL | Away score where applicable |
-| `is_final` | BOOLEAN | Whether result is final |
 | `source_updated_at` | DATETIME(3) NULL | Source update time |
 | `received_at` | DATETIME(3) | Time received |
 | `revision` | INT | Incremented when a correction is accepted |
@@ -329,7 +327,7 @@ Stores additional normalized result facts needed for specific markets, beyond th
 | `source_updated_at` | DATETIME(3) NULL | Source update time |
 | `received_at` | DATETIME(3) | Time received |
 
-Only store validated facts that are needed by supported settlement rules.
+Only store validated facts that are needed by supported settlement rules. Do not repeat the full-time home/away score here when it is already stored in `event_results`; use this table for additional facts such as half-time scores, corners, cards, sets, or player statistics.
 
 ## 8. Bets and settlement
 
@@ -443,6 +441,8 @@ Audit log for each automatic or administrator-triggered settlement run.
 | `error_summary` | TEXT NULL | Error details |
 
 Settlement must be idempotent: retrying a run must not pay the same bet twice. Financial payouts should also use a unique idempotency key in the wallet/ledger transaction.
+
+The current status fields on `bets` and `bet_selections` are convenient current-state values. The separate settlement tables preserve the decision history and calculation revision; they are not duplicate bet or selection records.
 
 ## 9. Table relationships at a glance
 
