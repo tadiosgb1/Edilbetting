@@ -1,16 +1,16 @@
-# Recommended Betting Database Design
+# Betting Database Architecture and Implementation Guide
 
-> **Status:** Recommended target architecture — documentation only; no application models or migrations are changed by this document.
+> **Purpose:** Define a professional, extensible data architecture for sports betting, from sports and competitions through odds, results, bet placement, and settlement.
 >
-> **Scope:** Sports, competitions, events, market definitions and event-market availability, odds, results, bet tickets, bet selections, and settlement.
+> **Scope:** Sports, countries, competitions, seasons, participants, events, market definitions, provider mappings, event-market availability, odds, results, bets, bet selections, and settlement.
 >
-> **Current integration:** The Odds API is the only provider currently assumed by the implementation examples. The design keeps provider-specific identifiers and payloads at the integration boundary so a second provider can be added later without pretending that all providers share the same API or data model.
+> **Database and ORM:** MySQL and Sequelize.
 >
-> **Database:** MySQL with Sequelize (matching the current backend).
->
-> **Relationship to existing documentation:** This file supplements `DATABASE_DESIGN.md`; it does not replace or delete it. Where the current code, the existing design document, and this recommendation differ, the difference is called out explicitly.
+> **Provider architecture:** Provider-specific identifiers, endpoint contracts, payloads, and terminology are isolated behind adapters and mapping tables. Each provider is integrated according to its own API contract; provider data is normalized into the platform's internal domain model before business logic uses it.
 
 ---
+
+## 1. Architecture overview
 
 ## 1. Executive recommendation
 
@@ -58,57 +58,7 @@ The key rules are:
 
 ---
 
-## 2. What the current code does today
-
-This section records the inspected implementation, not the proposed target.
-
-### 2.1 Sports and events
-
-In `Services/Syncservice.js`:
-
-- `syncSports()` calls `GET /sports`.
-- It upserts `Sport` using the provider's `key`, `title`, `group`, `active`, and `has_outrights`.
-- It assigns `country` using the local `Countryresolver.js`; the Odds API /sports response is not treated as a source of country data.
-- `syncEvents()` calls `GET /sports/{sportKey}/events`.
-- Events store the provider event ID, provider sport key, home-team name, away-team name, and commence time.
-
-### 2.2 Markets and odds
-
-For each event:
-
-- `discoverEventMarkets()` calls `GET /sports/{sportKey}/events/{eventId}/markets`.
-- It records each market key and bookmaker key in `event_markets`.
-- `syncOddsForEvent()` calls `GET /sports/{sportKey}/events/{eventId}/odds` with the discovered market keys.
-- `resolveBestOdds()` selects the first eligible bookmaker according to the configured priority, rather than preserving every bookmaker's quote as a separately selectable price.
-- Current prices are upserted into `odds_current`; a history row is inserted when the display price changes.
-- Rows not returned by the latest odds snapshot are marked suspended.
-
-### 2.3 Scores and settlement
-
-- `syncScores()` calls `GET /sports/{sportKey}/scores`.
-- It saves home and away scores, completion state, and updates event status.
-- The inspected `syncScores()` code does **not** settle bet selections or pay tickets.
-- The inspected model files do not establish a complete, auditable settlement workflow. The settlement design below is a recommendation, not a claim about an existing implementation.
-
-### 2.4 Current model limitations to address
-
-| Current model / behavior | Limitation | Recommendation |
-|---|---|---|
-| `Sport.sportKey = soccer_epl` | A competition is represented as a sport | Separate `sports` and `competitions`; retain provider key in a mapping |
-| `Event.sportKey` | Event is coupled to provider terminology | Store internal `competition_id`; keep provider event identity in a mapping |
-| Team names on Event | Names alone are not stable team identities | Add event participant snapshots; add reusable teams where reliable IDs exist |
-| `MarketCatalog.category` | Display category could be mistaken for market logic | Keep category for navigation only; use canonical market key and settlement rules for logic |
-| `EventMarket` | Unique identity currently omits data-provider identity | Include provider/source identity; keep bookmaker as a separate concept |
-| `OddsCurrent` | Unique key does not include provider or bookmaker | Define quote identity explicitly; retain source, bookmaker, and line/outcome identity |
-| `OddsHistory` | Does not fully identify the quote source | History must reference the same quote identity as current odds |
-| `Result` | One row has a few score/stat columns | Store normalized result facts and their source/version; support period and market-specific facts |
-| `BetSelection` | Snapshot is too small for many markets | Store line, description, participant, period, market/outcome labels and source snapshot |
-| `Bet.status` | Current model and design document disagree | Adopt one lifecycle and migrate deliberately |
-| Settlement | No verified complete workflow in inspected files | Add selection-level outcomes, ticket-level settlement, run/idempotency records |
-
----
-
-## 3. Provider integration boundary
+## 2. Provider integration boundary
 
 ### 3.1 Do not make provider fields your internal primary keys
 
@@ -119,7 +69,7 @@ Use internal database IDs for the platform's domain entities:
 - `events.id`
 - `market_catalog.id` (or a stable canonical market key)
 
-Keep the external provider's identifiers in mapping tables. For the current Odds API integration, provider name can be a fixed value such as `the_odds_api`; this does not mean another provider must be integrated now.
+Keep the external provider's identifiers in mapping tables. For each integration, register a provider code such as `the_odds_api`. Additional providers can be registered independently, each with its own adapter and mappings.
 
 This boundary is important because providers may disagree on:
 
@@ -197,7 +147,7 @@ Do not store API keys, authorization headers, or secrets in this table. Apply a 
 
 ---
 
-## 4. Sports, countries, competitions, and seasons
+## 3. Sports, countries, competitions, and seasons
 
 ### 4.1 `sports`
 
@@ -262,7 +212,7 @@ A competition belongs to one sport. Country describes the competition's organizi
 
 Unique: `(competition_id, name)`.
 
-The Odds API sports/events flow inspected here does not provide a dedicated season entity used by the current code. Season assignment should therefore be treated as optional platform metadata until a reliable source is available. Do not manufacture season IDs from assumptions.
+Season information is provider-dependent. Treat season assignment as optional until a trusted source supplies it; do not manufacture provider season identifiers.
 
 ### 4.5 Example
 
@@ -288,9 +238,9 @@ Sport: Basketball
 
 ---
 
-## 5. Teams and event participants
+## 4. Teams and event participants
 
-The current Odds API event response used by the code supplies home and away team names. The current implementation stores those names directly on `events`. Do not assume it supplies stable team IDs in this endpoint.
+Event providers may supply participant names, stable participant IDs, or both. Preserve the supplied identifiers when available, and retain participant-name snapshots even when canonical team matching is unresolved.
 
 Recommended:
 
@@ -328,7 +278,7 @@ Unique: `(event_id, role)` for two-team fixtures, with sport-specific validation
 
 ---
 
-## 6. Events
+## 5. Events
 
 An event is a fixture or contest within a competition.
 
@@ -355,7 +305,7 @@ Keep provider event identity in `provider_events`. Keep participant names in `ev
 
 ### Event synchronization
 
-Current Odds API endpoint:
+Odds API endpoint reference:
 
 ```http
 GET /v4/sports/{sport_key}/events?dateFormat=iso
@@ -374,7 +324,7 @@ For each returned event:
 
 ---
 
-## 7. Market definitions and provider market mappings
+## 6. Market definitions and provider market mappings
 
 Keep three concepts separate:
 
@@ -433,11 +383,11 @@ Unknown provider markets should be recorded as `review` or `unsupported`; do not
 
 The current `Services/marketCatalog.js` defines groups such as `featured`, `additional`, `gamePeriod`, `otherSoccer`, and `playerPropsSoccer`. `Models/Index.js` seeds these into `market_catalog`.
 
-Keep the useful display grouping, but add explicit canonical keys and settlement-rule references. The current code sets `displayName` to the raw market key; a professional catalogue should use reviewed human-readable labels and localized labels separately if needed.
+Use explicit canonical market keys and settlement-rule references. A professional catalogue should use reviewed human-readable labels, with localized labels stored separately when needed.
 
 ---
 
-## 8. Event market availability
+## 7. Event market availability
 
 Recommended `event_markets` represents the latest known availability of a market for a particular event, provider and bookmaker.
 
@@ -459,13 +409,13 @@ A useful unique key is `(event_id, provider_id, provider_market_key, bookmaker_k
 
 **Important distinction:** `market_catalog` says what the market is; `event_markets` says it was seen for this event/source/bookmaker. A market can exist in the catalogue but not be offered on a particular event.
 
-### Current Odds API endpoint
+### Odds API endpoint reference
 
 ```http
 GET /v4/sports/{sport_key}/events/{event_id}/markets?regions=eu&dateFormat=iso
 ```
 
-The current code uses the response's bookmaker and market lists to populate `event_markets`.
+Normalize the response's bookmaker and market lists into `event_markets` after validating the provider snapshot.
 
 ### Safer availability update procedure
 
@@ -481,7 +431,7 @@ This avoids a transient API failure making every market appear unavailable.
 
 ---
 
-## 9. Odds quotes: current and history
+## 8. Odds quotes: current and history
 
 A quote is a price for one outcome/selection of one market on one event, from one source/bookmaker, at a particular time.
 
@@ -555,7 +505,7 @@ Recommended:
 - Store which bookmaker/source quote was used when a bet was placed.
 - Do not overwrite one bookmaker's quote with another bookmaker's quote under the same identity.
 
-### 9.4 Odds endpoint used today
+### 9.4 Odds API endpoint reference
 
 ```http
 GET /v4/sports/{sport_key}/events/{event_id}/odds
@@ -565,11 +515,11 @@ GET /v4/sports/{sport_key}/events/{event_id}/odds
   &dateFormat=iso
 ```
 
-The current implementation first discovers event markets, then requests odds for those keys. Keep this behavior until quota, coverage, and provider documentation justify a different strategy.
+A common integration flow is to discover the markets available for an event and then request prices for those markets. The adapter should follow the selected provider's documented endpoint and quota model.
 
 ---
 
-## 10. Results and score facts
+## 9. Results and score facts
 
 A result is not just two numbers. Different markets require different facts:
 
@@ -617,19 +567,19 @@ For facts beyond the summary score:
 
 Store validated normalized facts needed by settlement. Preserve source payload separately if useful.
 
-### 10.3 Odds API score endpoint used today
+### 10.3 Odds API score endpoint reference
 
 ```http
 GET /v4/sports/{sport_key}/scores?dateFormat=iso&daysFrom={n}
 ```
 
-The current code saves home and away scores and completion state. It does not currently populate all the extra score/stat columns declared in `Result.js`.
+Normalize all available score and statistic fields into result facts. Populate only facts actually supplied and validated by the provider; leave unavailable facts unknown.
 
 **Settlement warning:** A full-time score is sufficient for some full-time result and goal-total markets, but not for player props, corners, cards, half-time markets, or every sport-specific market. If the provider does not return the facts required by a market's rule, that selection must remain awaiting a valid result or be handled by a documented manual/void process. Never guess.
 
 ---
 
-## 11. Bets and immutable selection snapshots
+## 10. Bets and immutable selection snapshots
 
 A bet is the customer's ticket. A selection is one leg on that ticket.
 
@@ -652,7 +602,7 @@ Recommended fields:
 | `settled_at` | DATETIME(3) NULL | |
 | `created_at`, `updated_at` | DATETIME | |
 
-Choose one status vocabulary and use it consistently in model, migrations, services, API responses, and documentation. The current `Bet.js` enum includes `completed`, while the current design document uses `cancelled`; resolve this mismatch in a planned migration rather than silently changing a live enum.
+Choose one status vocabulary and use it consistently in model, migrations, services, API responses, and documentation. Choose one status vocabulary and apply it consistently across models, migrations, services, API responses, and documentation. Document the meaning and allowed transitions of every status.
 
 ### 11.2 `bet_selections`
 
@@ -696,7 +646,7 @@ A void leg in an accumulator generally has its odds treated as 1.0, but confirm 
 
 ---
 
-## 12. Market settlement rules
+## 11. Market settlement rules
 
 Never settle a market using only its display category or a string comparison against a provider outcome name.
 
@@ -711,7 +661,7 @@ Create a versioned rules registry, for example `settlement_rule_key` on `market_
 | Total corners | `football_total_corners_ft_v1` | Validated corner total |
 | Anytime goalscorer | `football_player_goal_v1` | Player goal fact and participant identity |
 
-These are examples of rule identifiers and required facts, not proof that the current Odds API response provides all those facts.
+These are examples of rule identifiers and required facts. Each provider adapter must establish which facts it can supply and their reliability before a market is enabled for settlement.
 
 A settlement rule should define:
 - Supported sport and market.
@@ -728,7 +678,7 @@ Use deterministic, unit-tested pure functions for rule evaluation. Keep provider
 
 ---
 
-## 13. Settlement records, idempotency, and audit
+## 12. Settlement records, idempotency, and audit
 
 ### 13.1 `selection_settlements`
 
@@ -805,11 +755,11 @@ Sports results can be corrected. Define a policy before launch:
 
 ---
 
-## 14. Odds API endpoint map (current integration)
+## 13. Odds API endpoint map (current integration)
 
-The following endpoints are the ones used in the inspected current code. They are not generic endpoints for every possible provider.
+The following endpoints illustrate one provider's API contract. They are not a universal contract. Every provider adapter must implement its own endpoint paths, parameters, pagination, authentication, and response normalization according to that provider's documentation.
 
-| Data/model | Current endpoint | How it is used |
+| Data/model | Odds API endpoint | How the endpoint contributes |
 |---|---|---|
 | Provider competition catalogue | `GET /v4/sports` | `syncSports()`; discover provider keys and metadata |
 | Events | `GET /v4/sports/{sport_key}/events` | `syncEvents()`; retrieve fixtures for a provider key |
@@ -817,13 +767,13 @@ The following endpoints are the ones used in the inspected current code. They ar
 | Event odds | `GET /v4/sports/{sport_key}/events/{event_id}/odds` | `syncOddsForEvent()`; retrieve prices for discovered market keys |
 | Scores | `GET /v4/sports/{sport_key}/scores` | `syncScores()`; retrieve score/completion data |
 
-The current code also passes parameters such as `regions`, `oddsFormat`, `dateFormat`, `markets`, and optional `daysFrom` as appropriate.
+Depending on the request, parameters can include `regions`, `oddsFormat`, `dateFormat`, `markets`, and `daysFrom`. Validate supported parameters against the provider's documentation.
 
-There is no Odds API endpoint in the inspected code that settles our customer bets. Settlement is an internal platform responsibility based on validated result facts and our own rules.
+Provider APIs supply sports data, prices, and results according to their contracts. Customer bet settlement remains an internal platform responsibility based on validated result facts and the platform's published rules.
 
 ---
 
-## 15. Recommended Sequelize model layout
+## 14. Recommended Sequelize model layout
 
 A possible file organization (adapt names to the project's existing naming convention):
 
@@ -963,7 +913,7 @@ The examples show model shape and associations; they are not ready-to-run migrat
 
 ---
 
-## 16. Provider adapter and synchronization service design
+## 15. Provider adapter and synchronization service design
 
 Keep provider-specific HTTP requests and response parsing outside domain services.
 
@@ -1032,16 +982,16 @@ The domain sync service should:
 
 ---
 
-## 17. Migration plan from the current schema
+## 15. Implementation and rollout plan
 
 Do this in stages. Do not replace tables in one deployment.
 
 ### Phase 0 — safeguards
 
 1. Back up the database.
-2. Add explicit Sequelize migrations; stop relying on `sequelize.sync({ alter: true })` for production schema changes.
-3. Record current row counts and unique keys.
-4. Add tests for existing odds sync and bet placement before changing relationships.
+2. Use explicit Sequelize migrations for production schema changes.
+3. Record baseline row counts and unique keys.
+4. Add tests for provider synchronization, bet placement, and settlement before changing relationships.
 
 ### Phase 1 — sports and competitions
 
@@ -1085,11 +1035,11 @@ Do this in stages. Do not replace tables in one deployment.
 
 ### Phase 5 — remove compatibility fields
 
-Remove old columns and legacy paths only after production reads/writes no longer depend on them.
+Remove temporary compatibility columns and paths only after production reads/writes no longer depend on them.
 
 ---
 
-## 18. Indexes, constraints, and data integrity
+## 17. Indexes, constraints, and data integrity
 
 At minimum:
 
@@ -1113,7 +1063,7 @@ Use DECIMAL for money and odds, never floating point. Store timestamps in UTC. D
 
 ---
 
-## 19. Operational and security requirements
+## 18. Operational and security requirements
 
 - API keys and secrets belong in environment/secret management, never in source control or raw logs.
 - Record endpoint, provider, response status, duration, quota/usage headers where available, record counts, and errors.
@@ -1131,7 +1081,7 @@ Use DECIMAL for money and odds, never floating point. Store timestamps in UTC. D
 
 ---
 
-## 20. Recommended implementation order
+## 19. Recommended implementation order
 
 For this repository, I recommend implementing in this order:
 
@@ -1149,9 +1099,9 @@ Do not build every sport and every market at once. Start with one supported spor
 
 ---
 
-## 21. Decisions to confirm before implementation
+## 20. Decisions to confirm before implementation
 
-These are product/engineering decisions, not facts the current code already establishes:
+These product and engineering decisions should be confirmed before implementation:
 
 1. Which sports and competitions should be enabled initially?
 2. Which country/competition ordering should the frontend use?
@@ -1161,4 +1111,4 @@ These are product/engineering decisions, not facts the current code already esta
 6. Which bet types are supported: singles only initially, or accumulators as well?
 7. What is the accepted policy for result corrections after a ticket has been paid?
 
-**Final recommendation:** build a provider-independent internal betting domain, but implement and test only the current Odds API adapter first. Provider independence should come from mapping tables and adapters—not from assuming all providers have identical sports, events, markets, outcomes, or scores.
+**Architecture principle:** build a provider-independent internal betting domain and integrate each provider through a dedicated adapter. Provider independence comes from explicit mappings and normalization—not from assuming providers share identical sports, events, markets, outcomes, or result structures.
