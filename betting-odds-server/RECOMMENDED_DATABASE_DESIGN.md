@@ -21,10 +21,14 @@ The platform stores Odds API keys in dedicated mapping tables rather than using 
 
 ```text
 sports
-  └── competitions
-        ├── competition_seasons
-        └── odds_api_competitions
-              └── events
+  ├── competitions
+  │     ├── competition_seasons
+  │     ├── competition_season_rules
+  │     └── odds_api_competition_mappings
+  └── odds_api_catalog_entries
+        └── odds_api_competition_mappings
+
+events (linked to internal competitions when identified)
                     ├── event_participants
                     ├── event_markets
                     │     └── odds_current
@@ -619,7 +623,7 @@ Unique: `(competition_id, name)`.
 
 Season information is Odds API-dependent. Treat season assignment as optional until a trusted source supplies it; do not manufacture Odds API season identifiers.
 
-### 2.5 `odds_api_competitions`
+### 2.5 `odds_api_competition_mappings`
 
 This table connects an internal competition to the corresponding sport key returned by The Odds API. It belongs after the internal sport, country, competition, and season records because it maps an external competition identifier to an already-defined internal competition.
 
@@ -638,7 +642,7 @@ This table connects an internal competition to the corresponding sport key retur
 
 **Unique constraint:** `odds_api_sport_key`.
 
-**Why:** `sports` stores Football or Basketball; `competitions` stores Premier League or NBA; `odds_api_competitions` stores the exact Odds API key used to retrieve that competition's data. This keeps the three concepts clear.
+**Why:** `sports` stores Football or Basketball; `competitions` stores Premier League or NBA; `odds_api_competition_mappings` stores the exact Odds API key used to retrieve that competition's data. This keeps the three concepts clear.
 
 ### 2.6 Example
 
@@ -756,7 +760,7 @@ GET /v4/sports/{sport_key}/events?dateFormat=iso
 
 For each returned event:
 
-1. Find the internal competition through `odds_api_competitions`.
+1. Find the internal competition through `odds_api_competition_mappings`.
 2. Find or create `odds_api_events` using `odds_api_event_id`.
 3. Create or update the internal event.
 4. Upsert participant snapshots.
@@ -1540,10 +1544,10 @@ Do this in stages. Do not replace tables in one deployment.
 
 ### Phase 1 — sports and competitions
 
-1. Create `countries`, `competitions`, `competition_seasons`, and `odds_api_competitions`.
+1. Create `countries`, `competitions`, `competition_seasons`, and `odds_api_competition_mappings`.
 2. Create canonical sport rows (Football, Basketball, Tennis, etc.).
 3. Create an Odds API competition mapping for each sport key, using reviewed competition metadata.
-4. Preserve the original Odds API key exactly in `odds_api_competitions.odds_api_sport_key`.
+4. Preserve the original Odds API key exactly in `odds_api_competition_mappings.odds_api_sport_key`.
 5. Add `competition_id` to events and backfill it using the Odds API mapping.
 6. Keep any transitional compatibility columns only for the duration of the migration.
 7. Update event sync to write the new relationship.
@@ -1591,7 +1595,7 @@ At minimum:
 - Unique `sports.slug` and `sports.code`.
 - Unique `competitions.slug`.
 - Index `competitions(sport_id, country_id, is_active, sort_order)`.
-- Unique `odds_api_competitions(odds_api_sport_key)`. 
+- Unique `odds_api_competition_mappings(odds_api_sport_key)`. 
 - Unique `odds_api_events(odds_api_event_id)`. 
 - Index `events(competition_id, start_time)` and `events(status, start_time)`.
 - Unique `odds_api_market_mappings(sport_id, odds_api_market_key)`. 
@@ -1687,7 +1691,7 @@ Representative response item:
 Maps to:
 - sports: Soccer.
 - competitions: Premier League.
-- odds_api_competitions: exact key soccer_epl, source title/group/status and last_synced_at.
+- odds_api_competition_mappings: exact key soccer_epl, source title/group/status and last_synced_at.
 - countries: resolved by backend classification, not by this response.
 - competition_seasons: created from the maintained season calendar, not from this response.
 
