@@ -184,33 +184,238 @@ for (const item of oddsApiSports) {
 
 This is a synchronization outline. Implement the upsert and association operations in a transaction and use the actual Sequelize instance-return conventions in the service.
 
-#### Seasons: what data is available and how to create them
+#### Seasons: automatic discovery, generation and assignment
 
-The sports discovery response above does not contain a season name, season ID, start date or end date. The standard event-list response also does not provide a dependable competition-season identifier. Do not invent an Odds API season ID.
+**Do not create every season row manually.** The system should generate season records automatically. However, The Odds API does not expose a dedicated season catalogue endpoint or a guaranteed season identifier/date range in the standard sports and event responses. The backend must derive the season using event dates and a reusable competition calendar rule. This is automatic season generation, not manual entry of every season.
 
-Create competition_seasons from a controlled season calendar. For example:
+##### What The Odds API can and cannot tell us
+
+| Endpoint | Season-related information | What it can reliably do |
+|---|---|---|
+| GET /v4/sports | Competition key, group, title, active, has_outrights | Identify the competition and whether it is currently active; it does not return season name or boundaries |
+| GET /v4/sports/{sport_key}/events | Event ID, home/away names, commence_time | Supply fixture dates used to assign events to a season |
+| GET /v4/sports/{sport_key}/scores?daysFrom=1..3 | Event dates, completion state and scores for supported sports | Confirm recent completed events; it is not a full season results archive |
+| GET /v4/historical/sports/{sport_key}/events?date=... | Historical event snapshot at a requested timestamp (paid plans) | Recover event IDs that appeared in a historical snapshot; it is not a season list and does not guarantee complete coverage of all fixtures in a season |
+| GET /v4/historical/sports/{sport_key}/odds?date=... | Historical event and odds snapshot | Historical pricing research; it does not identify the official season boundaries |
+
+The API documentation describes the events endpoint as returning in-play and pre-match events with event ID, teams and commencement time. It describes scores as upcoming/live/recently completed, with completed games available for up to three days using daysFrom. Historical events are snapshots at a requested timestamp and are available on paid plans. These are useful inputs, but none is a season metadata endpoint. See the official [Odds API V4 documentation](https://the-odds-api.com/liveapi/guides/v4/).
+
+##### Recommended approach: rule-driven season generation
+
+Create a small configuration table named competition_season_rules. A rule describes how seasons are named and bounded for a competition. Configure the rule once; the backend uses it every year to generate season rows automatically.
+
+| Column | Type | Example | Purpose |
+|---|---|---|---|
+| id | BIGINT PK | 1 | Rule ID |
+| competition_id | BIGINT FK | 7 | Competition this rule applies to |
+| rule_type | ENUM | fixed_month_window | Rule algorithm |
+| start_month | SMALLINT | 8 | Typical season start month |
+| start_day | SMALLINT | 1 | Typical season start day |
+| end_month | SMALLINT | 5 | Typical season end month |
+| end_day | SMALLINT | 31 | Typical season end day |
+| label_format | VARCHAR(40) | YYYY/YYYY+1 | How to name a season |
+| year_anchor | ENUM | start_year | Which year determines the label |
+| timezone | VARCHAR(64) | Europe/London | Calendar timezone for boundaries |
+| confidence_threshold | DECIMAL(4,3) | 0.900 | Minimum confidence for automatic assignment |
+| is_enabled | BOOLEAN | true | Whether the rule runs |
+| last_verified_at | DATE NULL | 2026-07-15 | Last validation date |
+
+Other rule types can support calendar_year (January–December), split_year (for seasons crossing two calendar years), tournament_window (a bounded tournament), and rolling_year where appropriate. Avoid assuming every sport follows the same season pattern.
+
+The rule is not a season record. It is the reusable instruction for generating season records. A scheduled job uses the rule to create current and next seasons, then updates the records as new event data arrives.
+
+##### Example: Premier League season generated automatically
+
+Suppose the Premier League rule is:
+- start: August 1
+- end: May 31 of the following year
+- label: start year / end year
+- timezone: Europe/London
+
+The backend calculates and upserts:
+
+~~~json
+[
+  {
+    "competitionId": 7,
+    "name": "2025/2026",
+    "startDate": "2025-08-01",
+    "endDate": "2026-05-31",
+    "isCurrent": false,
+    "generationMethod": "rule_generated"
+  },
+  {
+    "competitionId": 7,
+    "name": "2026/2027",
+    "startDate": "2026-08-01",
+    "endDate": "2027-05-31",
+    "isCurrent": true,
+    "generationMethod": "rule_generated"
+  },
+  {
+    "competitionId": 7,
+    "name": "2027/2028",
+    "startDate": "2027-08-01",
+    "endDate": "2028-05-31",
+    "isCurrent": false,
+    "generationMethod": "rule_generated"
+  }
+]
+~~~
+
+These are generated from the rule, not typed in individually. The example dates illustrate the rule window; they are not a claim that the official league calendar always begins exactly on August 1 or ends exactly on May 31. If exact official dates are required, update the rule/boundaries from a trusted official competition calendar or a licensed fixture/competition metadata source.
+
+##### Example: calendar-year competition
+
+For a competition whose season follows the calendar year, use:
+- start: January 1
+- end: December 31
+- label: YYYY
+
+The job generates 2026, 2027, 2028, and so on. A tournament such as a World Cup may instead use tournament_window and actual event dates; do not force every tournament into a domestic league's annual season pattern.
+
+##### How event dates assign the season
+
+When an event arrives from:
+
+~~~http
+GET /v4/sports/{sport_key}/events?dateFormat=iso
+~~~
+
+Representative source event:
 
 ~~~json
 {
-  "competition": "Premier League",
-  "season": {
-    "name": "2026/2027",
-    "start_date": "2026-08-01",
-    "end_date": "2027-05-31",
-    "is_current": true,
-    "odds_api_season_ref": null
+  "id": "a512a48a58c4329048174217b2cc7ce0",
+  "sport_key": "soccer_epl",
+  "sport_title": "EPL",
+  "commence_time": "2026-11-08T16:30:00Z",
+  "home_team": "Arsenal",
+  "away_team": "Chelsea"
+}
+~~~
+
+The backend:
+1. Resolves sport_key to the internal competition.
+2. Reads the competition's active season rule.
+3. Converts commence_time into the rule's configured timezone.
+4. Finds the generated season whose [start_date, end_date] contains that local event date.
+5. Assigns events.season_id to that season.
+6. Stores the assignment method and confidence for auditing.
+7. If no rule or matching season exists, keeps season_id NULL, records season_assignment_status = needs_review and triggers rule discovery/validation. Do not silently assign the nearest season.
+
+Example internal event:
+
+~~~json
+{
+  "id": 501,
+  "competitionId": 7,
+  "seasonId": 32,
+  "startTime": "2026-11-08T16:30:00Z",
+  "seasonAssignment": {
+    "method": "competition_rule",
+    "confidence": 0.98,
+    "status": "assigned"
   }
 }
 ~~~
 
-A season record would look like:
+##### Can we discover the rule automatically from Odds API event history?
 
-| id | competition_id | name | start_date | end_date | is_current |
-|---:|---:|---|---|---|---|
-| 31 | 7 | 2025/2026 | 2025-08-01 | 2026-05-31 | false |
-| 32 | 7 | 2026/2027 | 2026-08-01 | 2027-05-31 | true |
+We can use event dates to propose a rule, but must distinguish a proposal from a verified official season boundary.
 
-When an event is synchronized, assign season_id by checking which configured season window contains the event's start_time. If no season window matches, leave season_id NULL and queue the event/competition for classification. Cup competitions and tournaments may use calendar-year names such as 2026 rather than 2026/2027.
+A discovery job can:
+1. Collect event commence_time values for the competition over time from the normal events feed.
+2. Store first_seen_at, last_seen_at and event date ranges.
+3. Use historical events snapshots, if the subscription includes them, to add historical event-date evidence. The historical endpoint returns events as seen at a particular snapshot time; it does not promise a complete historical season fixture list.
+4. Group event dates into recurring annual cycles and detect likely gaps between seasons.
+5. Propose a season pattern (for example, August-to-May or January-to-December).
+6. Compare the proposal with known competition format/official calendar data before marking it verified.
+7. Generate future seasons from the verified rule.
+
+Do not infer a season boundary merely from the first and last events currently returned by the upcoming events endpoint. That feed can be a partial window; the first event returned is not necessarily the season opener, and the last event returned is not necessarily the final.
+
+##### How do we get confidence and be sure?
+
+There are two levels of certainty:
+
+- **Operational assignment:** a fixture date falls inside a configured competition rule. This is reliable for grouping fixtures when the rule is correct.
+- **Official season correctness:** the generated start/end boundaries match the competition's official season. Odds API alone cannot guarantee this because its standard sports/events/scores responses do not publish official season boundaries.
+
+Use these fields on competition_seasons:
+
+| Field | Example | Purpose |
+|---|---|---|
+| generation_method | rule_generated | How the row was created |
+| boundary_source | competition_rule | Rule, official_calendar, licensed_metadata, inferred_events |
+| verification_status | verified, provisional, needs_review | Whether boundaries are confirmed |
+| confidence_score | 0.98 | Confidence in the season assignment/boundaries |
+| first_observed_event_at | 2026-08-08T14:00:00Z | First observed fixture in this season |
+| last_observed_event_at | NULL | Last observed fixture; updated over time |
+| verified_at | 2026-07-15T00:00:00Z | When boundary was last verified |
+
+For high confidence, use the Odds API for the actual event/fixture feed and use one authoritative calendar source for the competition's official season boundaries (official league/tournament schedule or a licensed competition metadata feed). This does not mean manually entering every season. It means the system obtains/updates the season boundaries automatically from a source that actually publishes them. If no such source is integrated, generate seasons from reusable rules and label them provisional until the event pattern is sufficiently validated.
+
+**Important:** do not present inferred dates as official dates. For a competition whose season format changes, whose schedule is split, or whose events cross calendar years, require validation before auto-publishing the new boundary.
+
+##### Scheduled automation
+
+Run the following jobs:
+- **Catalogue sync:** refresh the Odds API sports list and competition mappings.
+- **Season generation:** daily or weekly, generate the current and next season for every enabled competition rule; use a unique key (competition_id, name) so the job is idempotent.
+- **Event sync:** after event ingestion, assign season_id using the competition's generated season windows.
+- **Season observation:** update first/last observed event dates and detect events outside the current season.
+- **Boundary validation:** periodically compare generated season windows with official/licensed calendar data where integrated; mark changed boundaries for review.
+- **New competition rule discovery:** when a new competition appears, classify its season pattern from its event history and sport/competition format; if evidence is insufficient, mark season assignment as needs_review rather than guessing.
+
+##### Example database records
+
+Rule:
+
+~~~json
+{
+  "competitionId": 7,
+  "ruleType": "fixed_month_window",
+  "startMonth": 8,
+  "startDay": 1,
+  "endMonth": 5,
+  "endDay": 31,
+  "labelFormat": "YYYY/YYYY+1",
+  "timezone": "Europe/London",
+  "isEnabled": true
+}
+~~~
+
+Generated season:
+
+~~~json
+{
+  "id": 32,
+  "competitionId": 7,
+  "name": "2026/2027",
+  "startDate": "2026-08-01",
+  "endDate": "2027-05-31",
+  "isCurrent": true,
+  "generationMethod": "rule_generated",
+  "boundarySource": "competition_rule",
+  "verificationStatus": "provisional",
+  "confidenceScore": 0.98
+}
+~~~
+
+Assigned event:
+
+~~~json
+{
+  "id": 501,
+  "competitionId": 7,
+  "seasonId": 32,
+  "seasonAssignmentStatus": "assigned",
+  "seasonAssignmentMethod": "competition_rule"
+}
+~~~
+
+The system therefore does not ask an administrator to create a new season every year. Administrators only review exceptional competitions or changes in season format; normal season rows are generated and assigned automatically.
 
 A season is a competition's time-bounded edition. For example, the Premier League 2026/2027 is one season; the Premier League 2027/2028 is another. It is not a separate competition and it is not a sport.
 
@@ -1385,7 +1590,8 @@ Maps to:
 - odds_api_events: source event ID and source sport key.
 - events: internal event ID, competition_id, optional season_id, start_time and status.
 - event_participants: home and away participant-name snapshots; optionally link to canonical teams.
-- Do not assume the payload contains a season ID, country, venue or canonical team ID.
+
+**Season note:** this response gives the event date, not an official season ID/name/start/end. The backend assigns season_id by applying the competition_season_rules calendar and matching commence_time to an automatically generated competition_seasons window. It must not assume the event payload contains season metadata. The season-generation and confidence process is defined in section 2.0.
 
 ### 20.3 Odds API endpoint: event market discovery
 
@@ -1703,7 +1909,7 @@ Purpose: competition detail, including sport, country/region and source mapping.
 
 #### GET /api/competitions/:competitionId/seasons
 
-Purpose: show available season editions, including current and historical seasons.
+Purpose: show automatically generated season editions, including current and historical seasons. Include verificationStatus and boundarySource so the frontend/admin UI can distinguish a verified official season from a provisional rule-generated season.
 
 ~~~json
 {
@@ -1721,7 +1927,9 @@ Purpose: show available season editions, including current and historical season
       "name": "2026/2027",
       "startDate": "2026-08-01",
       "endDate": "2027-05-31",
-      "isCurrent": true
+      "isCurrent": true,
+      "verificationStatus": "provisional",
+      "boundarySource": "competition_rule"
     }
   ],
   "meta": { "count": 2 }
@@ -2044,7 +2252,7 @@ Store the competition/season reference on the outright market context, preserve 
 | sports | Normalized group values from GET /v4/sports | /api/sports, /api/sports/types |
 | countries | Curated country reference and competition classification rules | /api/sports/:sportType/countries |
 | competitions | Each sport item returned by GET /v4/sports | top-leagues, country competitions, competition detail |
-| competition_seasons | Maintained competition season calendar | /api/competitions/:id/seasons |
+| competition_season_rules | Reusable season-window rules applied by scheduled jobs | Backend-only configuration for automatic season generation |\n| competition_seasons | Automatically generated from competition_season_rules and validated against event dates/official calendar data | /api/competitions/:id/seasons |
 | odds_api_competitions | Exact key/group/title/active/has_outrights from sports response | Usually backend-only metadata |
 | teams | Incrementally canonicalized participant snapshots | Event detail and team pages |
 | odds_api_teams | Only reliable source participant IDs when available | Backend-only identity mapping |
