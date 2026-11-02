@@ -137,51 +137,24 @@ Stores the original Odds API sports-catalogue item and connects its sport key to
 
 The `original_response` field stores the individual object for the key, not the entire response array. Country resolution must be reviewed; never infer a country solely from an unverified title or group.
 
-## 3. Teams and event participants
+## 3. Event participants
 
-### Model 6 — `teams`
+### Model 6 — `event_participants`
 
-Canonical directory of teams. A team may appear in many competitions and events.
-
-| Column | Type | Description |
-|---|---|---|
-| `id` | BIGINT PK | Internal team ID |
-| `sport_id` | BIGINT FK | Team's sport |
-| `name` | VARCHAR(180) | Canonical team name |
-| `slug` | VARCHAR(180) NULL | URL-friendly name |
-| `country_id` | BIGINT FK NULL | Team's country, not the competition country |
-| `is_active` | BOOLEAN | Whether the team is active |
-| `created_at`, `updated_at` | DATETIME | Record timestamps |
-
-### Model 7 — `odds_api_teams`
-
-Maps a canonical team to an Odds API team identifier when a reliable source ID is available.
-
-| Column | Type | Description |
-|---|---|---|
-| `id` | BIGINT PK | Mapping ID |
-| `team_id` | BIGINT FK | References `teams.id` |
-| `odds_api_team_id` | VARCHAR(150) | Exact Odds API team ID, if supplied |
-| `odds_api_sport_key` | VARCHAR(150) NULL | Sport key used to identify it |
-| `created_at`, `updated_at` | DATETIME | Record timestamps |
-
-Do not assume a team name is a stable external ID. If the Odds API does not supply a reliable team ID for the relevant data, do not fabricate one.
-
-### Model 8 — `event_participants`
-
-Connects teams or other competitors to an event and preserves the participant name received for that event.
+Stores the teams or individual competitors taking part in one specific event. Each row belongs to an event. This is enough for the current odds workflow; a separate permanent `teams` table and an `odds_api_teams` mapping table are not required.
 
 | Column | Type | Description |
 |---|---|---|
 | `id` | BIGINT PK | Participant row ID |
 | `event_id` | BIGINT FK | References `events.id` |
-| `team_id` | BIGINT FK NULL | Canonical team, if matched |
-| `participant_name` | VARCHAR(180) | Name shown for this event |
+| `participant_name` | VARCHAR(180) | Name received for this event |
 | `role` | VARCHAR(20) | home, away, competitor, player |
-| `odds_api_participant_id` | VARCHAR(150) NULL | Source ID, if supplied |
+| `odds_api_participant_id` | VARCHAR(150) NULL | Source participant ID, only if supplied |
 | `created_at`, `updated_at` | DATETIME | Record timestamps |
 
-**Example:** An event can have a home and away participant. Keep the name snapshot even when `team_id` is NULL, so an uncertain team match does not lose the source name.
+**Example — Arsenal vs Chelsea:** create one event, then add two participant rows: `Arsenal / home` and `Chelsea / away`. For an individual-player market, a participant row can instead identify the relevant player. Keep the event's participant name even if no external participant ID is provided.
+
+A participant is **not** a permanent team profile. It records who is involved in this particular event. A separate team directory would only be useful later if the platform needs reusable team profiles, team statistics, or team-level search across many events.
 
 ## 4. Events
 
@@ -324,7 +297,7 @@ Stores the latest price for each event, bookmaker, market, and outcome/line.
 | `bookmaker_id` | BIGINT FK | Bookmaker offering the price |
 | `outcome_key` | VARCHAR(150) NULL | Source outcome ID, if supplied |
 | `outcome_name` | VARCHAR(180) | e.g. Arsenal, Draw, Over |
-| `participant_id` | BIGINT FK NULL | Player/team for participant markets |
+| `participant_id` | BIGINT FK NULL | References `event_participants.id` for participant markets |
 | `line_value` | DECIMAL(10,3) NULL | Handicap or total line |
 | `period_key` | VARCHAR(40) NULL | Full time, first half, set, quarter, etc. |
 | `description` | VARCHAR(255) NULL | Additional source selection description |
@@ -387,7 +360,7 @@ Stores additional normalized result facts needed for specific markets, beyond th
 | `id` | BIGINT PK | Fact ID |
 | `event_id` | BIGINT FK | Event |
 | `fact_key` | VARCHAR(100) | e.g. total_corners, home_score_h1 |
-| `participant_id` | BIGINT FK NULL | Related team/player |
+| `participant_id` | BIGINT FK NULL | References `event_participants.id`, when related to a participant |
 | `period_key` | VARCHAR(40) NULL | Half, quarter, set, etc. |
 | `numeric_value` | DECIMAL(12,3) NULL | Numeric result |
 | `text_value` | VARCHAR(255) NULL | Text result |
@@ -517,7 +490,7 @@ sports
   └── competitions
         ├── competition_seasons
         ├── events
-        │     ├── event_participants ── teams
+        │     ├── event_participants
         │     ├── odds_api_events
         │     ├── event_markets
         │     │     └── odds_current ── bookmakers
