@@ -106,7 +106,7 @@ Stores the seasons belonging to a competition. The sports endpoint does not prov
 
 ### Model 5 — `odds_api_sports_competition_mappings`
 
-Stores the original Odds API sports-catalogue item and connects its sport key to the internal catalogue. Create one row per unique response `key`. This is the single table for Odds API sports entries; do not add a separate catalogue table.
+Stores each original Odds API sports-catalogue item and connects its sport key to the internal catalogue. Each unique response `key` has one row in this table.
 
 | Column | Type | Description |
 |---|---|---|
@@ -141,7 +141,7 @@ The `original_response` field stores the individual object for the key, not the 
 
 ### Model 6 — `events`
 
-One row per fixture or sporting event. This is the single event record: store the Odds API event identity here as well as the application's internal competition and season foreign keys. Do not create a second `odds_api_events` table for the same event.
+One row represents one fixture or sporting event. It stores the Odds API event identity together with the application's internal competition and season foreign keys.
 
 | Column | Type | Description |
 |---|---|---|
@@ -160,7 +160,7 @@ One row per fixture or sporting event. This is the single event record: store th
 
 Useful indexes: `(competition_id, start_time)`, `(status, start_time)`, and `(start_time)`.
 
-**Example — one event row, not two tables:**
+**Example — event record:**
 
 The Odds API event response supplies its own event ID and sport key. Our backend finds the matching row in `odds_api_sports_competition_mappings`, then saves the internal foreign keys on the same event row:
 
@@ -178,7 +178,7 @@ The Odds API event response supplies its own event ID and sport key. Our backend
 }
 ```
 
-The API does not send our `competition_id` or `season_id`; the backend supplies them after resolving the source sport-key mapping. Participants are saved in `event_participants` using `event_id = 501`. There is no second event table.
+The API does not send our `competition_id` or `season_id`; the backend supplies them after resolving the source sport-key mapping. Participants are saved in `event_participants` using `event_id = 501`.
 
 
 ## 4. Event participants
