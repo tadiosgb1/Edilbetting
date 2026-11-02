@@ -2,11 +2,11 @@
 
 > **Purpose:** Define a professional, extensible data architecture for sports betting, from sports and competitions through odds, results, bet placement, and settlement.
 >
-> **Scope:** Sports, countries, competitions, seasons, participants, events, market definitions, provider mappings, event-market availability, odds, results, bets, bet selections, and settlement.
+> **Scope:** Sports, countries, competitions, seasons, participants, events, market definitions, Odds API mappings, event-market availability, odds, results, bets, bet selections, and settlement.
 >
 > **Database and ORM:** MySQL and Sequelize.
 >
-> **Provider architecture:** Provider-specific identifiers, endpoint contracts, payloads, and terminology are isolated behind adapters and mapping tables. Each provider is integrated according to its own API contract; provider data is normalized into the platform's internal domain model before business logic uses it.
+> **Odds data source:** The database design and model examples are based on The Odds API data contract. Odds API sport keys, event IDs, market keys, bookmaker keys, and source timestamps are retained where needed, while betting business logic uses stable internal IDs and normalized records.
 
 ---
 
@@ -17,13 +17,13 @@ A sports betting platform should distinguish the sport itself from the competiti
 - **Sport:** football, basketball, tennis, cricket.
 - **Competition:** Premier League, La Liga, NBA, Wimbledon.
 
-The platform stores provider keys in mapping tables rather than using them as internal entity identities:
+The platform stores Odds API keys in mapping tables rather than using them as internal entity identities:
 
 ```text
 sports
   └── competitions
         ├── competition_seasons
-        └── provider_competitions
+        └── odds_api_competitions
               └── events
                     ├── event_participants
                     ├── event_markets
@@ -34,7 +34,7 @@ sports
                           └── selection_settlements
 
 market_catalog
-  └── provider_market_mappings
+  └── odds_api_market_mappings
 
 bets
   ├── bet_selections
@@ -45,20 +45,20 @@ settlement_runs
 
 The key rules are:
 
-1. Internal IDs identify our records. Provider IDs and keys identify records at an external provider.
-2. Provider-specific payloads are translated into a stable internal representation before they reach betting business logic.
-3. A provider's market key is not automatically a universal market definition. It must be mapped to our canonical market key.
+1. Internal IDs identify our records. Odds API IDs and keys identify records at an external Odds API.
+2. Odds API-specific payloads are translated into a stable internal representation before they reach betting business logic.
+3. A Odds API's market key is not automatically a universal market definition. It must be mapped to our canonical market key.
 4. An event's availability of a market is different from the definition of that market, and both are different from its prices.
 5. A bet selection stores an immutable snapshot of what the customer accepted at placement time.
 6. Results are evidence used by settlement; a final score alone does not prove every market outcome.
 7. Settlement must be repeatable safely: retrying a job must not pay a bet twice.
-8. Keep raw provider payloads and sync/audit records for troubleshooting, but do not make raw JSON the primary relational model.
+8. Keep raw Odds API payloads and sync/audit records for troubleshooting, but do not make raw JSON the primary relational model.
 
 ---
 
-## 2. Provider integration boundary
+## 2. Odds API data mapping
 
-### 3.1 Do not make provider fields your internal primary keys
+### 2.1 Do not make Odds API fields your internal primary keys
 
 Use internal database IDs for the platform's domain entities:
 
@@ -67,9 +67,9 @@ Use internal database IDs for the platform's domain entities:
 - `events.id`
 - `market_catalog.id` (or a stable canonical market key)
 
-Keep the external provider's identifiers in mapping tables. For each integration, register a provider code such as `the_odds_api`. Additional providers can be registered independently, each with its own adapter and mappings.
+Keep Odds API identifiers in explicit mapping tables and source-specific columns. Use internal IDs for the platform's sports, competitions, events, and canonical markets.
 
-This boundary is important because providers may disagree on:
+This separation is important because external identifiers and labels are not stable internal identities. Preserve Odds API keys exactly as received and map them to internal records.
 
 - Sport and competition naming.
 - Event IDs and participant IDs.
@@ -80,58 +80,43 @@ This boundary is important because providers may disagree on:
 - Result completeness and finality semantics.
 - Timestamp formats and update behavior.
 
-Do not assume that a key or payload from one provider can be used directly with another.
+### 2.2 Odds API competition and event mappings
 
-### 3.2 Recommended provider identity tables
-
-#### `data_providers`
-
-| Column | Type | Notes |
-|---|---|---|
-| `id` | BIGINT PK | Internal provider ID |
-| `code` | VARCHAR(50) UNIQUE | e.g. `the_odds_api` |
-| `display_name` | VARCHAR(120) | Human-readable name |
-| `is_active` | BOOLEAN | Whether sync is enabled |
-| `created_at`, `updated_at` | DATETIME | |
-
-#### `provider_competitions`
+#### `odds_api_competitions`
 
 | Column | Type | Notes |
 |---|---|---|
 | `id` | BIGINT PK | |
-| `provider_id` | BIGINT FK | References `data_providers` |
 | `competition_id` | BIGINT FK | References internal competition |
-| `provider_sport_key` | VARCHAR(150) | Odds API key, e.g. `soccer_epl` |
-| `provider_group` | VARCHAR(150) NULL | Provider's group, e.g. Soccer |
-| `provider_title` | VARCHAR(200) NULL | Provider's title |
-| `provider_active` | BOOLEAN NULL | Last known provider state |
+| `odds_api_sport_key` | VARCHAR(150) UNIQUE | Exact Odds API key, e.g. `soccer_epl` |
+| `odds_api_group` | VARCHAR(150) NULL | Group returned by Odds API, e.g. Soccer |
+| `odds_api_title` | VARCHAR(200) NULL | Title returned by Odds API |
+| `odds_api_active` | BOOLEAN NULL | Last known Odds API state |
 | `last_synced_at` | DATETIME NULL | |
 | `raw_metadata` | JSON NULL | Optional source metadata |
 
-Unique: `(provider_id, provider_sport_key)`.
+Unique: `(odds_api_sport_key)`. 
 
-#### `provider_events`
+#### `odds_api_events`
 
 | Column | Type | Notes |
 |---|---|---|
 | `id` | BIGINT PK | |
-| `provider_id` | BIGINT FK | |
 | `event_id` | BIGINT FK | Internal event |
-| `provider_event_id` | VARCHAR(150) | Provider event ID |
-| `provider_sport_key` | VARCHAR(150) | Key required by this provider's endpoints |
+| `odds_api_event_id` | VARCHAR(150) UNIQUE | Exact Odds API event ID |
+| `odds_api_sport_key` | VARCHAR(150) | Sport key used in Odds API endpoints |
 | `last_seen_at` | DATETIME | |
 | `raw_metadata` | JSON NULL | Optional source metadata |
 
-Unique: `(provider_id, provider_event_id)`.
+Unique: `(odds_api_event_id)`. 
 
-**Why:** our event remains the platform's event, even if its upstream provider changes or a second source later supplies the same fixture. A provider event ID must never be assumed globally unique across providers.
+**Why:** the internal event remains the platform's event. The Odds API event ID is stored separately and is never used as the internal event primary key.
 
 ### 3.3 Preserve raw responses selectively
 
-For operational support, consider a `provider_sync_records` table:
+For operational support, consider an `odds_api_sync_records` table:
 
 - `id`
-- `provider_id`
 - `resource_type` (sports, events, markets, odds, scores)
 - `external_id` nullable
 - `request_key` or safe request fingerprint
@@ -205,12 +190,12 @@ A competition belongs to one sport. Country describes the competition's organizi
 | `start_date` | DATE NULL | |
 | `end_date` | DATE NULL | |
 | `is_current` | BOOLEAN | |
-| `provider_season_ref` | VARCHAR(150) NULL | Only if provider supplies one |
+| `Odds API_season_ref` | VARCHAR(150) NULL | Only if Odds API supplies one |
 | `created_at`, `updated_at` | DATETIME | |
 
 Unique: `(competition_id, name)`.
 
-Season information is provider-dependent. Treat season assignment as optional until a trusted source supplies it; do not manufacture provider season identifiers.
+Season information is Odds API-dependent. Treat season assignment as optional until a trusted source supplies it; do not manufacture Odds API season identifiers.
 
 ### 4.5 Example
 
@@ -218,27 +203,27 @@ Season information is provider-dependent. Treat season assignment as optional un
 Sport: Football
   Competition: Premier League
     Country: England
-    Provider mapping: the_odds_api / soccer_epl
+    Odds API mapping: the_odds_api / soccer_epl
     Season: 2026/2027
       Events: Arsenal vs Chelsea, ...
   Competition: UEFA Champions League
     Country: NULL
     Scope: continental
-    Provider mapping: the_odds_api / soccer_uefa_champs_league
+    Odds API mapping: the_odds_api / soccer_uefa_champs_league
 
 Sport: Basketball
   Competition: NBA
     Country: USA (competition identity)
-    Provider mapping: the_odds_api / basketball_nba
+    Odds API mapping: the_odds_api / basketball_nba
 ```
 
-**Why this structure:** the application can organize by sport, then country, then competition without confusing a league with a sport. It also lets the internal competition name remain stable if a provider changes its title or key.
+**Why this structure:** the application can organize by sport, then country, then competition without confusing a league with a sport. It also lets the internal competition name remain stable if a Odds API changes its title or key.
 
 ---
 
 ## 4. Teams and event participants
 
-Event providers may supply participant names, stable participant IDs, or both. Preserve the supplied identifiers when available, and retain participant-name snapshots even when canonical team matching is unresolved.
+Event Odds API may supply participant names, stable participant IDs, or both. Preserve the supplied identifiers when available, and retain participant-name snapshots even when canonical team matching is unresolved.
 
 Recommended:
 
@@ -254,9 +239,9 @@ Recommended:
 | `is_active` | BOOLEAN | |
 | `created_at`, `updated_at` | DATETIME | |
 
-### 5.2 `provider_teams`
+### 5.2 `Odds API_teams`
 
-Map a canonical team to a provider's team ID only when that provider supplies a reliable ID. Do not use a name string as a guaranteed identity.
+Map a canonical team to a Odds API's team ID only when that Odds API supplies a reliable ID. Do not use a name string as a guaranteed identity.
 
 ### 5.3 `event_participants`
 
@@ -267,7 +252,7 @@ Map a canonical team to a provider's team ID only when that provider supplies a 
 | `team_id` | BIGINT FK NULL | Nullable if not confidently matched |
 | `participant_name` | VARCHAR(180) | Snapshot of name received |
 | `role` | VARCHAR(20) | home, away, competitor, player |
-| `provider_participant_id` | VARCHAR(150) NULL | Source ID if supplied |
+| `Odds API_participant_id` | VARCHAR(150) NULL | Source ID if supplied |
 | `created_at`, `updated_at` | DATETIME | |
 
 Unique: `(event_id, role)` for two-team fixtures, with sport-specific validation for other formats.
@@ -299,7 +284,7 @@ Indexes:
 - `(status, start_time)`
 - `(start_time)`
 
-Keep provider event identity in `provider_events`. Keep participant names in `event_participants`, rather than making provider strings the event's permanent domain structure.
+Keep Odds API event identity in `odds_api_events`. Keep participant names in `event_participants`, rather than making Odds API strings the event's permanent domain structure.
 
 ### Event synchronization
 
@@ -311,18 +296,18 @@ GET /v4/sports/{sport_key}/events?dateFormat=iso
 
 For each returned event:
 
-1. Find the internal competition through `provider_competitions`.
-2. Find or create `provider_events` using `(provider_id, provider_event_id)`.
+1. Find the internal competition through `odds_api_competitions`.
+2. Find or create `odds_api_events` using `(odds_api_source, odds_api_event_id)`.
 3. Create or update the internal event.
 4. Upsert participant snapshots.
-5. Update the event's provider last-seen/sync timestamps.
+5. Update the event's Odds API last-seen/sync timestamps.
 6. Do not reset an event from completed to scheduled just because an event-list response contains it again. Apply a documented status transition policy.
 
-**Important:** If a provider event cannot be mapped to a known competition, log it for review or place it in a controlled unmatched queue. Do not silently create a duplicate sport/competition based on an untrusted title.
+**Important:** If a Odds API event cannot be mapped to a known competition, log it for review or place it in a controlled unmatched queue. Do not silently create a duplicate sport/competition based on an untrusted title.
 
 ---
 
-## 6. Market definitions and provider market mappings
+## 6. Market definitions and Odds API market mappings
 
 Keep three concepts separate:
 
@@ -357,25 +342,24 @@ Examples of canonical keys:
 - `total_corners`
 - `player_anytime_goalscorer`
 
-These are illustrative internal names, not a claim that every provider offers every market.
+These are illustrative internal names, not a claim that every Odds API offers every market.
 
-### 7.2 `provider_market_mappings`
+### 7.2 `odds_api_market_mappings`
 
 | Column | Type | Notes |
 |---|---|---|
 | `id` | BIGINT PK | |
-| `provider_id` | BIGINT FK | |
 | `sport_id` | BIGINT FK NULL | Optional sport-specific mapping |
-| `provider_market_key` | VARCHAR(150) | Exact provider key |
+| `odds_api_market_key` | VARCHAR(150) | Exact Odds API market key |
 | `market_catalog_id` | BIGINT FK NULL | Canonical mapping; NULL means not mapped |
-| `provider_market_name` | VARCHAR(180) NULL | |
+| `odds_api_market_name` | VARCHAR(180) NULL | Name returned by Odds API |
 | `mapping_status` | VARCHAR(20) | mapped, review, unsupported |
 | `mapping_version` | INT | |
 | `created_at`, `updated_at` | DATETIME | |
 
-Unique: `(provider_id, sport_id, provider_market_key)` (handle nullable sport-specific mappings deliberately; MySQL nullable unique columns need care).
+Unique: `(sport_id, odds_api_market_key)` (handle nullable sport-specific mappings deliberately; MySQL nullable unique columns need care).
 
-Unknown provider markets should be recorded as `review` or `unsupported`; do not guess their settlement meaning from their names.
+Unknown Odds API markets should be recorded as `review` or `unsupported`; do not guess their settlement meaning from their names.
 
 ### 7.3 How to treat the current catalogue
 
@@ -387,23 +371,23 @@ Use explicit canonical market keys and settlement-rule references. A professiona
 
 ## 7. Event market availability
 
-Recommended `event_markets` represents the latest known availability of a market for a particular event, provider and bookmaker.
+Recommended `event_markets` represents the latest known availability of a market for a particular event and bookmaker.
 
 | Column | Type | Notes |
 |---|---|---|
 | `id` | BIGINT PK | |
 | `event_id` | BIGINT FK | Internal event |
-| `provider_id` | BIGINT FK | Data source |
+| `odds_api_source` | VARCHAR(30) | Fixed value identifying Odds API source |
 | `market_catalog_id` | BIGINT FK NULL | Canonical market, if mapped |
-| `provider_market_key` | VARCHAR(150) | Exact upstream key |
-| `bookmaker_key` | VARCHAR(100) NULL | Bookmaker offered by the data provider |
-| `provider_market_ref` | VARCHAR(180) NULL | If source supplies a distinct market ID |
+| `odds_api_market_key` | VARCHAR(150) | Exact Odds API market key |
+| `bookmaker_key` | VARCHAR(100) NULL | Bookmaker offered by the data Odds API |
+| `Odds API_market_ref` | VARCHAR(180) NULL | If source supplies a distinct market ID |
 | `is_available` | BOOLEAN | |
 | `last_update_at` | DATETIME(3) NULL | Source market update |
 | `last_seen_at` | DATETIME(3) | Last confirmed in a successful snapshot |
 | `created_at`, `updated_at` | DATETIME | |
 
-A useful unique key is `(event_id, provider_id, provider_market_key, bookmaker_key)`, with a deliberate policy for NULL bookmaker keys.
+A useful unique key is `(event_id, odds_api_market_key, bookmaker_key)`,  with a deliberate policy for NULL bookmaker keys.
 
 **Important distinction:** `market_catalog` says what the market is; `event_markets` says it was seen for this event/source/bookmaker. A market can exist in the catalogue but not be offered on a particular event.
 
@@ -413,11 +397,11 @@ A useful unique key is `(event_id, provider_id, provider_market_key, bookmaker_k
 GET /v4/sports/{sport_key}/events/{event_id}/markets?regions=eu&dateFormat=iso
 ```
 
-Normalize the response's bookmaker and market lists into `event_markets` after validating the provider snapshot.
+Normalize the response's bookmaker and market lists into `event_markets` after validating the Odds API snapshot.
 
 ### Safer availability update procedure
 
-Do not mark all markets unavailable before knowing that the provider request and response have succeeded and been validated. Recommended sequence:
+Do not mark all markets unavailable before knowing that the Odds API request and response have succeeded and been validated. Recommended sequence:
 
 1. Fetch the complete response.
 2. Validate the response and record successful fetch time.
@@ -434,7 +418,7 @@ This avoids a transient API failure making every market appear unavailable.
 A quote is a price for one outcome/selection of one market on one event, from one source/bookmaker, at a particular time.
 
 Do not confuse:
-- **Data provider:** the service delivering the odds data (currently The Odds API).
+- **Odds data source:** The Odds API supplies the odds data.
 - **Bookmaker:** the betting operator whose price is being reported (for example, Pinnacle).
 
 ### 9.1 `odds_current`
@@ -445,17 +429,17 @@ Recommended fields:
 |---|---|---|
 | `id` | BIGINT PK | |
 | `event_id` | BIGINT FK | |
-| `provider_id` | BIGINT FK | Data provider |
+| `odds_api_source` | VARCHAR(30) | Fixed value identifying Odds API source |
 | `event_market_id` | BIGINT FK NULL | Availability record if applicable |
 | `market_catalog_id` | BIGINT FK NULL | Canonical market |
-| `provider_market_key` | VARCHAR(150) | Original provider key |
+| `odds_api_market_key` | VARCHAR(150) | Original Odds API key |
 | `bookmaker_key` | VARCHAR(100) | Bookmaker |
 | `outcome_key` | VARCHAR(150) NULL | Stable source outcome ID if supplied |
 | `outcome_name` | VARCHAR(180) | Display/source outcome name |
 | `participant_id` | BIGINT NULL | For player/team props if resolved |
 | `line_value` | DECIMAL(10,3) NULL | Handicap/total line |
 | `period_key` | VARCHAR(40) NULL | Full time, first half, quarter, set, etc. |
-| `description` | VARCHAR(255) NULL | Provider's extra selection description |
+| `description` | VARCHAR(255) NULL | Odds API's extra selection description |
 | `source_price` | DECIMAL(12,5) | Raw decimal price |
 | `display_price` | DECIMAL(12,5) | Price offered to customer |
 | `is_suspended` | BOOLEAN | Not selectable |
@@ -466,7 +450,7 @@ Recommended fields:
 Define a deterministic quote identity. A candidate natural key is:
 
 ```text
-(event_id, provider_id, bookmaker_key, provider_market_key,
+(event_id, bookmaker_key, odds_api_market_key,
  outcome identity, line_value, period_key, description)
 ```
 
@@ -479,9 +463,8 @@ Append-only history for each quote identity:
 - `id`
 - `odds_current_id` or stable quote identity
 - `event_id`
-- `provider_id`
 - `bookmaker_key`
-- `provider_market_key`
+- `odds_api_market_key`
 - `outcome identity`, `line_value`, `period_key`
 - `source_price`
 - `display_price`
@@ -489,7 +472,7 @@ Append-only history for each quote identity:
 - `source_updated_at`
 - `recorded_at`
 
-Index: `(event_id, provider_id, bookmaker_key, provider_market_key, recorded_at)`.
+Index: `(event_id, bookmaker_key, odds_api_market_key, recorded_at)`.
 
 Record history on meaningful quote changes (price, suspension, or other selectable-state changes). If a full audit trail is required, record every snapshot in a separate ingestion table; do not make high-volume odds history unnecessarily huge.
 
@@ -498,7 +481,7 @@ Record history on meaningful quote changes (price, suspension, or other selectab
 The current `resolveBestOdds()` chooses the first bookmaker matching the configured priority for each market. This is a product policy, not a universal data-model rule.
 
 Recommended:
-- Preserve source quotes by provider and bookmaker.
+- Preserve source quotes by Odds API and bookmaker.
 - Decide the customer-facing price through a separate, explicit price-selection policy.
 - Store which bookmaker/source quote was used when a bet was placed.
 - Do not overwrite one bookmaker's quote with another bookmaker's quote under the same identity.
@@ -507,13 +490,13 @@ Recommended:
 
 ```http
 GET /v4/sports/{sport_key}/events/{event_id}/odds
-  ?markets={comma_separated_provider_market_keys}
+  ?markets={comma_separated_odds_api_market_keys}
   &regions=eu
   &oddsFormat=decimal
   &dateFormat=iso
 ```
 
-A common integration flow is to discover the markets available for an event and then request prices for those markets. The adapter should follow the selected provider's documented endpoint and quota model.
+A common integration flow is to discover the markets available for an event and then request prices for those markets. The adapter should follow the selected Odds API's documented endpoint and quota model.
 
 ---
 
@@ -539,8 +522,8 @@ One current result summary per event:
 | `home_score` | INT NULL | Sport-specific meaning must be documented |
 | `away_score` | INT NULL | |
 | `is_final` | BOOLEAN | Final according to the source/validated rules |
-| `provider_id` | BIGINT FK NULL | Source |
-| `provider_event_id` | VARCHAR(150) NULL | |
+| `odds_api_source` | VARCHAR(30) NULL | Source identifier, e.g. `odds_api` |
+| `odds_api_event_id` | VARCHAR(150) NULL | |
 | `source_updated_at` | DATETIME(3) NULL | |
 | `received_at` | DATETIME(3) | |
 | `revision` | INT | Increment on accepted correction |
@@ -559,7 +542,7 @@ For facts beyond the summary score:
 | `period_key` | VARCHAR(40) NULL | h1, h2, q1, set1, etc. |
 | `numeric_value` | DECIMAL(12,3) NULL | |
 | `text_value` | VARCHAR(255) NULL | |
-| `provider_id` | BIGINT FK NULL | |
+| `odds_api_source` | VARCHAR(30) NULL |
 | `source_updated_at` | DATETIME(3) NULL | |
 | `received_at` | DATETIME(3) | |
 
@@ -571,9 +554,9 @@ Store validated normalized facts needed by settlement. Preserve source payload s
 GET /v4/sports/{sport_key}/scores?dateFormat=iso&daysFrom={n}
 ```
 
-Normalize all available score and statistic fields into result facts. Populate only facts actually supplied and validated by the provider; leave unavailable facts unknown.
+Normalize all available score and statistic fields into result facts. Populate only facts actually supplied and validated by the Odds API; leave unavailable facts unknown.
 
-**Settlement warning:** A full-time score is sufficient for some full-time result and goal-total markets, but not for player props, corners, cards, half-time markets, or every sport-specific market. If the provider does not return the facts required by a market's rule, that selection must remain awaiting a valid result or be handled by a documented manual/void process. Never guess.
+**Settlement warning:** A full-time score is sufficient for some full-time result and goal-total markets, but not for player props, corners, cards, half-time markets, or every sport-specific market. If the Odds API does not return the facts required by a market's rule, that selection must remain awaiting a valid result or be handled by a documented manual/void process. Never guess.
 
 ---
 
@@ -612,8 +595,8 @@ Each leg stores what the customer actually selected and accepted.
 | `bet_id` | CHAR(36) FK | Ticket |
 | `event_id` | BIGINT FK | Internal event |
 | `market_catalog_id` | BIGINT FK NULL | Canonical market |
-| `provider_id` | BIGINT FK NULL | Source at placement |
-| `provider_market_key` | VARCHAR(150) NULL | Source market key |
+| `odds_api_source` | VARCHAR(30) NULL | Odds source at placement |
+| `odds_api_market_key` | VARCHAR(150) NULL | Source market key |
 | `bookmaker_key` | VARCHAR(100) NULL | Bookmaker quote source |
 | `outcome_key` | VARCHAR(150) NULL | Source outcome ID if supplied |
 | `outcome_name` | VARCHAR(180) | |
@@ -626,7 +609,7 @@ Each leg stores what the customer actually selected and accepted.
 | `settled_at` | DATETIME(3) NULL | |
 | `created_at` | DATETIME | |
 
-The selection snapshot must remain meaningful even if the live market catalogue, provider mapping, event participants, or odds quote changes later.
+The selection snapshot must remain meaningful even if the live market catalogue, Odds API mapping, event participants, or odds quote changes later.
 
 **Placement transaction:** validate that the quote is still active and selectable; calculate ticket price/payout; create bet and all selections; debit/lock funds in the wallet ledger; commit all writes in one database transaction. Use row locks/idempotency so a retry cannot create a duplicate ticket or debit twice.
 
@@ -646,7 +629,7 @@ A void leg in an accumulator generally has its odds treated as 1.0, but confirm 
 
 ## 11. Market settlement rules
 
-Never settle a market using only its display category or a string comparison against a provider outcome name.
+Never settle a market using only its display category or a string comparison against a Odds API outcome name.
 
 Create a versioned rules registry, for example `settlement_rule_key` on `market_catalog`:
 
@@ -659,7 +642,7 @@ Create a versioned rules registry, for example `settlement_rule_key` on `market_
 | Total corners | `football_total_corners_ft_v1` | Validated corner total |
 | Anytime goalscorer | `football_player_goal_v1` | Player goal fact and participant identity |
 
-These are examples of rule identifiers and required facts. Each provider adapter must establish which facts it can supply and their reliability before a market is enabled for settlement.
+These are examples of rule identifiers and required facts. The Odds API adapter must establish which facts its endpoints supply and their reliability before a market is enabled for settlement.
 
 A settlement rule should define:
 - Supported sport and market.
@@ -672,7 +655,7 @@ A settlement rule should define:
 - Treatment of abandoned, postponed, or corrected events.
 - Rule version and effective date.
 
-Use deterministic, unit-tested pure functions for rule evaluation. Keep provider parsing separate from market evaluation.
+Use deterministic, unit-tested pure functions for rule evaluation. Keep Odds API parsing separate from market evaluation.
 
 ---
 
@@ -717,7 +700,7 @@ Use a uniqueness rule such as `(bet_id, settlement_revision)`, and a separate un
 Track each worker/manual settlement run:
 
 - `id`
-- `provider_id` nullable
+- `odds_api_source` nullable
 - `event_id` nullable
 - `started_at`
 - `finished_at`
@@ -755,19 +738,19 @@ Sports results can be corrected. Define a policy before launch:
 
 ## 13. Odds API endpoint reference
 
-The following endpoints document the Odds API contract. Other providers may use different paths, parameters, authentication, pagination, and response formats; implement each provider according to its own documentation.
+The following endpoints document the Odds API contract and its request parameters.
 
 | Data/model | Odds API endpoint | How the endpoint contributes |
 |---|---|---|
-| Provider competition catalogue | `GET /v4/sports` | `syncSports()`; discover provider keys and metadata |
-| Events | `GET /v4/sports/{sport_key}/events` | `syncEvents()`; retrieve fixtures for a provider key |
+| Odds API competition catalogue | `GET /v4/sports` | `syncSports()`; discover Odds API keys and metadata |
+| Events | `GET /v4/sports/{sport_key}/events` | `syncEvents()`; retrieve fixtures for a Odds API key |
 | Event market availability | `GET /v4/sports/{sport_key}/events/{event_id}/markets` | `discoverEventMarkets()`; identify offered market/bookmaker pairs |
 | Event odds | `GET /v4/sports/{sport_key}/events/{event_id}/odds` | `syncOddsForEvent()`; retrieve prices for discovered market keys |
 | Scores | `GET /v4/sports/{sport_key}/scores` | `syncScores()`; retrieve score/completion data |
 
-Depending on the request, parameters can include `regions`, `oddsFormat`, `dateFormat`, `markets`, and `daysFrom`. Validate supported parameters against the provider's documentation.
+Depending on the request, parameters can include `regions`, `oddsFormat`, `dateFormat`, `markets`, and `daysFrom`. Validate supported parameters against the Odds API's documentation.
 
-Provider APIs supply sports data, prices, and results according to their contracts. Customer bet settlement remains an internal platform responsibility based on validated result facts and the platform's published rules.
+Odds API APIs supply sports data, prices, and results according to their contracts. Customer bet settlement remains an internal platform responsibility based on validated result facts and the platform's published rules.
 
 ---
 
@@ -781,15 +764,15 @@ Models/
   Country.js
   Competition.js
   CompetitionSeason.js
-  DataProvider.js
-  ProviderCompetition.js
-  ProviderEvent.js
+  DataOdds API.js
+  Odds APICompetition.js
+  Odds APIEvent.js
   Team.js
-  ProviderTeam.js
+  Odds APITeam.js
   Event.js
   EventParticipant.js
   MarketCatalog.js
-  ProviderMarketMapping.js
+  Odds APIMarketMapping.js
   EventMarket.js
   OddsCurrent.js
   OddsHistory.js
@@ -911,16 +894,15 @@ The examples show model shape and associations; they are not ready-to-run migrat
 
 ---
 
-## 15. Provider adapter and synchronization service design
+## 15. Odds API adapter and synchronization service design
 
-Keep provider-specific HTTP requests and response parsing outside domain services.
+Keep Odds API HTTP requests and response parsing outside betting domain services.
 
 Suggested structure:
 
 ```text
 Services/
-  providers/
-    oddsApi/
+  oddsApi/
       OddsApiClient.js
       OddsApiSportsAdapter.js
       OddsApiEventsAdapter.js
@@ -945,14 +927,14 @@ Services/
       football/
 ```
 
-The adapter translates the provider's response into internal DTOs, for example:
+The adapter translates the Odds API's response into internal DTOs, for example:
 
 ```js
-// Internal event DTO; values are mapped from the provider response.
+// Internal event DTO; values are mapped from the Odds API response.
 {
-  providerCode: 'the_odds_api',
-  providerEventId: 'provider-event-id',
-  providerCompetitionKey: 'soccer_epl',
+  source: 'odds_api',
+  oddsApiEventId: 'odds-api-event-id',
+  oddsApiSportKey: 'soccer_epl',
   startTime: '2026-08-15T14:00:00.000Z',
   participants: [
     { role: 'home', name: 'Arsenal' },
@@ -963,20 +945,20 @@ The adapter translates the provider's response into internal DTOs, for example:
 
 The DTO is an example of our internal shape. It is not a literal Odds API response.
 
-A provider adapter should:
-- Make HTTP requests and handle provider-specific parameters.
+The Odds API adapter should:
+- Make Odds API HTTP requests and handle its parameters.
 - Validate required response fields.
 - Normalize timestamps to UTC.
-- Preserve original provider IDs and keys.
-- Map provider markets/outcomes only through reviewed mappings.
+- Preserve original Odds API IDs and keys.
+- Map Odds API markets/outcomes only through reviewed mappings.
 - Return internal DTOs or a typed unsupported/unmapped result.
 - Never decide whether a customer bet wins or loses.
 
 The domain sync service should:
-- Upsert internal records and provider mappings.
+- Upsert internal records and Odds API mappings.
 - Apply transactional snapshot rules.
 - Track sync status and errors.
-- Be independent of provider response field names.
+- Be independent of Odds API response field names.
 
 ---
 
@@ -989,15 +971,15 @@ Do this in stages. Do not replace tables in one deployment.
 1. Back up the database.
 2. Use explicit Sequelize migrations for production schema changes.
 3. Record baseline row counts and unique keys.
-4. Add tests for provider synchronization, bet placement, and settlement before changing relationships.
+4. Add tests for Odds API synchronization, bet placement, and settlement before changing relationships.
 
 ### Phase 1 — sports and competitions
 
-1. Create `countries`, `competitions`, `competition_seasons`, `data_providers`, and `provider_competitions`.
+1. Create `countries`, `competitions`, `competition_seasons`, and `odds_api_competitions`.
 2. Create canonical sport rows (Football, Basketball, Tennis, etc.).
 3. Convert each existing `sports.sport_key` row into a competition mapping, using reviewed metadata.
-4. Preserve the original provider key exactly in `provider_competitions.provider_sport_key`.
-5. Add `competition_id` to events and backfill it using the provider mapping.
+4. Preserve the original Odds API key exactly in `odds_api_competitions.odds_api_sport_key`.
+5. Add `competition_id` to events and backfill it using the Odds API mapping.
 6. Keep the old `sport_key` column temporarily for compatibility.
 7. Update event sync to write the new relationship.
 8. Verify counts and sample fixtures before switching reads.
@@ -1005,20 +987,20 @@ Do this in stages. Do not replace tables in one deployment.
 
 ### Phase 2 — events and participants
 
-1. Add `provider_events`.
-2. Backfill provider event IDs from existing event IDs.
+1. Add `odds_api_events`.
+2. Backfill Odds API event IDs from existing event IDs.
 3. Add `event_participants` and backfill home/away name snapshots.
-4. Update event sync to upsert by provider identity.
+4. Update event sync to upsert using Odds API event identity.
 5. Add canonical teams only when matching is reliable.
 
 ### Phase 3 — markets and odds
 
-1. Add provider identity to event-market and odds quote records.
-2. Create canonical market definitions and provider-market mappings.
+1. Add Odds API source identity to event-market and odds quote records.
+2. Create canonical market definitions and Odds API market mappings.
 3. Map known Odds API market keys using reviewed rules.
 4. Mark unknown keys for review rather than guessing.
 5. Preserve old prices/history during migration.
-6. Change quote unique keys to include provider, bookmaker, and complete selection identity.
+6. Change quote unique keys to include Odds API, bookmaker, and complete selection identity.
 7. Separate raw bookmaker quotes from the customer-facing price selection policy.
 
 ### Phase 4 — results and settlement
@@ -1044,14 +1026,14 @@ At minimum:
 - Unique `sports.slug` and `sports.code`.
 - Unique `competitions.slug`.
 - Index `competitions(sport_id, country_id, is_active, sort_order)`.
-- Unique `provider_competitions(provider_id, provider_sport_key)`.
-- Unique `provider_events(provider_id, provider_event_id)`.
+- Unique `odds_api_competitions(odds_api_sport_key)`. 
+- Unique `odds_api_events(odds_api_event_id)`. 
 - Index `events(competition_id, start_time)` and `events(status, start_time)`.
-- Unique provider-market mapping per provider/sport/key.
-- Unique event-market identity including provider and bookmaker.
-- Unique odds quote identity including provider, bookmaker, market and selection identity.
+- Unique Odds API market mapping per sport/key.
+- Unique event-market identity including bookmaker.
+- Unique odds quote identity including bookmaker, market and selection identity.
 - Index `odds_current(event_id, market_catalog_id, is_suspended)`.
-- Index `odds_history(event_id, provider_id, recorded_at)`.
+- Index `odds_history(event_id, recorded_at)`. 
 - Index `bet_selections(event_id, selection_status)`.
 - Index `bets(user_id, placed_at)` and `bets(status, placed_at)`.
 - Unique settlement idempotency key for each payout.
@@ -1064,8 +1046,8 @@ Use DECIMAL for money and odds, never floating point. Store timestamps in UTC. D
 ## 18. Operational and security requirements
 
 - API keys and secrets belong in environment/secret management, never in source control or raw logs.
-- Record endpoint, provider, response status, duration, quota/usage headers where available, record counts, and errors.
-- Use bounded retries with backoff for transient provider errors; do not retry permanent validation errors forever.
+- Record endpoint, Odds API, response status, duration, quota/usage headers where available, record counts, and errors.
+- Use bounded retries with backoff for transient Odds API errors; do not retry permanent validation errors forever.
 - Use request timeouts and concurrency limits.
 - Make each sync idempotent.
 - Distinguish a successful empty snapshot from a failed or malformed response.
@@ -1074,7 +1056,7 @@ Use DECIMAL for money and odds, never floating point. Store timestamps in UTC. D
 - Lock relevant rows when changing wallet balances or settling a ticket.
 - Use immutable financial ledger entries and compensating entries for corrections.
 - Add unit tests for market mappings, result normalization, and each settlement rule.
-- Add integration tests using recorded/sanitized provider fixtures.
+- Add integration tests using recorded/sanitized Odds API fixtures.
 - Monitor stale odds, stale events, unmapped markets, missing result facts, and failed settlement runs.
 
 ---
@@ -1084,9 +1066,9 @@ Use DECIMAL for money and odds, never floating point. Store timestamps in UTC. D
 For this repository, I recommend implementing in this order:
 
 1. **Sports and competitions:** establish internal sport IDs and map Odds API sport keys to competitions.
-2. **Events and participants:** make events provider-independent while retaining source IDs and names.
-3. **Market catalogue and provider mappings:** canonical market identity, display category, and explicit rule key.
-4. **Event-market availability:** accurately track what is offered per event/provider/bookmaker.
+2. **Events and participants:** make events Odds API-independent while retaining source IDs and names.
+3. **Market catalogue and Odds API mappings:** canonical market identity, display category, and explicit rule key.
+4. **Event-market availability:** accurately track what is offered per event/Odds API/bookmaker.
 5. **Odds current/history:** preserve quote identity and source; select customer prices through a separate policy.
 6. **Results:** normalize the facts required by the markets the platform actually offers.
 7. **Bet placement snapshots:** preserve all terms the customer accepted.
@@ -1109,4 +1091,4 @@ These product and engineering decisions should be confirmed before implementatio
 6. Which bet types are supported: singles only initially, or accumulators as well?
 7. What is the accepted policy for result corrections after a ticket has been paid?
 
-**Architecture principle:** build a provider-independent internal betting domain and integrate each provider through a dedicated adapter. Provider independence comes from explicit mappings and normalization—not from assuming providers share identical sports, events, markets, outcomes, or result structures.
+**Architecture principle:** build a Odds API-independent internal betting domain and integrate each Odds API through a dedicated adapter. Odds API independence comes from explicit mappings and normalization—not from assuming Odds API share identical sports, events, markets, outcomes, or result structures.
