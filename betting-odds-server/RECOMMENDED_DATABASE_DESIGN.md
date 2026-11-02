@@ -12,14 +12,12 @@
 
 ## 1. Architecture overview
 
-## 1. Executive recommendation
-
-The current backend uses Odds API keys such as `soccer_epl` as rows in `sports`. This works for the current provider integration, but it mixes two concepts:
+A sports betting platform should distinguish the sport itself from the competition in which an event takes place:
 
 - **Sport:** football, basketball, tennis, cricket.
 - **Competition:** Premier League, La Liga, NBA, Wimbledon.
 
-The recommended model separates those concepts and stores provider keys in a mapping table:
+The platform stores provider keys in mapping tables rather than using them as internal entity identities:
 
 ```text
 sports
@@ -755,9 +753,9 @@ Sports results can be corrected. Define a policy before launch:
 
 ---
 
-## 13. Odds API endpoint map (current integration)
+## 13. Odds API endpoint reference
 
-The following endpoints illustrate one provider's API contract. They are not a universal contract. Every provider adapter must implement its own endpoint paths, parameters, pagination, authentication, and response normalization according to that provider's documentation.
+The following endpoints document the Odds API contract. Other providers may use different paths, parameters, authentication, pagination, and response formats; implement each provider according to its own documentation.
 
 | Data/model | Odds API endpoint | How the endpoint contributes |
 |---|---|---|
@@ -773,7 +771,7 @@ Provider APIs supply sports data, prices, and results according to their contrac
 
 ---
 
-## 14. Recommended Sequelize model layout
+## 14. Sequelize model layout
 
 A possible file organization (adapt names to the project's existing naming convention):
 
@@ -982,7 +980,7 @@ The domain sync service should:
 
 ---
 
-## 15. Implementation and rollout plan
+## 16. Implementation and rollout plan
 
 Do this in stages. Do not replace tables in one deployment.
 
@@ -1081,7 +1079,7 @@ Use DECIMAL for money and odds, never floating point. Store timestamps in UTC. D
 
 ---
 
-## 19. Recommended implementation order
+## 19. Implementation order
 
 For this repository, I recommend implementing in this order:
 
