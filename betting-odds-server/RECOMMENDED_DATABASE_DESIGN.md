@@ -212,7 +212,7 @@ Unique: `(event_id, role)` for two-team fixtures, with sport-specific validation
 
 An event is a fixture or contest within a competition.
 
-### Recommended `events`
+### 4.1 `events`
 
 | Column | Type | Notes |
 |---|---|---|
@@ -226,7 +226,12 @@ An event is a fixture or contest within a competition.
 | `last_synced_at` | DATETIME(3) NULL | |
 | `created_at`, `updated_at` | DATETIME | |
 
-### 4.1 `odds_api_events`
+**Indexes:**
+- `(competition_id, start_time)`
+- `(status, start_time)`
+- `(start_time)`
+
+### 4.2 `odds_api_events`
 
 This table stores the Odds API event identifier separately from the internal event record.
 
@@ -243,14 +248,9 @@ This table stores the Odds API event identifier separately from the internal eve
 
 **Why:** the internal event is the platform's event. The Odds API event ID is an external reference used to retrieve and synchronize its data; it is not the primary key of `events`.
 
-Indexes:
-- `(competition_id, start_time)`
-- `(status, start_time)`
-- `(start_time)`
-
 Keep Odds API event identity in `odds_api_events`. Keep participant names in `event_participants`, rather than making Odds API strings the event's permanent domain structure.
 
-### Event synchronization
+### 4.3 Event synchronization
 
 Odds API endpoint reference:
 
