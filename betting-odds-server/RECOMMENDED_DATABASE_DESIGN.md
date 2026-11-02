@@ -91,7 +91,7 @@ Interpret the fields as follows:
 
 | Odds API field | Meaning | Backend use |
 |---|---|---|
-| key | Unique Odds API catalogue key | Store unchanged in odds_api_sports_competition_mappings.odds_api_sport_key; use it in Odds API requests |
+| key | Unique Odds API sport key | Store unchanged in odds_api_sports_competition_mappings.odds_api_sport_key; use it in Odds API requests |
 | group | Broad sport family | Resolve to a canonical row in sports, for example Soccer |
 | title | Human-readable Odds API sports response label | Store as source metadata; it may name a competition (EPL) or a format/category (One Day Internationals) |
 | description | Human-readable source description, when present | Store as source metadata; useful classification evidence, not proof by itself |
@@ -143,13 +143,13 @@ Add these fields to competitions (or to a dedicated competition_classifications 
 
 The backend should expose only confirmed country classifications in the country navigation by default. International and unresolved competitions should be discoverable through their own groups or filters.
 
-#### Separate the Odds API catalogue from the application's competition catalogue
+#### Separate Odds API source data from the application's competition records
 
-These are two related but different responsibilities. The Odds API catalogue records what the upstream service advertises. The internal competition catalogue records the actual leagues and tournaments your application chooses to support and display. Administrators must be able to manage the internal catalogue even when Odds API does not provide a matching key.
+These are different responsibilities, but they do not require separate source tables. The Odds API fields and classification are stored directly on `odds_api_sports_competition_mappings`; the internal `competitions` table stores the canonical leagues and tournaments the application chooses to support and display. Administrators can also create internal competitions without a matching Odds API key.
 
 ##### One source table: odds_api_sports_competition_mappings
 
-Do not create a separate `odds_api_sports_competition_mappings` table. Keep the Odds API sports response item and its internal classification/mapping in one row of `odds_api_sports_competition_mappings`. Create one row per distinct Odds API `key`, including entries classified as competitions, formats, categories or unknown. The `original_response` JSON column stores only that individual sport-key object from the response, not the entire response array.
+Do not create a separate `odds_api_catalog_entries` table. Keep the Odds API sports response item and its internal classification/mapping in one row of `odds_api_sports_competition_mappings`. Create one row per distinct Odds API `key`, including entries classified as competitions, formats, categories or unknown. The `original_response` JSON column stores only that individual sport-key object from the response, not the entire response array.
 
 This table is both the Odds API sports response record and the link to internal records. Its `competition_id` and `country_id` are nullable because formats, categories, international entries and unresolved entries do not necessarily have an internal competition or country. `sport_id` is required after the source `group` has been resolved to an internal sport.
 
@@ -185,25 +185,7 @@ Recommended fields:
 
 A competition may have no Odds API mapping. Do not require odds_api_sport_key on competitions and do not use an Odds API key as the internal competition identity. If an administrator creates ICC Cricket World Cup, for example, it remains a valid competition even if the Odds API catalogue only exposes cricket_odi as a format key.
 
-##### Table: odds_api_sports_competition_mappings
-
-This table links an internal competition to a Odds API sport-key mapping row only when the relationship is confirmed. It is not a general-purpose classification table: formats, categories and unknown entries stay in `odds_api_sports_competition_mappings` and do not receive a competition mapping. The Odds API sport-key mapping row itself retains its `entry_type`; the mapping adds the resolved internal sport and country alongside the competition reference.
-
-| Column | Type | Purpose |
-|---|---|---|
-| id | BIGINT PK | Mapping ID |
-| competition_id | BIGINT FK NOT NULL | Internal competition |
-| odds_api_sport_mapping_id | BIGINT FK NOT NULL | Discovered Odds API Odds API sport-key mapping row |
-| odds_api_sport_key | VARCHAR(150) | Exact key retained for efficient source lookup |
-| sport_id | BIGINT FK NOT NULL | Internal sport resolved from the Odds API group |
-| country_id | BIGINT FK NULL | Resolved country for the competition; NULL for international/unresolved |
-| mapping_status | ENUM | pending_review, verified, disabled, rejected |
-| is_primary | BOOLEAN | Primary Odds API mapping for the competition |
-| match_method | VARCHAR(40) | exact_reviewed, admin_assigned, trusted_metadata |
-| verified_at | DATETIME(3) NULL | Verification timestamp |
-| created_at / updated_at | DATETIME(3) | Audit timestamps |
-
-Add a unique constraint on (competition_id, odds_api_sport_mapping_id), and normally a unique constraint on odds_api_sport_mapping_id when one Odds API key is allowed to map to only one competition. If the product later needs one source key to represent multiple actual competitions, do not force a one-to-many interpretation: model the relationship explicitly and require event-level competition identification from a trusted source.
+The single-table design is defined in section 2.5. Do not create a second mapping/catalogue table. The row stores the Odds API sport key and its source fields, classification, individual JSON response object, and optional internal sport/country/competition references.
 
 ##### Table: competition_season_rules and competition_seasons
 
@@ -1436,8 +1418,8 @@ Models/
   Competition.js
   CompetitionSeason.js
   CompetitionSeasonRule.js
-  OddsApiCatalogEntry.js
-  OddsApiCompetitionMapping.js
+  OddsApiSportsCompetitionMapping.js
+  OddsApiSportsCompetitionMapping.js
   OddsApiEvent.js
   Team.js
   OddsApiTeam.js
@@ -2509,18 +2491,23 @@ Internal records:
   },
   "odds_api_sports_competition_mappings": {
     "id": 1,
-    "odds_api_key": "soccer_epl",
-    "group_name": "Soccer",
-    "title": "EPL",
+    "odds_api_sport_key": "soccer_epl",
+    "odds_api_group": "Soccer",
+    "odds_api_title": "EPL",
     "entry_type": "competition",
     "classification_status": "verified",
-    "odds_api_active": true
-  },
-  "odds_api_sports_competition_mappings": {
+    "sport_id": 1,
+    "country_id": 44,
     "competition_id": 7,
-    "odds_api_sport_mapping_id": 1,
-    "odds_api_sport_key": "soccer_epl",
-    "mapping_status": "verified"
+    "mapping_status": "verified",
+    "original_response": {
+      "key": "soccer_epl",
+      "group": "Soccer",
+      "title": "EPL",
+      "description": "English Premier League",
+      "active": true,
+      "has_outrights": false
+    }
   }
 }
 ~~~
@@ -2590,7 +2577,7 @@ Store the competition/season reference on the outright market context, preserve 
 | competitions | Automatically matched real competitions, trusted competition metadata, or admin-created records | top-leagues, country competitions, competition detail |
 | competition_season_rules | Reusable season-window rules, editable by administrators and applied by scheduled jobs | Admin season-rule editor; backend generation |
 | competition_seasons | Automatically generated from competition_season_rules and validated against event dates/official calendar data | /api/competitions/:id/seasons |
-| odds_api_sports_competition_mappings | Every exact key/group/title/description/active/has_outrights item from GET /v4/sports, including formats and unknown entries | Admin Odds API sport-key mapping review; usually backend-only for public users |
+| odds_api_sports_competition_mappings | Every exact key/group/title/description/active/has_outrights item from GET /v4/sports, including formats and unknown entries | Admin Odds API sport-key mapping review; backend-only for public users |
 | odds_api_sports_competition_mappings | Verified link between an internal competition and an Odds API Odds API sport-key mapping row | Backend-only source mapping |
 | teams | Incrementally canonicalized participant snapshots | Event detail and team pages |
 | odds_api_teams | Only reliable source participant IDs when available | Backend-only identity mapping |
