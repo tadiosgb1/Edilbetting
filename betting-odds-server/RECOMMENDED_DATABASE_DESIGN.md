@@ -141,7 +141,7 @@ The `original_response` field stores the individual object for the key, not the 
 
 ### Model 6 — `event_participants`
 
-Stores the teams or individual competitors taking part in one specific event. Each row belongs to an event. This is enough for the current odds workflow; a separate permanent `teams` table and an `odds_api_teams` mapping table are not required.
+Stores the teams or individual competitors taking part in one specific event. Each row belongs to an event. This is enough for the current odds workflow; a separate permanent team directory or source-team mapping table is not required.
 
 | Column | Type | Description |
 |---|---|---|
@@ -158,7 +158,7 @@ A participant is **not** a permanent team profile. It records who is involved in
 
 ## 4. Events
 
-### Model 9 — `events`
+### Model 7 — `events`
 
 One row per fixture or sporting event.
 
@@ -176,7 +176,7 @@ One row per fixture or sporting event.
 
 Useful indexes: `(competition_id, start_time)`, `(status, start_time)`, and `(start_time)`.
 
-### Model 10 — `odds_api_events`
+### Model 8 — `odds_api_events`
 
 Stores the Odds API event ID separately from the internal event.
 
@@ -195,7 +195,7 @@ The internal `events.id` is used by the application. The Odds API ID is retained
 
 These tables have different jobs: the catalogue defines a market, sport capabilities say where it is applicable, and event markets record whether it is offered for a particular event.
 
-### Model 11 — `market_catalog`
+### Model 9 — `market_catalog`
 
 Canonical market definitions used by the application.
 
@@ -213,7 +213,7 @@ Canonical market definitions used by the application.
 
 **Example:** `match_winner_1x2` is the internal key for a full-time match result market. It is separate from the Odds API market key.
 
-### Model 12 — `odds_api_market_mappings`
+### Model 10 — `odds_api_market_mappings`
 
 Maps an Odds API market key to an internal market definition.
 
@@ -230,7 +230,7 @@ Maps an Odds API market key to an internal market definition.
 
 Unknown market keys should be marked for review, not assigned a guessed settlement meaning.
 
-### Model 13 — `sport_market_capabilities`
+### Model 11 — `sport_market_capabilities`
 
 Defines which canonical markets are applicable and visible for each sport.
 
@@ -249,7 +249,7 @@ Unique: `(sport_id, market_catalog_id)`.
 
 **Example:** Both-teams-to-score may be enabled for Soccer but not automatically enabled for Tennis.
 
-### Model 14 — `event_markets`
+### Model 12 — `event_markets`
 
 Records a market's availability for a particular event. It does not store the market's price.
 
@@ -270,7 +270,7 @@ A market can be supported by a sport but absent from a particular event. Only cr
 
 A bookmaker is the company offering the price (for example, a sportsbook). The Odds API is the data source that reports bookmaker prices; it is not itself a bookmaker.
 
-### Model 15 — `bookmakers`
+### Model 13 — `bookmakers`
 
 One row per bookmaker identity returned by the Odds API.
 
@@ -283,7 +283,7 @@ One row per bookmaker identity returned by the Odds API.
 | `sort_order` | INT | Display or preference order |
 | `created_at`, `updated_at` | DATETIME | Record timestamps |
 
-### Model 16 — `odds_current`
+### Model 14 — `odds_current`
 
 Stores the latest price for each event, bookmaker, market, and outcome/line.
 
@@ -310,7 +310,7 @@ Stores the latest price for each event, bookmaker, market, and outcome/line.
 
 A quote is identified by its event, bookmaker, market, outcome, line, and period—not by its price. Keep source and display prices separate if the platform applies a margin.
 
-### Model 17 — `odds_history`
+### Model 15 — `odds_history`
 
 Append-only record of price changes for historical analysis and auditing.
 
@@ -334,7 +334,7 @@ Store a history row when a meaningful quote value or selectable state changes. K
 
 ## 7. Results
 
-### Model 18 — `event_results`
+### Model 16 — `event_results`
 
 Stores the latest accepted result summary for an event.
 
@@ -351,7 +351,7 @@ Stores the latest accepted result summary for an event.
 | `revision` | INT | Incremented when a correction is accepted |
 | `created_at`, `updated_at` | DATETIME | Record timestamps |
 
-### Model 19 — `event_result_facts`
+### Model 17 — `event_result_facts`
 
 Stores additional normalized result facts needed for specific markets, beyond the main score.
 
@@ -373,7 +373,7 @@ Only store validated facts that are needed by supported settlement rules.
 
 A bet stores the customer's ticket. Each selection stores exactly what the customer accepted, including the odds at placement time. This snapshot must not change when live odds later move.
 
-### Model 20 — `bets`
+### Model 18 — `bets`
 
 | Column | Type | Description |
 |---|---|---|
@@ -390,7 +390,7 @@ A bet stores the customer's ticket. Each selection stores exactly what the custo
 | `settled_at` | DATETIME(3) NULL | Final settlement time |
 | `created_at`, `updated_at` | DATETIME | Record timestamps |
 
-### Model 21 — `bet_selections`
+### Model 19 — `bet_selections`
 
 One row per selection/leg in a bet.
 
@@ -413,7 +413,7 @@ One row per selection/leg in a bet.
 | `settled_at` | DATETIME(3) NULL | Settlement time |
 | `created_at`, `updated_at` | DATETIME | Record timestamps |
 
-### Model 22 — `market_settlement_rules`
+### Model 20 — `market_settlement_rules`
 
 Defines how a supported market is settled. Keep rules versioned because rule changes must not silently change old bet outcomes.
 
@@ -430,7 +430,7 @@ Defines how a supported market is settled. Keep rules versioned because rule cha
 
 Unique: `(rule_key, version)`.
 
-### Model 23 — `selection_settlements`
+### Model 21 — `selection_settlements`
 
 Stores each settlement decision for a bet selection, including the result revision and rule used.
 
@@ -447,7 +447,7 @@ Stores each settlement decision for a bet selection, including the result revisi
 | `settled_at` | DATETIME(3) | Decision time |
 | `created_at` | DATETIME | Record timestamp |
 
-### Model 24 — `bet_settlements`
+### Model 22 — `bet_settlements`
 
 Stores the final ticket-level payout calculation.
 
@@ -466,7 +466,7 @@ Stores the final ticket-level payout calculation.
 
 Unique: `(bet_id, settlement_revision)`.
 
-### Model 25 — `settlement_runs`
+### Model 23 — `settlement_runs`
 
 Audit log for each automatic or administrator-triggered settlement run.
 
