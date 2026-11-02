@@ -412,7 +412,7 @@ This avoids a transient API failure making every market appear unavailable.
 
 ---
 
-## 8. Odds quotes: current and history
+## 8. Odds quotes: latest prices and history
 
 A quote is a price for one outcome/selection of one market on one event, from a bookmaker reported by the Odds API, at a particular time.
 
@@ -711,7 +711,7 @@ Track each worker/manual settlement run:
 5. Check that every required result fact exists and is final/valid.
 6. Evaluate each selection with a deterministic rule function.
 7. In one DB transaction, lock affected selections and tickets; write settlement decisions; update selection states; calculate ticket outcome; write ticket settlement.
-8. Credit/refund the wallet through the existing wallet ledger service, using a unique idempotency key linked to the settlement.
+8. Credit/refund the wallet through the wallet ledger service, using a unique idempotency key linked to the settlement.
 9. Commit; record the settlement run and audit data.
 10. If any step fails, roll back the financial transaction and retry safely.
 
@@ -968,7 +968,7 @@ Do this in stages. Do not replace tables in one deployment.
 
 1. Create `countries`, `competitions`, `competition_seasons`, and `odds_api_competitions`.
 2. Create canonical sport rows (Football, Basketball, Tennis, etc.).
-3. Convert each existing `sports.sport_key` row into a competition mapping, using reviewed metadata.
+3. Create an Odds API competition mapping for each sport key, using reviewed competition metadata.
 4. Preserve the original Odds API key exactly in `odds_api_competitions.odds_api_sport_key`.
 5. Add `competition_id` to events and backfill it using the Odds API mapping.
 6. Keep any transitional compatibility columns only for the duration of the migration.
@@ -1060,7 +1060,7 @@ Implement the architecture in this order:
 2. **Events and participants:** make events normalized around internal IDs while retaining Odds API IDs and names.
 3. **Market catalogue and Odds API mappings:** canonical market identity, display category, and explicit rule key.
 4. **Event-market availability:** accurately track what is offered per event/Odds API/bookmaker.
-5. **Odds current/history:** preserve quote identity and source; select customer prices through a separate policy.
+5. **Odds latest prices/history:** preserve quote identity and Odds API market keys; select customer prices through a separate policy.
 6. **Results:** normalize the facts required by the markets the platform actually offers.
 7. **Bet placement snapshots:** preserve all terms the customer accepted.
 8. **Settlement rules and records:** deterministic, versioned, auditable and idempotent.
