@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
-import { Check, CheckCheck, LoaderCircle, RefreshCw, Save, X } from "lucide-react";
+import { Check, CheckCheck, CircleMinus, CirclePlus, LoaderCircle, RefreshCw, Save, ShieldCheck, UserRoundCheck, X } from "lucide-react";
 import { useToast } from "@/components/toast-provider";
 import { useLanguage } from "@/components/language-provider";
 import { getApiErrorMessage } from "@/services/api-client";
@@ -182,11 +182,11 @@ export function PermissionManagementPage() {
           </select>
           {selectedRole?.description && <p className="mt-2 text-xs dashboard-muted">{selectedRole.description}</p>}
 
-          <div className="permission-summary-grid mt-3 grid grid-cols-2 gap-2 sm:grid-cols-4">
-            <div className="dashboard-subcard px-3 py-2"><div className="text-lg font-semibold leading-5">{permissions.length}</div><div className="mt-0.5 text-[11px] dashboard-muted">{t("systemPermissions")}</div></div>
-            <div className="dashboard-subcard border p-3"><div className="text-xl font-semibold">{assignedIds.length}</div><div className="mt-1 text-xs dashboard-muted">{t("currentlyAssigned")}</div></div>
-            <div className="dashboard-subcard rounded-lg px-3 py-2"><div className="text-lg font-semibold leading-5 text-emerald-600">{additions.length}</div><div className="mt-1 text-xs dashboard-muted">{t("toAdd")}</div></div>
-            <div className="dashboard-subcard rounded-lg px-3 py-2"><div className="text-lg font-semibold leading-5 text-amber-600">{removals.length}</div><div className="mt-1 text-xs dashboard-muted">{t("toRemove")}</div></div>
+          <div className="permission-summary-grid mt-3 grid grid-cols-1 gap-2 sm:grid-cols-2 xl:grid-cols-4">
+            <div className="dashboard-subcard"><span className="permission-stat-icon"><ShieldCheck size={16}/></span><span className="permission-stat-label">{t("systemPermissions")}</span><strong>{permissions.length}</strong></div>
+            <div className="dashboard-subcard"><span className="permission-stat-icon"><UserRoundCheck size={16}/></span><span className="permission-stat-label">{t("currentlyAssigned")}</span><strong>{assignedIds.length}</strong></div>
+            <div className="dashboard-subcard"><span className="permission-stat-icon permission-stat-add"><CirclePlus size={16}/></span><span className="permission-stat-label">{t("toAdd")}</span><strong className="permission-stat-add">{additions.length}</strong></div>
+            <div className="dashboard-subcard"><span className="permission-stat-icon permission-stat-remove"><CircleMinus size={16}/></span><span className="permission-stat-label">{t("toRemove")}</span><strong className="permission-stat-remove">{removals.length}</strong></div>
           </div>
 
           <div className="permission-toolbar mt-4 flex flex-wrap items-center gap-2 border p-2.5">
@@ -200,10 +200,10 @@ export function PermissionManagementPage() {
           <div className="permission-list mt-3 overflow-hidden border">
             <div className="permission-list-header flex items-center justify-between px-3 py-2.5">
               <span className="text-xs font-semibold">{t("availableSystemPermissions")}</span>
-              {loadingAssigned && <span className="inline-flex items-center gap-2 text-xs dashboard-muted"><LoaderCircle size={13} className="animate-spin"/> {t("loadingRoleAccess")}</span>}
+              {loadingAssigned && <span className="inline-flex items-center gap-2 text-xs dashboard-muted"><span className="management-loading-dots" role="status" aria-label="Loading"><i/><i/><i/></span> {t("loadingRoleAccess")}</span>}
             </div>
             {loadingCatalog ? (
-              <div className="flex items-center justify-center gap-2 px-4 py-12 text-sm dashboard-muted"><LoaderCircle size={17} className="animate-spin"/> {t("loadingRolesPermissions")}</div>
+              <div className="flex items-center justify-center gap-3 px-4 py-8 text-sm dashboard-muted"><span className="management-loading-dots" role="status" aria-label="Loading"><i/><i/><i/></span>{t("loadingRolesPermissions")}</div>
             ) : filteredPermissions.length === 0 ? (
               <div className="px-4 py-10 text-center text-sm dashboard-muted">{t("noPermissionsMatch")}</div>
             ) : (
