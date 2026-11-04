@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import { LoaderCircle, Pencil, Plus, RefreshCw, Trash2, Eye, X } from "lucide-react";
+import { LoaderCircle, Pencil, Plus, RefreshCw, Trash2, Eye, X, Search } from "lucide-react";
 import { useLanguage } from "@/components/language-provider";
 import { useToast } from "@/components/toast-provider";
 import { getApiErrorMessage } from "@/services/api-client";
@@ -15,8 +15,9 @@ export function RoleManagementPage() {
   const toast = useToast();
   const [roles, setRoles] = useState<SystemRole[]>([]);
   const [form, setForm] = useState<RoleInput>(emptyForm);
-  const [editingId, setEditingId] = useState<number | null>(null);
-  const [viewing, setViewing] = useState<SystemRole | null>(null);
+  const [modal, setModal] = useState<"create" | "edit" | "view" | null>(null);
+  const [activeRole, setActiveRole] = useState<SystemRole | null>(null);
+  const [search, setSearch] = useState("");
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
@@ -27,64 +28,47 @@ export function RoleManagementPage() {
     catch (e) { setError(getApiErrorMessage(e, t("unableToLoadRoles"))); }
     finally { setLoading(false); }
   }, [t]);
-
   useEffect(() => { void refresh(); }, [refresh]);
 
-  function startCreate() { setEditingId(null); setViewing(null); setForm(emptyForm); }
-  function startEdit(role: SystemRole) {
-    setViewing(null); setEditingId(role.id);
-    setForm({ name: role.name, description: role.description ?? "" });
-  }
+  const visibleRoles = roles.filter((role) => [role.name, role.description ?? ""].some((v) => v.toLowerCase().includes(search.toLowerCase())));
+  function openCreate() { setActiveRole(null); setForm(emptyForm); setModal("create"); }
+  function openEdit(role: SystemRole) { setActiveRole(role); setForm({ name: role.name, description: role.description ?? "" }); setModal("edit"); }
+  function closeModal() { if (!saving) { setModal(null); setActiveRole(null); } }
 
   async function submit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault(); setSaving(true); setError("");
     try {
-      if (editingId === null) await createRole({ name: form.name, description: form.description });
-      else await updateRole(editingId, { name: form.name, description: form.description });
-      toast(t(editingId === null ? "roleCreated" : "roleUpdated"), "success");
-      startCreate(); await refresh();
-    } catch (e) {
-      const message = getApiErrorMessage(e, t("unableToSaveRole"));
-      setError(message); toast(message, "error");
-    } finally { setSaving(false); }
+      if (modal === "create") await createRole(form);
+      else if (modal === "edit" && activeRole) await updateRole(activeRole.id, form);
+      toast(t(modal === "create" ? "roleCreated" : "roleUpdated"), "success");
+      closeModal(); await refresh();
+    } catch (e) { const message = getApiErrorMessage(e, t("unableToSaveRole")); setError(message); toast(message, "error"); }
+    finally { setSaving(false); }
   }
-
   async function remove(role: SystemRole) {
     if (!window.confirm(t("confirmDeleteRole") + " " + role.name + "?")) return;
-    try {
-      await deleteRole(role.id); toast(t("roleDeleted"), "success");
-      if (editingId === role.id) startCreate();
-      if (viewing?.id === role.id) setViewing(null);
-      await refresh();
-    } catch (e) { const message = getApiErrorMessage(e, t("unableToDeleteRole")); setError(message); toast(message, "error"); }
+    try { await deleteRole(role.id); toast(t("roleDeleted"), "success"); await refresh(); }
+    catch (e) { const message = getApiErrorMessage(e, t("unableToDeleteRole")); setError(message); toast(message, "error"); }
   }
 
-  return <div className="space-y-6">
-    <header className="flex flex-wrap items-start justify-between gap-3">
-      <div><p className="text-sm text-emerald-400">{t("accessControl")}</p><h1 className="mt-1 text-3xl font-semibold">{t("roleManagement")}</h1><p className="mt-2 text-sm dashboard-muted">{t("roleManagementDescription")}</p></div>
-      <button onClick={() => void refresh()} disabled={loading} className="dashboard-secondary-button inline-flex items-center gap-2 rounded-xl border px-4 py-2.5 text-sm"><RefreshCw size={15} className={loading ? "animate-spin" : ""}/>{t("refresh")}</button>
+  return <div className="space-y-5">
+    <header className="flex flex-wrap items-center justify-between gap-3">
+      <div><p className="text-sm dashboard-muted">{t("accessControl")}</p><h1 className="mt-1 text-2xl font-semibold">{t("roleManagement")}</h1><p className="mt-1 text-sm dashboard-muted">{t("roleManagementDescription")}</p></div>
+      <button onClick={openCreate} className="inline-flex items-center gap-2 rounded-xl bg-[var(--brand)] px-4 py-2.5 text-sm font-semibold text-white shadow-sm"><Plus size={16}/>{t("createRole")}</button>
     </header>
-    {error && <div role="alert" className="rounded-xl border border-red-500/30 bg-red-500/10 p-3 text-sm text-red-300">{error}</div>}
-    <div className="grid gap-5 xl:grid-cols-[minmax(0,1.2fr)_minmax(300px,.8fr)]">
-      <section className="rounded-2xl border dashboard-card p-5">
-        <div className="mb-4 flex items-center justify-between"><h2 className="font-semibold">{t("allRoles")} ({roles.length})</h2><button onClick={startCreate} className="inline-flex items-center gap-2 rounded-xl bg-emerald-600 px-3 py-2 text-sm font-semibold text-white"><Plus size={15}/>{t("createRole")}</button></div>
-        {loading ? <div className="flex justify-center py-12"><LoaderCircle className="animate-spin"/></div> : roles.length === 0 ? <p className="py-10 text-center text-sm dashboard-muted">{t("noRolesFound")}</p> :
-          <div className="space-y-2">{roles.map(role => <div key={role.id} className="flex flex-wrap items-center gap-3 rounded-xl border dashboard-subcard p-3">
-            <div className="min-w-0 flex-1"><p className="font-medium">{role.name}</p><p className="mt-1 line-clamp-2 text-xs dashboard-muted">{role.description || t("noDescription")}</p><p className="mt-1 text-[11px] dashboard-muted">ID: {role.id}</p></div>
-            <button title={t("view")} onClick={() => {setViewing(role);setEditingId(null);}} className="dashboard-secondary-button rounded-lg border p-2"><Eye size={15}/></button>
-            <button title={t("edit")} onClick={() => startEdit(role)} className="dashboard-secondary-button rounded-lg border p-2"><Pencil size={15}/></button>
-            <button title={t("delete")} onClick={() => void remove(role)} className="rounded-lg border border-red-500/30 p-2 text-red-400"><Trash2 size={15}/></button>
-          </div>)}</div>}
+    {error && <div role="alert" className="rounded-xl border border-red-300 bg-red-50 px-4 py-3 text-sm text-red-700">{error}</div>}
+    <section className="dashboard-card rounded-2xl border p-4 sm:p-5">
+      <div className="mb-4 flex flex-wrap items-center justify-between gap-3"><h2 className="font-semibold">{t("allRoles")} <span className="dashboard-muted">({roles.length})</span></h2><button onClick={() => void refresh()} disabled={loading} className="dashboard-secondary-button inline-flex items-center gap-2 rounded-lg border px-3 py-2 text-sm"><RefreshCw size={14} className={loading ? "animate-spin" : ""}/>{t("refresh")}</button></div>
+      <div className="relative mb-4 max-w-md"><Search size={16} className="dashboard-muted absolute left-3 top-3"/><input value={search} onChange={e => setSearch(e.target.value)} placeholder={t("searchRoles")} className="dashboard-field w-full rounded-xl border py-2.5 pl-9 pr-3 text-sm"/></div>
+      {loading ? <div className="flex justify-center py-12"><LoaderCircle className="animate-spin"/></div> : visibleRoles.length === 0 ? <p className="py-12 text-center text-sm dashboard-muted">{t("noRolesFound")}</p> :
+        <div className="overflow-x-auto"><table className="w-full min-w-[520px] text-left text-sm"><thead className="dashboard-muted border-b text-xs"><tr><th className="px-3 py-3">{t("roleName")}</th><th className="px-3 py-3">{t("description")}</th><th className="px-3 py-3 text-right">{t("actions")}</th></tr></thead><tbody>{visibleRoles.map(role => <tr key={role.id} className="border-b last:border-0"><td className="px-3 py-4 font-medium">{role.name}</td><td className="max-w-[420px] px-3 py-4 dashboard-muted"><span className="line-clamp-2">{role.description || t("noDescription")}</span></td><td className="px-3 py-4"><div className="flex justify-end gap-1"><button title={t("view")} onClick={() => {setActiveRole(role);setModal("view");}} className="dashboard-secondary-button rounded-lg border p-2"><Eye size={15}/></button><button title={t("edit")} onClick={() => openEdit(role)} className="dashboard-secondary-button rounded-lg border p-2"><Pencil size={15}/></button><button title={t("delete")} onClick={() => void remove(role)} className="rounded-lg border border-red-200 p-2 text-red-600 hover:bg-red-50"><Trash2 size={15}/></button></div></td></tr>)}</tbody></table></div>}
+    </section>
+    {modal && <div className="fixed inset-0 z-[100] flex items-center justify-center overflow-y-auto bg-slate-950/50 p-4" onMouseDown={e => {if(e.target===e.currentTarget)closeModal();}}>
+      <section role="dialog" aria-modal="true" aria-labelledby="role-modal-title" className="dashboard-card my-auto w-full max-w-xl rounded-2xl border p-5 text-[var(--dashboard-text)] shadow-2xl sm:p-6">
+        <div className="mb-5 flex items-start justify-between gap-3"><div><h2 id="role-modal-title" className="text-lg font-semibold">{t(modal === "create" ? "createRole" : modal === "edit" ? "editRole" : "roleDetails")}</h2><p className="mt-1 text-xs dashboard-muted">{modal === "view" ? t("roleDetails") : t("roleFormHint")}</p></div><button onClick={closeModal} aria-label={t("close")} className="dashboard-secondary-button rounded-lg border p-2"><X size={17}/></button></div>
+        {modal === "view" && activeRole ? <div className="space-y-4"><div><p className="text-xs dashboard-muted">{t("roleName")}</p><p className="mt-1 font-medium">{activeRole.name}</p></div><div><p className="text-xs dashboard-muted">{t("description")}</p><p className="mt-1 whitespace-pre-wrap text-sm">{activeRole.description || t("noDescription")}</p></div><div className="flex justify-end"><button onClick={() => openEdit(activeRole)} className="rounded-xl bg-[var(--brand)] px-4 py-2.5 text-sm font-semibold text-white">{t("edit")}</button></div></div> :
+        <form onSubmit={submit} className="space-y-4"><div><label htmlFor="role-name" className="mb-1.5 block text-sm font-medium">{t("roleName")}</label><input id="role-name" required value={form.name} onChange={e => setForm(v => ({...v,name:e.target.value}))} className="dashboard-field w-full rounded-xl border px-3 py-3 text-sm"/></div><div><label htmlFor="role-description" className="mb-1.5 block text-sm font-medium">{t("description")}</label><textarea id="role-description" required rows={5} value={form.description} onChange={e => setForm(v => ({...v,description:e.target.value}))} className="dashboard-field w-full rounded-xl border px-3 py-3 text-sm"/></div><div className="flex justify-end gap-2 border-t pt-4"><button type="button" onClick={closeModal} className="dashboard-secondary-button rounded-xl border px-4 py-2.5 text-sm">{t("cancel")}</button><button disabled={saving} className="inline-flex items-center gap-2 rounded-xl bg-[var(--brand)] px-4 py-2.5 text-sm font-semibold text-white disabled:opacity-60">{saving && <LoaderCircle size={15} className="animate-spin"/>}{t("saveChanges")}</button></div></form>}
       </section>
-      <section className="rounded-2xl border dashboard-card p-5">
-        <div className="mb-4 flex items-center justify-between"><h2 className="font-semibold">{viewing ? t("roleDetails") : editingId === null ? t("createRole") : t("editRole")}</h2>{(viewing || editingId !== null) && <button onClick={startCreate} aria-label={t("close")}><X size={17}/></button>}</div>
-        {viewing ? <div className="space-y-3"><div><p className="text-xs dashboard-muted">{t("roleName")}</p><p className="font-semibold">{viewing.name}</p></div><div><p className="text-xs dashboard-muted">{t("description")}</p><p className="text-sm">{viewing.description || t("noDescription")}</p></div><p className="text-xs dashboard-muted">ID: {viewing.id}{viewing.created_at ? " · " + new Date(viewing.created_at).toLocaleString() : ""}</p><button onClick={() => startEdit(viewing)} className="rounded-xl bg-emerald-600 px-4 py-2 text-sm font-semibold text-white">{t("editRole")}</button></div> :
-        <form onSubmit={submit} className="space-y-4">
-          <div><label htmlFor="role-name" className="mb-1.5 block text-xs font-medium dashboard-muted">{t("roleName")}</label><input id="role-name" required value={form.name} onChange={e => setForm(v => ({...v,name:e.target.value}))} placeholder={t("administratorRoleExample")} className="dashboard-field w-full rounded-xl border px-3 py-3 text-sm"/></div>
-          <div><label htmlFor="role-description" className="mb-1.5 block text-xs font-medium dashboard-muted">{t("description")}</label><textarea id="role-description" rows={5} required value={form.description} onChange={e => setForm(v => ({...v,description:e.target.value}))} placeholder={t("roleDescriptionExample")} className="dashboard-field w-full rounded-xl border px-3 py-3 text-sm"/></div>
-          <button disabled={saving} className="inline-flex items-center gap-2 rounded-xl bg-emerald-600 px-4 py-2.5 text-sm font-semibold text-white disabled:opacity-50">{saving ? <LoaderCircle size={15} className="animate-spin"/> : <Plus size={15}/>}{saving ? t("saving") : editingId === null ? t("createRole") : t("saveChanges")}</button>
-        </form>}
-      </section>
-    </div>
+    </div>}
   </div>;
 }
