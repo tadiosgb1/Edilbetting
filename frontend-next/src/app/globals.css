@@ -1073,3 +1073,26 @@
   .dashboard-root .management-heading-card { padding: 12px !important; }
   .dashboard-root .management-heading-card .management-heading-title h1 { font-size: 20px; }
 }
+
+
+/* Use the active page accent for management table controls and sort indicators. */
+.dashboard-root .dashboard-table-heading svg {
+  color: var(--brand) !important;
+  opacity: 1;
+}
+.dashboard-root .dashboard-data-table-row .dashboard-secondary-button svg {
+  color: var(--brand);
+}
+.dashboard-root .dashboard-data-table-row button[class*="text-red"] svg,
+.dashboard-root .dashboard-data-table-row button[class*="border-red"] svg {
+  color: #dc2626;
+}
+.dashboard-root .management-role-name-badge,
+.dashboard-root .dashboard-table-badge {
+  color: var(--text) !important;
+  background: color-mix(in srgb, var(--brand) 19%, var(--panel)) !important;
+  border: 1px solid color-mix(in srgb, var(--brand) 42%, var(--line)) !important;
+}
+.dashboard-root .management-permissions-title {
+  text-transform: capitalize;
+}
