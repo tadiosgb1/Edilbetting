@@ -1027,3 +1027,49 @@
   .dashboard-root .management-heading-row { gap: 10px; }
   .dashboard-root .management-create-user { padding-inline: 9px !important; }
 }
+
+
+/* All three management pages use the same padded parent card for their title
+   and primary action, keeping the heading inset from the card edges. */
+.dashboard-root .management-heading-card {
+  display: block;
+  width: 100%;
+  padding: 14px 16px !important;
+  border: 1px solid var(--line);
+  background: var(--panel);
+  color: var(--text);
+}
+.dashboard-root .management-heading-card .management-page-heading {
+  display: block;
+  width: 100%;
+  padding: 0 !important;
+  border: 0 !important;
+  background: transparent;
+}
+.dashboard-root .management-heading-card .management-heading-row {
+  display: flex;
+  width: 100%;
+  min-height: 36px;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+}
+.dashboard-root .management-heading-card .management-heading-title {
+  min-width: 0;
+}
+.dashboard-root .management-heading-card .management-heading-title h1 {
+  margin: 0;
+  color: var(--text);
+  font-size: 22px;
+  font-weight: 700;
+  line-height: 1.25;
+  letter-spacing: -.03em;
+}
+.dashboard-root .management-heading-card .management-create-user {
+  min-height: 32px;
+  height: 32px;
+}
+@media (max-width: 480px) {
+  .dashboard-root .management-heading-card { padding: 12px !important; }
+  .dashboard-root .management-heading-card .management-heading-title h1 { font-size: 20px; }
+}
