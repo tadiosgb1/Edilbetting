@@ -9,6 +9,7 @@ import { LanguageSelector, useLanguage } from "@/components/language-provider";
 import { normalizePhone, useAuthStore, type UserRole } from "@/stores/auth-store";
 import { login, logout } from "@/services/auth.service";
 import { getApiErrorMessage } from "@/services/api-client";
+import { useApi } from "@/hooks/use-api";
 
 type AuthMode = "login" | "register";
 type AuthPageProps = {
@@ -39,6 +40,7 @@ export default function AuthPage({
   const [confirmPassword, setConfirmPassword] = useState("");
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
+  const loginRequest = useApi(login);
   const router = useRouter();
   const toast = useToast();
   const { t } = useLanguage();
@@ -79,7 +81,7 @@ export default function AuthPage({
         return;
       }
 
-      const authenticatedUser = await login({ phone: normalized, password }, role);
+      const authenticatedUser = await loginRequest.execute({ phone: normalized, password }, role);
       if (authenticatedUser.role !== role) {
         logout();
         notifyError("This account does not have access to this workspace.");
