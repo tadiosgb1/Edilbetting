@@ -4,6 +4,8 @@ import { useLanguage } from "@/components/language-provider";
 import { Card } from "@/components/ui/card";
 import { Search, SlidersHorizontal } from "lucide-react";
 import { PermissionManagementPage } from "@/components/admin/permission-management-page";
+import { RoleManagementPage } from "@/components/admin/role-management-page";
+import { UserManagementPage } from "@/components/admin/user-management-page";
 
 const titles: Record<string, string> = {
   agents: "Agents",
@@ -19,6 +21,8 @@ const titles: Record<string, string> = {
 export function SectionPage({ role, section }: { role: "admin" | "agent"; section: string }) {
   const { t } = useLanguage();
   if (section === "permissions") return <PermissionManagementPage />;
+  if (section === "roles") return <RoleManagementPage />;
+  if (section === "users") return <UserManagementPage />;
   const title = t(titles[section] ?? (section.charAt(0).toUpperCase() + section.slice(1)));
 
   return (
