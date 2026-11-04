@@ -157,14 +157,16 @@ export function PermissionManagementPage() {
   return (
     <div className="space-y-4">
       
-      <div className="management-page-heading">
-        <div className="flex flex-wrap items-center justify-between gap-3">
-          <h1 className="text-xl font-semibold md:text-2xl">{t("permissions")}</h1>
-          <button type="button" onClick={() => void loadCatalog()} disabled={loadingCatalog} className="dashboard-secondary-button inline-flex items-center gap-2 px-3 py-2 text-sm disabled:opacity-50">
-            <RefreshCw size={15} className={loadingCatalog ? "animate-spin" : ""} /> {t("refresh")}
-          </button>
-        </div>
-      </div>
+      <section className="dashboard-card management-heading-card">
+        <header className="management-page-heading">
+          <div className="management-heading-row">
+            <div className="management-heading-title"><h1>{t("permissions")}</h1></div>
+            <button type="button" onClick={() => void loadCatalog()} disabled={loadingCatalog} aria-label={t("refresh")} title={t("refresh")} className="management-icon-button disabled:opacity-50">
+              <RefreshCw size={15} className={loadingCatalog ? "animate-spin" : ""} />
+            </button>
+          </div>
+        </header>
+      </section>
 
       {error && <div role="alert" className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">{error}</div>}
 
