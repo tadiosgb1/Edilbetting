@@ -4,7 +4,7 @@ import { create } from "zustand";
 import { createJSONStorage, persist } from "zustand/middleware";
 
 export type UserRole = "player" | "agent" | "admin";
-export type AuthUser = { id: string; name: string; phone: string; role: UserRole };
+export type AuthUser = { id: string; name: string; email: string; phone: string; role: UserRole };
 export type LocalAccount = { phone: string; name: string; role: UserRole; passwordHash: string };
 type AuthState = {
   user: AuthUser | null;
@@ -15,7 +15,7 @@ type AuthState = {
   updatePassword: (phone: string, role: UserRole, passwordHash: string, name?: string) => boolean;
 };
 
-export const normalizePhone = (phone: string) => phone.replace(/\D/g, "");
+export const normalizePhone = (phone: string) => phone.replace(/\\D/g, "");
 
 export async function hashPassword(password: string): Promise<string> {
   const bytes = new TextEncoder().encode(password);
@@ -51,8 +51,15 @@ export const useAuthStore = create<AuthState>()(
     {
       name: "edilbet-auth",
       storage: createJSONStorage(() => localStorage),
-      version: 1,
+      version: 2,
       partialize: (state) => ({ user: state.user, accounts: state.accounts }) as AuthState,
+      migrate: (persistedState) => {
+        const state = persistedState as AuthState;
+        if (state.user && typeof state.user.email !== "string") {
+          state.user.email = "";
+        }
+        return state;
+      },
     },
   ),
 );
