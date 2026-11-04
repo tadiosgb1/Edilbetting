@@ -82,7 +82,7 @@ export function RoleManagementPage() {
         <form onSubmit={submit} className="space-y-4">
           <div><label htmlFor="role-name" className="mb-1.5 block text-xs font-medium dashboard-muted">{t("roleName")}</label><input id="role-name" required value={form.name} onChange={e => setForm(v => ({...v,name:e.target.value}))} placeholder="Administrator" className="dashboard-field w-full rounded-xl border px-3 py-3 text-sm"/></div>
           <div><label htmlFor="role-description" className="mb-1.5 block text-xs font-medium dashboard-muted">{t("description")}</label><textarea id="role-description" rows={5} required value={form.description} onChange={e => setForm(v => ({...v,description:e.target.value}))} placeholder="Full system access with user management..." className="dashboard-field w-full rounded-xl border px-3 py-3 text-sm"/></div>
-          <button disabled={saving} className="inline-flex items-center gap-2 rounded-xl bg-emerald-600 px-4 py-2.5 text-sm font-semibold text-white disabled:opacity-50">{saving ? <LoaderCircle size={15} className="animate-spin"/> : <Plus size={15}/ >}{saving ? t("saving") : editingId === null ? t("createRole") : t("saveChanges")}</button>
+          <button disabled={saving} className="inline-flex items-center gap-2 rounded-xl bg-emerald-600 px-4 py-2.5 text-sm font-semibold text-white disabled:opacity-50">{saving ? <LoaderCircle size={15} className="animate-spin"/> : <Plus size={15}/>}{saving ? t("saving") : editingId === null ? t("createRole") : t("saveChanges")}</button>
         </form>}
       </section>
     </div>
