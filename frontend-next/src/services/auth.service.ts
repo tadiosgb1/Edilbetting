@@ -17,7 +17,13 @@ type BackendUser = {
 
 type LoginResponse = {
   user?: BackendUser;
-  data?: BackendUser & { user?: BackendUser; accessToken?: string; token?: string };
+  data?: BackendUser & {
+    user?: BackendUser;
+    access_token?: string;
+    accessToken?: string;
+    token?: string;
+  };
+  access_token?: string;
   accessToken?: string;
   token?: string;
   message?: string;
@@ -30,6 +36,18 @@ type LoginResponse = {
 export async function login(credentials: LoginCredentials, expectedRole: UserRole): Promise<AuthUser> {
   const response = await apiClient.post<LoginResponse>("/users/login", credentials);
   const payload = response.data;
+  const accessToken =
+    payload.data?.access_token ??
+    payload.data?.accessToken ??
+    payload.data?.token ??
+    payload.access_token ??
+    payload.accessToken ??
+    payload.token;
+
+  if (accessToken && typeof window !== "undefined") {
+    window.localStorage.setItem("token", accessToken);
+  }
+
   const user = payload.user ?? payload.data?.user ?? payload.data ?? (payload as unknown as BackendUser);
 
   const roleValue = user.role?.toLowerCase();
@@ -49,5 +67,7 @@ export async function login(credentials: LoginCredentials, expectedRole: UserRol
 }
 
 export function logout(): void {
-  // Authentication is managed by the backend session cookie (withCredentials).
+  if (typeof window !== "undefined") {
+    window.localStorage.removeItem("token");
+  }
 }
