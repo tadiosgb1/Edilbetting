@@ -160,7 +160,7 @@ export function PermissionManagementPage() {
       <section className="dashboard-card management-heading-card">
         <header className="management-page-heading">
           <div className="management-heading-row">
-            <div className="management-heading-title"><h1>{t("permissions")}</h1></div>
+            <div className="management-heading-title"><h1 className="management-permissions-title">{t("permissions")}</h1></div>
             <button type="button" onClick={() => void loadCatalog()} disabled={loadingCatalog} aria-label={t("refresh")} title={t("refresh")} className="management-icon-button disabled:opacity-50">
               <RefreshCw size={15} className={loadingCatalog ? "animate-spin" : ""} />
             </button>
