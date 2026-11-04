@@ -6,7 +6,7 @@ import { useRouter } from "next/navigation";
 import { ArrowRight, LockKeyhole, UserPlus, X } from "lucide-react";
 import { useToast } from "@/components/toast-provider";
 import { LanguageSelector, useLanguage } from "@/components/language-provider";
-import { normalizePhone, useAuthStore, type UserRole } from "@/stores/auth-store";
+import { useAuthStore, type UserRole } from "@/stores/auth-store";
 import { login, logout } from "@/services/auth.service";
 import { getApiErrorMessage } from "@/services/api-client";
 import { useApi } from "@/hooks/use-api";
@@ -35,7 +35,7 @@ export default function AuthPage({
 }: AuthPageProps) {
   const [currentMode, setCurrentMode] = useState<AuthMode>(mode);
   const [name, setName] = useState("");
-  const [phone, setPhone] = useState("");
+  const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [error, setError] = useState("");
@@ -69,19 +69,19 @@ export default function AuthPage({
     setError("");
     setBusy(true);
 
-    const normalized = normalizePhone(phone);
     try {
       if (currentMode === "register") {
         notifyError("Registration is not connected yet. Please contact the administrator to create an account.");
         return;
       }
 
-      if (!normalized || !password) {
-        notifyError("Enter your phone number and password.");
+      const normalizedEmail = email.trim().toLowerCase();
+      if (!normalizedEmail || !/^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/.test(normalizedEmail) || !password) {
+        notifyError("Enter a valid email address and password.");
         return;
       }
 
-      const authenticatedUser = await loginRequest.execute({ phone: normalized, password }, role);
+      const authenticatedUser = await loginRequest.execute({ email: normalizedEmail, password }, role);
       if (authenticatedUser.role !== role) {
         logout();
         notifyError("This account does not have access to this workspace.");
@@ -109,7 +109,7 @@ export default function AuthPage({
       <h1 className="text-2xl font-bold">{t(currentMode === "login" ? "signIn" : "createAccount")}</h1>
       <form onSubmit={submit} className="mt-5 space-y-3.5">
         {currentMode === "register" && <div><label htmlFor="auth-name" className="mb-1.5 block text-xs font-medium text-slate-300">{t("name")}</label><input id="auth-name" autoComplete="name" value={name} onChange={(event) => setName(event.target.value)} placeholder={t("yourName")} required className="w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2.5 text-sm outline-none focus:border-[var(--auth-accent)]" /></div>}
-        <div><label htmlFor="auth-phone" className="mb-1.5 block text-xs font-medium text-slate-300">{t("phoneNumber")}</label><input id="auth-phone" type="tel" inputMode="tel" autoComplete="tel" value={phone} onChange={(event) => setPhone(event.target.value)} placeholder="09XXXXXXXX" required className="w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2.5 text-sm outline-none focus:border-[var(--auth-accent)]" /></div>
+        <div><label htmlFor="auth-email" className="mb-1.5 block text-xs font-medium text-slate-300">{t("email")}</label><input id="auth-email" type="email" inputMode="email" autoComplete="email" value={email} onChange={(event) => setEmail(event.target.value)} placeholder="you@example.com" required className="w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2.5 text-sm outline-none focus:border-[var(--auth-accent)]" /></div>
         <div><label htmlFor="auth-password" className="mb-1.5 block text-xs font-medium text-slate-300">{t("password")}</label><input id="auth-password" type="password" autoComplete={currentMode === "login" ? "current-password" : "new-password"} value={password} onChange={(event) => setPassword(event.target.value)} placeholder={t("password")} minLength={currentMode === "register" ? 4 : undefined} required className="w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2.5 text-sm outline-none focus:border-[var(--auth-accent)]" /></div>
         {currentMode === "register" && <div><label htmlFor="auth-confirm" className="mb-1.5 block text-xs font-medium text-slate-300">{t("confirmPassword")}</label><input id="auth-confirm" type="password" autoComplete="new-password" value={confirmPassword} onChange={(event) => setConfirmPassword(event.target.value)} placeholder={t("repeatPassword")} required className="w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2.5 text-sm outline-none focus:border-[var(--auth-accent)]" /></div>}
         {error && <p role="alert" className="rounded-md bg-red-500/10 px-3 py-2 text-xs text-red-300">{t(error)}</p>}
