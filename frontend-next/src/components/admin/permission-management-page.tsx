@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { Check, CheckCheck, LoaderCircle, RefreshCw, Save, ShieldCheck, UserRoundPlus, X } from "lucide-react";
 import { useToast } from "@/components/toast-provider";
+import { useLanguage } from "@/components/language-provider";
 import { getApiErrorMessage } from "@/services/api-client";
 import {
   assignUserRole,
@@ -16,6 +17,7 @@ import {
 
 export function PermissionManagementPage() {
   const toast = useToast();
+  const { t } = useLanguage();
   const [roles, setRoles] = useState<SystemRole[]>([]);
   const [permissions, setPermissions] = useState<SystemPermission[]>([]);
   const [selectedRoleId, setSelectedRoleId] = useState("");
@@ -66,7 +68,7 @@ export function PermissionManagementPage() {
       setPermissions(permissionItems);
       setSelectedRoleId((current) => current || (roleItems[0] ? String(roleItems[0].id) : ""));
     } catch (requestError) {
-      setError(getApiErrorMessage(requestError, "Unable to load roles and permissions."));
+      setError(getApiErrorMessage(requestError, t("unableToLoadRolesPermissions")));
     } finally {
       setLoadingCatalog(false);
     }
@@ -101,7 +103,7 @@ export function PermissionManagementPage() {
         setAssignedIds([]);
         setSelectedIds([]);
         setAssignedReady(false);
-        setError(getApiErrorMessage(requestError, "Unable to load this role's assigned permissions."));
+        setError(getApiErrorMessage(requestError, t("unableToLoadAssignedPermissions")));
       })
       .finally(() => {
         if (active) setLoadingAssigned(false);
@@ -135,9 +137,9 @@ export function PermissionManagementPage() {
     try {
       await manageRolePermissions(roleId, additions, removals);
       setAssignedIds([...selectedIds]);
-      toast("Role permissions updated successfully.", "success");
+      toast(t("permissionsUpdated"), "success");
     } catch (requestError) {
-      const message = getApiErrorMessage(requestError, "Unable to update role permissions.");
+      const message = getApiErrorMessage(requestError, t("unableToUpdatePermissions"));
       setError(message);
       toast(message, "error");
     } finally {
@@ -150,17 +152,17 @@ export function PermissionManagementPage() {
     const parsedUserId = Number(userId);
     const roleId = Number(selectedRoleId);
     if (!Number.isInteger(parsedUserId) || parsedUserId <= 0 || !roleId) {
-      setError("Enter a valid numeric user ID and select a role.");
+      setError(t("enterValidUserAndRole"));
       return;
     }
     setAssigningUser(true);
     setError("");
     try {
       await assignUserRole(parsedUserId, roleId);
-      toast("Role assigned to user successfully.", "success");
+      toast(t("roleAssigned"), "success");
       setUserId("");
     } catch (requestError) {
-      const message = getApiErrorMessage(requestError, "Unable to assign this role to the user.");
+      const message = getApiErrorMessage(requestError, t("unableToAssignRole"));
       setError(message);
       toast(message, "error");
     } finally {
@@ -216,7 +218,7 @@ export function PermissionManagementPage() {
             <button type="button" onClick={selectAll} disabled={loadingCatalog || loadingAssigned || permissions.length === 0} className="dashboard-secondary-button inline-flex items-center gap-2 rounded-lg border px-3 py-2 text-xs font-medium disabled:opacity-50"><CheckCheck size={14}/> Select all</button>
             <button type="button" onClick={clearAll} disabled={loadingAssigned || selectedIds.length === 0} className="dashboard-secondary-button inline-flex items-center gap-2 rounded-lg border px-3 py-2 text-xs font-medium disabled:opacity-50"><X size={14}/> Clear all</button>
             <div className="ml-auto min-w-[180px] flex-1 sm:max-w-[260px]">
-              <input value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Search permissions..." className="dashboard-field w-full rounded-lg border px-3 py-2 text-xs outline-none focus:border-emerald-400" />
+              <input value={search} onChange={(event) => setSearch(event.target.value)} placeholder=t("searchPermissions") className="dashboard-field w-full rounded-lg border px-3 py-2 text-xs outline-none focus:border-emerald-400" />
             </div>
           </div>
 
@@ -245,7 +247,7 @@ export function PermissionManagementPage() {
                           {originallyAssigned && !checked && <span className="rounded-full bg-amber-500/10 px-2 py-0.5 text-[10px] font-medium text-amber-400">Pending removal</span>}
                         </span>
                         <span className="mt-1 block break-all font-mono text-[11px] dashboard-muted">{permission.codename}</span>
-                        {permission.content_type && <span className="mt-1 block text-[11px] dashboard-muted">Resource: {permission.content_type}</span>}
+                        {permission.content_type && <span className="mt-1 block text-[11px] dashboard-muted">{t("resource")} {permission.content_type}</span>}
                       </span>
                       <span className={checked ? "mt-0.5 text-emerald-400" : "mt-0.5 dashboard-muted"}>{checked ? <Check size={16}/> : null}</span>
                     </label>
@@ -256,10 +258,10 @@ export function PermissionManagementPage() {
           </div>
 
           <div className="mt-4 flex flex-wrap items-center justify-between gap-3">
-            <p className="text-xs dashboard-muted">{selectedIds.length} of {permissions.length} permissions selected</p>
+            <p className="text-xs dashboard-muted">{selectedIds.length} {t("of")} {permissions.length} {t("permissionsSelected")}</p>
             <button type="button" onClick={() => void savePermissions()} disabled={!hasChanges || savingPermissions || loadingAssigned || !assignedReady || !selectedRoleId} className="inline-flex items-center gap-2 rounded-xl bg-emerald-600 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-emerald-500 disabled:cursor-not-allowed disabled:opacity-50">
               {savingPermissions ? <LoaderCircle size={15} className="animate-spin"/> : <Save size={15}/>}
-              {savingPermissions ? "Saving changes..." : "Save permissions"}
+              {savingPermissions ? t("savingChanges") : t("savePermissions")}
             </button>
           </div>
         </div>
@@ -275,11 +277,11 @@ export function PermissionManagementPage() {
               </div>
               <div className="rounded-xl border dashboard-subcard px-3 py-3">
                 <div className="text-[11px] dashboard-muted">Role to assign</div>
-                <div className="mt-1 text-sm font-semibold">{selectedRole?.name ?? "Select a role above"}</div>
+                <div className="mt-1 text-sm font-semibold">{selectedRole?.name ?? t("selectRoleAbove")}</div>
               </div>
               <button type="submit" disabled={assigningUser || !selectedRoleId || loadingCatalog} className="inline-flex w-full items-center justify-center gap-2 rounded-xl border border-emerald-500/40 bg-emerald-500/10 px-4 py-2.5 text-sm font-semibold text-emerald-300 hover:bg-emerald-500/20 disabled:opacity-50">
                 {assigningUser ? <LoaderCircle size={15} className="animate-spin"/> : <UserRoundPlus size={15}/>}
-                {assigningUser ? "Assigning..." : "Assign selected role"}
+                {assigningUser ? t("assigning") : t("assignSelectedRole")}
               </button>
             </form>
           </div>
@@ -287,9 +289,9 @@ export function PermissionManagementPage() {
           <div className="rounded-2xl border dashboard-card p-5">
             <h2 className="font-semibold">How permission updates work</h2>
             <div className="mt-3 space-y-3 text-xs dashboard-muted">
-              <p><span className="font-semibold text-emerald-400">Assigned</span> means the permission is already attached to this role.</p>
-              <p><span className="font-semibold text-blue-400">Pending add</span> means it will be included in <code>add_permission_ids</code>.</p>
-              <p><span className="font-semibold text-amber-400">Pending removal</span> means it will be included in <code>remove_permission_ids</code>.</p>
+              <p><span className="font-semibold text-emerald-400">Assigned</span> {t("assignedHelp")}</p>
+              <p><span className="font-semibold text-blue-400">Pending add</span> {t("pendingAddHelp")} <code>add_permission_ids</code>.</p>
+              <p><span className="font-semibold text-amber-400">Pending removal</span> {t("pendingRemoveHelp")} <code>remove_permission_ids</code>.</p>
               <p>Changes are not sent until you press <strong className="text-slate-200">Save permissions</strong>.</p>
             </div>
           </div>
