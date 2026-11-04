@@ -68,16 +68,18 @@ Keep service endpoint paths relative (for example, `/users/login`). Do not hardc
 
 ### Authentication request
 
-The login service currently sends the following JSON payload:
+The login service currently sends the backend-supported email/password JSON payload:
 
 ```json
 {
-  "phone": "09XXXXXXXX",
+  "email": "you@example.com",
   "password": "your-password"
 }
 ```
 
-The authentication service accepts a response containing a user object and, when available, an `accessToken` or `token`. It supports common user identifiers and fields (`id`/`_id`, `name`/`fullName`, `phone`/`phoneNumber`, and `role`). Confirm the exact request and response contract with the backend team; adjust the service adapter in one place if the API uses different field names or an envelope.
+The login form validates an email address and submits it as `email`; it does not send a `phone` property. This is a temporary frontend compatibility choice until the backend adds phone-based authentication.
+
+The authentication service accepts a response containing a user object and, when available, an `accessToken` or `token`. It supports common user identifiers and fields (`id`/`_id`, `name`/`fullName`, `email`, and `role`). Confirm the exact request and response contract with the backend team; adjust the service adapter in one place if the API uses different field names or an envelope.
 
 A returned token is stored in browser local storage and attached to subsequent API requests as a Bearer token. This is a pragmatic integration step, not the strongest production session design. For a security-sensitive production deployment, prefer secure, HttpOnly, SameSite cookies issued and validated by the backend.
 
