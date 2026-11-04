@@ -17,16 +17,16 @@ Run these commands from the `frontend-next/` directory:
 
 ```bash
 npm install
-cp .env.example .env.local
+cp .env.example .env
 ```
 
-Set the API base URL in `.env.local`:
+Set the API base URL in `.env`:
 
 ```dotenv
 NEXT_PUBLIC_API_BASE_URL=https://10.195.49.21:3001
 ```
 
-You can also create a local `.env` file with the same value if that is your preferred convention. **Never commit either file.** The tracked `.env.example` is the safe template; it contains configuration names and non-secret defaults only.
+The `.env` file is ignored by Git and stays on your machine. **Never commit either file.** The tracked `.env.example` is the safe template; it contains configuration names and non-secret defaults only.
 
 Start the required workspace:
 
