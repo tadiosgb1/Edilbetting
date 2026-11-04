@@ -234,7 +234,7 @@ export function PermissionManagementPage() {
 
           <div className="mt-3 flex flex-wrap items-center justify-between gap-3">
             <p className="text-xs dashboard-muted">{selectedIds.length} {t("of")} {permissions.length} {t("permissionsSelected")}</p>
-            <button type="button" onClick={() => void savePermissions()} disabled={!hasChanges || savingPermissions || loadingAssigned || !assignedReady || !selectedRoleId} className="inline-flex items-center gap-2 rounded-lg bg-emerald-600 px-3.5 py-2 text-sm font-semibold text-white transition hover:bg-emerald-500 disabled:cursor-not-allowed disabled:opacity-50">
+            <button type="button" onClick={() => void savePermissions()} disabled={!hasChanges || savingPermissions || loadingAssigned || !selectedRoleId} className="inline-flex items-center gap-2 rounded-lg bg-emerald-600 px-3.5 py-2 text-sm font-semibold text-white transition hover:bg-emerald-500 disabled:cursor-not-allowed disabled:opacity-50">
               {savingPermissions ? <LoaderCircle size={15} className="animate-spin"/> : <Save size={15}/>}
               {savingPermissions ? t("savingChanges") : t("savePermissions")}
             </button>
