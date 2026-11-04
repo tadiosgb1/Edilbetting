@@ -18,7 +18,7 @@ type BackendUser = {
 
 type LoginResponse = {
   user?: BackendUser;
-  data?: { user?: BackendUser; accessToken?: string; token?: string };
+  data?: BackendUser & { user?: BackendUser; accessToken?: string; token?: string };
   accessToken?: string;
   token?: string;
   message?: string;
@@ -31,7 +31,7 @@ type LoginResponse = {
 export async function login(credentials: LoginCredentials, expectedRole: UserRole): Promise<AuthUser> {
   const response = await apiClient.post<LoginResponse>("/users/login", credentials);
   const payload = response.data;
-  const user = payload.user ?? payload.data?.user ?? (payload as unknown as BackendUser);
+  const user = payload.user ?? payload.data?.user ?? payload.data ?? (payload as unknown as BackendUser);
   const token = payload.accessToken ?? payload.token ?? payload.data?.accessToken ?? payload.data?.token;
 
   if (token) setAccessToken(token);
