@@ -163,7 +163,7 @@ export function PermissionManagementPage() {
         </button>
       </div>
 
-      {error && <div role="alert" className="rounded-xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-300">{error}</div>}
+      {error && <div role="alert" className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">{error}</div>}
 
       <section className="grid gap-5">
         <div className="rounded-2xl border dashboard-card p-5">
