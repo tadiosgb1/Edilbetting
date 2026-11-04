@@ -14,14 +14,17 @@ const translations: Record<AppLanguage, Record<string, string>> = {
   ti,
 };
 
-const LanguageContext = createContext<{
+type LanguageContextValue = {
   language: AppLanguage;
   setLanguage: (language: AppLanguage) => void;
-  t: (text: string) => string;
-}>({
+  // Keep the boundary defensive: runtime callers may still pass API or component data.
+  t: (value: unknown) => string;
+};
+
+const LanguageContext = createContext<LanguageContextValue>({
   language: "en",
   setLanguage: () => {},
-  t: (text) => text,
+  t: (value) => (typeof value === "string" ? value : ""),
 });
 
 export function LanguageProvider({ children }: { children: ReactNode }) {
@@ -41,19 +44,28 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
     window.localStorage.setItem("edilbet-language", language);
   }, [language]);
 
-  const toTranslationKey = (text: string) => {
+  const toTranslationKey = (value: unknown): string => {
+    if (typeof value !== "string") return "";
+
     // Accept camelCase keys and normalize legacy English phrases.
-    if (/^[a-z][A-Za-z0-9]*$/.test(text)) return text;
-    const words = text.normalize("NFKD").match(/[A-Za-z0-9]+/g) || [];
-    return words.map((word, index) =>
-      index === 0 ? word.toLowerCase() : word[0].toUpperCase() + word.slice(1).toLowerCase()
-    ).join("");
+    if (/^[a-z][A-Za-z0-9]*$/.test(value)) return value;
+    const words = value.normalize("NFKD").match(/[A-Za-z0-9]+/g) || [];
+    return words
+      .map((word, index) =>
+        index === 0 ? word.toLowerCase() : word[0].toUpperCase() + word.slice(1).toLowerCase()
+      )
+      .join("");
   };
 
-  const t = (text: string) => {
-    const key = toTranslationKey(text);
+  const t = (value: unknown): string => {
+    if (typeof value !== "string") {
+      // Preserve useful primitive display values; don't leak "[object Object]" into the UI.
+      return typeof value === "number" || typeof value === "boolean" ? String(value) : "";
+    }
+
+    const key = toTranslationKey(value);
     // Missing Amharic or Tigrigna translations safely use the English value.
-    return translations[language][key] ?? translations.en[key] ?? text;
+    return translations[language][key] ?? translations.en[key] ?? value;
   };
 
   return (
