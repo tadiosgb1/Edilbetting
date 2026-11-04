@@ -9,8 +9,8 @@ import { useAuthStore } from "@/stores/auth-store";
 import { LanguageSelector, useLanguage } from "@/components/language-provider";
 
 type Role = "admin" | "agent";
-const adminNav = [["Overview", "/admin", LayoutDashboard], ["Players", "/admin/players", Users], ["Agents", "/admin/agents", UserRound], ["Bets & Markets", "/admin/bets", Trophy], ["Transactions", "/admin/transactions", Wallet], ["Reports", "/admin/reports", ChartNoAxesCombined], ["Roles", "/admin/roles", ShieldCheck], ["Users", "/admin/users", Users], ["Roles & permissions", "/admin/permissions", ShieldCheck], ["Settings", "/admin/settings", Settings]] as const;
-const agentNav = [["Overview", "/agent", LayoutDashboard], ["My Players", "/agent/players", Users], ["Bets", "/agent/bets", Trophy], ["Wallet & Payouts", "/agent/wallet", Wallet], ["Commissions", "/agent/commissions", ChartNoAxesCombined], ["Roles", "/agent/roles", ShieldCheck], ["Users", "/agent/users", Users], ["Permissions", "/agent/permissions", ShieldCheck], ["Settings", "/agent/settings", Settings]] as const;
+const adminNav = [["Overview", "/admin", LayoutDashboard], ["Players", "/admin/players", Users], ["Agents", "/admin/agents", UserRound], ["Bets & Markets", "/admin/bets", Trophy], ["Transactions", "/admin/transactions", Wallet], ["Reports", "/admin/reports", ChartNoAxesCombined], ["Users", "/admin/users", Users], ["Settings", "/admin/settings", Settings]] as const;
+const agentNav = [["Overview", "/agent", LayoutDashboard], ["My Players", "/agent/players", Users], ["Bets", "/agent/bets", Trophy], ["Wallet & Payouts", "/agent/wallet", Wallet], ["Commissions", "/agent/commissions", ChartNoAxesCombined], ["Users", "/agent/users", Users], ["Settings", "/agent/settings", Settings]] as const;
 
 export function DashboardShell({ role, children }: { role: Role; children: React.ReactNode }) {
   const { t } = useLanguage();
@@ -20,6 +20,7 @@ export function DashboardShell({ role, children }: { role: Role; children: React
   const [mobile, setMobile] = useState(false);
   const [collapsed, setCollapsed] = useState(false);
   const [profileOpen, setProfileOpen] = useState(false);
+  const [settingsExpanded, setSettingsExpanded] = useState(false);
   const [brandPanelOpen, setBrandPanelOpen] = useState(false);
   const [brandColor, setBrandColor] = useState("#16a34a");
   const [theme, setTheme] = useState<"dark" | "light">("dark");
@@ -71,7 +72,7 @@ export function DashboardShell({ role, children }: { role: Role; children: React
         <button onClick={() => setCollapsed(!collapsed)} className="ml-auto hidden h-8 w-8 shrink-0 items-center justify-center rounded-lg dashboard-icon-button md:flex" aria-label={t(collapsed ? "expandSidebar" : "collapseSidebar")} title={t(collapsed ? "expandSidebar" : "collapseSidebar")}>{collapsed ? <ChevronRight size={17} /> : <ChevronLeft size={17} />}</button>
         <button className="ml-auto md:hidden" onClick={() => setMobile(false)} aria-label={t("closeMenu")}><X size={18} /></button>
       </div>
-      <div className="px-3 pt-5">{nav.map(([label, href, Icon]) => <Link key={href} href={href} onClick={() => setMobile(false)} title={collapsed ? label : undefined} className={clsx("mb-1 flex items-center gap-3 rounded-xl px-3 py-3 text-[13px] transition-colors", path === href ? "dashboard-nav-active font-semibold" : "dashboard-nav-link")}><Icon size={18} />{!collapsed && t(label)}</Link>)}</div>
+      <div className="px-3 pt-5">{nav.map(([label, href, Icon]) => <div key={href}><div className="flex items-center"><Link href={href} onClick={() => setMobile(false)} title={collapsed ? label : undefined} className={clsx("mb-1 flex min-w-0 flex-1 items-center gap-3 rounded-xl px-3 py-3 text-[13px] transition-colors", path === href ? "dashboard-nav-active font-semibold" : "dashboard-nav-link")}><Icon size={18} />{!collapsed && t(label)}</Link>{href.endsWith("/settings") && !collapsed && <button aria-label={t("settingsSubmenu")} aria-expanded={settingsExpanded} onClick={() => setSettingsExpanded(v => !v)} className="dashboard-icon-button mb-1 rounded-lg p-2"><ChevronDown size={15} className={settingsExpanded ? "rotate-180 transition-transform" : "transition-transform"}/></button>}</div>{href.endsWith("/settings") && settingsExpanded && !collapsed && <div className="mb-2 ml-8 space-y-1 border-l pl-3"><Link href={admin ? "/admin/roles" : "/agent/roles"} onClick={() => setMobile(false)} className={clsx("block rounded-lg px-3 py-2 text-xs", path.endsWith("/roles") ? "dashboard-nav-active font-semibold" : "dashboard-nav-link")}>{t("roles")}</Link><Link href={admin ? "/admin/permissions" : "/agent/permissions"} onClick={() => setMobile(false)} className={clsx("block rounded-lg px-3 py-2 text-xs", path.endsWith("/permissions") ? "dashboard-nav-active font-semibold" : "dashboard-nav-link")}>{t("rolesAndPermissions")}</Link></div>}</div>)}</div>
     </aside>
     <main className="dashboard-main min-w-0 flex-1">
       <header className="dashboard-header sticky top-0 z-20 min-h-[76px] border-b px-3 py-3 backdrop-blur-xl sm:px-5 md:px-8">
