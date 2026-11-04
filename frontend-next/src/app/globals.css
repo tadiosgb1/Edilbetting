@@ -490,3 +490,13 @@
 .player-root[data-player-theme="light"] [class*="overflow-auto"] {
   scrollbar-color: rgba(100, 116, 139, .4) transparent;
 }
+
+
+/* Management dialogs live in a portal and intentionally match the dark auth modal treatment. */
+.management-modal { color: #f1f5f9; background: #0f172a; border: 1px solid #334155; }
+.management-modal .dashboard-muted { color: #94a3b8; }
+.management-modal .dashboard-field { background: #020617; color: #f8fafc; border: 1px solid #334155; }
+.management-modal .dashboard-field:focus { outline: 2px solid color-mix(in srgb, var(--brand, #16a34a) 45%, transparent); border-color: var(--brand, #16a34a); }
+.management-modal .dashboard-secondary-button { color: #cbd5e1; background: #1e293b; border: 1px solid #334155; }
+.management-modal .dashboard-secondary-button:hover { background: #334155; color: #fff; }
+.management-modal input::placeholder, .management-modal textarea::placeholder { color: #64748b; }
