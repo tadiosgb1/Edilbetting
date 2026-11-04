@@ -2,7 +2,7 @@ import { apiClient, setAccessToken } from "@/services/api-client";
 import type { UserRole, AuthUser } from "@/stores/auth-store";
 
 export type LoginCredentials = {
-  phone: string;
+  email: string;
   password: string;
 };
 
@@ -11,8 +11,7 @@ type BackendUser = {
   _id?: string | number;
   name?: string;
   fullName?: string;
-  phone?: string;
-  phoneNumber?: string;
+  email?: string;
   role?: string;
 };
 
@@ -43,9 +42,11 @@ export async function login(credentials: LoginCredentials, expectedRole: UserRol
       : expectedRole;
 
   return {
-    id: String(user.id ?? user._id ?? user.phone ?? credentials.phone),
-    name: user.name ?? user.fullName ?? credentials.phone,
-    phone: user.phone ?? user.phoneNumber ?? credentials.phone,
+    id: String(user.id ?? user._id ?? user.email ?? credentials.email),
+    name: user.name ?? user.fullName ?? credentials.email,
+    email: user.email ?? credentials.email,
+    // Retain the legacy field while other profile screens migrate to email.
+    phone: "",
     role,
   };
 }
