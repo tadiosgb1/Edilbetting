@@ -66,3 +66,30 @@ export async function updateUser(id: number, payload: Partial<UserInput>) {
 export async function deleteUser(id: number) {
   return apiClient.delete(`/users/${id}`);
 }
+
+export type UserPage = {
+  data: ManagedUser[];
+  count: number;
+  totalPages: number;
+  currentPage: number;
+};
+
+export async function listUsersPage(page: number, limit: number, search: string): Promise<UserPage> {
+  const response = await apiClient.get<unknown>("/users", {
+    params: { page, limit, ...(search.trim() ? { search: search.trim() } : {}) },
+  });
+  const payload = response.data && typeof response.data === "object"
+    ? response.data as Record<string, unknown>
+    : {};
+  const rows = unwrapList<ManagedUser>(payload);
+  return {
+    data: rows,
+    count: Number(payload.count ?? payload.total ?? rows.length),
+    totalPages: Math.max(1, Number(payload.total_pages ?? payload.totalPages) || 1),
+    currentPage: Math.max(1, Number(payload.current_page ?? payload.currentPage) || page),
+  };
+}
+
+export async function assignUserRole(userId: number, roleId: number) {
+  return apiClient.post("/user-roles", { user_id: userId, role_id: roleId });
+}
