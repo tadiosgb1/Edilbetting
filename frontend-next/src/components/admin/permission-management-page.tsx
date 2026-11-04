@@ -24,6 +24,7 @@ export function PermissionManagementPage() {
   const [userId, setUserId] = useState("");
   const [loadingCatalog, setLoadingCatalog] = useState(true);
   const [loadingAssigned, setLoadingAssigned] = useState(false);
+  const [assignedReady, setAssignedReady] = useState(false);
   const [savingPermissions, setSavingPermissions] = useState(false);
   const [assigningUser, setAssigningUser] = useState(false);
   const [error, setError] = useState("");
@@ -80,10 +81,12 @@ export function PermissionManagementPage() {
     if (!Number.isInteger(roleId) || roleId <= 0) {
       setAssignedIds([]);
       setSelectedIds([]);
+      setAssignedReady(false);
       return;
     }
     let active = true;
     setLoadingAssigned(true);
+    setAssignedReady(false);
     setError("");
     getRolePermissions(roleId)
       .then((items) => {
@@ -91,11 +94,13 @@ export function PermissionManagementPage() {
         const ids = Array.from(new Set(items.map((item) => item.id)));
         setAssignedIds(ids);
         setSelectedIds(ids);
+        setAssignedReady(true);
       })
       .catch((requestError: unknown) => {
         if (!active) return;
         setAssignedIds([]);
         setSelectedIds([]);
+        setAssignedReady(false);
         setError(getApiErrorMessage(requestError, "Unable to load this role's assigned permissions."));
       })
       .finally(() => {
@@ -252,7 +257,7 @@ export function PermissionManagementPage() {
 
           <div className="mt-4 flex flex-wrap items-center justify-between gap-3">
             <p className="text-xs dashboard-muted">{selectedIds.length} of {permissions.length} permissions selected</p>
-            <button type="button" onClick={() => void savePermissions()} disabled={!hasChanges || savingPermissions || loadingAssigned || !selectedRoleId} className="inline-flex items-center gap-2 rounded-xl bg-emerald-600 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-emerald-500 disabled:cursor-not-allowed disabled:opacity-50">
+            <button type="button" onClick={() => void savePermissions()} disabled={!hasChanges || savingPermissions || loadingAssigned || !assignedReady || !selectedRoleId} className="inline-flex items-center gap-2 rounded-xl bg-emerald-600 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-emerald-500 disabled:cursor-not-allowed disabled:opacity-50">
               {savingPermissions ? <LoaderCircle size={15} className="animate-spin"/> : <Save size={15}/>}
               {savingPermissions ? "Saving changes..." : "Save permissions"}
             </button>
