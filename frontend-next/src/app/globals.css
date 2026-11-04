@@ -689,3 +689,90 @@
   border-radius: 9px;
   padding: 10px 12px;
 }
+
+
+/* Shared admin management page headers, controls and square-corner cards. */
+.dashboard-root .management-page-heading {
+  display: grid;
+  gap: 8px;
+  padding: 12px 14px;
+  background: var(--panel);
+  border: 1px solid var(--line);
+  color: var(--text);
+}
+.dashboard-root .management-breadcrumb {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  color: var(--muted);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: .01em;
+}
+.dashboard-root .management-breadcrumb a {
+  color: var(--muted);
+  text-decoration: none;
+}
+.dashboard-root .management-breadcrumb a:hover,
+.dashboard-root .management-breadcrumb [aria-current="page"] {
+  color: var(--brand);
+}
+.dashboard-root .management-primary-button {
+  background: var(--brand);
+  color: #fff !important;
+  border: 1px solid var(--brand);
+  line-height: 1.25;
+}
+.dashboard-root .management-primary-button:hover {
+  background: color-mix(in srgb, var(--brand) 88%, #000);
+  color: #fff !important;
+}
+.dashboard-root .management-primary-button:disabled { opacity: .55; }
+.dashboard-root .management-search-input,
+.dashboard-root .management-select {
+  color: var(--text) !important;
+  background-color: var(--panel) !important;
+  border: 1px solid var(--line) !important;
+  min-height: 36px;
+}
+.dashboard-root .management-search-input::placeholder { color: var(--muted) !important; opacity: 1; }
+.dashboard-root .management-select {
+  appearance: auto;
+  color-scheme: light;
+}
+.dashboard-root.dashboard-dark .management-select,
+.dashboard-root:has(.dashboard-dark) .management-select {
+  color-scheme: dark;
+}
+.dashboard-root .management-select option {
+  color: #172033;
+  background: #fff;
+}
+.dashboard-root .dashboard-card,
+.dashboard-root .dashboard-subcard,
+.dashboard-root .permission-workspace,
+.dashboard-root .permission-list,
+.dashboard-root .permission-toolbar,
+.dashboard-root .management-page-heading,
+.dashboard-root .dashboard-data-table-wrap,
+.dashboard-root .dashboard-data-table-toolbar,
+.dashboard-root .dashboard-data-table-footer {
+  border-radius: 0 !important;
+}
+.dashboard-root .permission-summary-grid > div { border-radius: 0 !important; }
+.dashboard-root .permission-workspace .dashboard-field {
+  color: var(--text) !important;
+  background: var(--panel) !important;
+  border: 1px solid var(--line) !important;
+}
+.dashboard-root .permission-workspace select option {
+  color: #172033;
+  background: #fff;
+}
+.dashboard-root .permission-workspace .dashboard-secondary-button {
+  color: var(--text) !important;
+}
+.dashboard-root .dashboard-data-table-toolbar,
+.dashboard-root .dashboard-data-table-filters,
+.dashboard-root .dashboard-data-table-footer { padding-left: 14px; padding-right: 14px; }
