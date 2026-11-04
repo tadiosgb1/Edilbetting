@@ -1,12 +1,11 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { Check, CheckCheck, LoaderCircle, RefreshCw, Save, ShieldCheck, UserRoundPlus, X } from "lucide-react";
+import { Check, CheckCheck, LoaderCircle, RefreshCw, Save, ShieldCheck, X } from "lucide-react";
 import { useToast } from "@/components/toast-provider";
 import { useLanguage } from "@/components/language-provider";
 import { getApiErrorMessage } from "@/services/api-client";
 import {
-  assignUserRole,
   getRolePermissions,
   getSystemPermissions,
   getSystemRoles,
@@ -23,12 +22,10 @@ export function PermissionManagementPage() {
   const [selectedRoleId, setSelectedRoleId] = useState("");
   const [assignedIds, setAssignedIds] = useState<number[]>([]);
   const [selectedIds, setSelectedIds] = useState<number[]>([]);
-  const [userId, setUserId] = useState("");
   const [loadingCatalog, setLoadingCatalog] = useState(true);
   const [loadingAssigned, setLoadingAssigned] = useState(false);
   const [assignedReady, setAssignedReady] = useState(false);
   const [savingPermissions, setSavingPermissions] = useState(false);
-  const [assigningUser, setAssigningUser] = useState(false);
   const [error, setError] = useState("");
   const [search, setSearch] = useState("");
 
@@ -147,28 +144,6 @@ export function PermissionManagementPage() {
     }
   }
 
-  async function submitUserRole(event: React.FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-    const parsedUserId = Number(userId);
-    const roleId = Number(selectedRoleId);
-    if (!Number.isInteger(parsedUserId) || parsedUserId <= 0 || !roleId) {
-      setError(t("enterValidUserAndRole"));
-      return;
-    }
-    setAssigningUser(true);
-    setError("");
-    try {
-      await assignUserRole(parsedUserId, roleId);
-      toast(t("roleAssigned"), "success");
-      setUserId("");
-    } catch (requestError) {
-      const message = getApiErrorMessage(requestError, t("unableToAssignRole"));
-      setError(message);
-      toast(message, "error");
-    } finally {
-      setAssigningUser(false);
-    }
-  }
 
   return (
     <div className="space-y-6">
@@ -190,7 +165,7 @@ export function PermissionManagementPage() {
 
       {error && <div role="alert" className="rounded-xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-300">{error}</div>}
 
-      <section className="grid gap-5 xl:grid-cols-[minmax(0,1fr)_minmax(280px,0.72fr)]">
+      <section className="grid gap-5">
         <div className="rounded-2xl border dashboard-card p-5">
           <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
             <div>
@@ -266,36 +241,6 @@ export function PermissionManagementPage() {
           </div>
         </div>
 
-        <aside className="space-y-5">
-          <div className="rounded-2xl border dashboard-card p-5">
-            <div className="flex items-center gap-2"><UserRoundPlus size={18} className="text-emerald-400"/><h2 className="font-semibold">{t("assignRoleToUser")}</h2></div>
-            <p className="mt-2 text-xs dashboard-muted">{t("assignRoleDescription")}</p>
-            <form onSubmit={submitUserRole} className="mt-4 space-y-3">
-              <div>
-                <label htmlFor="role-user-id" className="mb-1.5 block text-xs font-medium dashboard-muted">{t("userId")}</label>
-                <input id="role-user-id" type="number" min="1" step="1" required value={userId} onChange={(event) => setUserId(event.target.value)} placeholder={t("userIdExample")} className="dashboard-field w-full rounded-xl border px-3 py-2.5 text-sm outline-none focus:border-emerald-400"/>
-              </div>
-              <div className="rounded-xl border dashboard-subcard px-3 py-3">
-                <div className="text-[11px] dashboard-muted">{t("roleToAssign")}</div>
-                <div className="mt-1 text-sm font-semibold">{selectedRole?.name ?? t("selectRoleAbove")}</div>
-              </div>
-              <button type="submit" disabled={assigningUser || !selectedRoleId || loadingCatalog} className="inline-flex w-full items-center justify-center gap-2 rounded-xl border border-emerald-500/40 bg-emerald-500/10 px-4 py-2.5 text-sm font-semibold text-emerald-300 hover:bg-emerald-500/20 disabled:opacity-50">
-                {assigningUser ? <LoaderCircle size={15} className="animate-spin"/> : <UserRoundPlus size={15}/>}
-                {assigningUser ? t("assigning") : t("assignSelectedRole")}
-              </button>
-            </form>
-          </div>
-
-          <div className="rounded-2xl border dashboard-card p-5">
-            <h2 className="font-semibold">{t("howPermissionUpdatesWork")}</h2>
-            <div className="mt-3 space-y-3 text-xs dashboard-muted">
-              <p><span className="font-semibold text-emerald-400">{t("assigned")}</span> {t("assignedHelp")}</p>
-              <p><span className="font-semibold text-blue-400">{t("pendingAdd")}</span> {t("pendingAddHelp")} <code>add_permission_ids</code>.</p>
-              <p><span className="font-semibold text-amber-400">{t("pendingRemoval")}</span> {t("pendingRemoveHelp")} <code>remove_permission_ids</code>.</p>
-              <p>{t("changesNotSent")} <strong className="text-slate-200">{t("savePermissions")}</strong>.</p>
-            </div>
-          </div>
-        </aside>
       </section>
     </div>
   );
