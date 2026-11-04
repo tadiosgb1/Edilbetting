@@ -492,11 +492,33 @@
 }
 
 
-/* Management dialogs live in a portal and intentionally match the dark auth modal treatment. */
-.management-modal { color: #f1f5f9; background: #0f172a; border: 1px solid #334155; }
-.management-modal .dashboard-muted { color: #94a3b8; }
-.management-modal .dashboard-field { background: #020617; color: #f8fafc; border: 1px solid #334155; }
-.management-modal .dashboard-field:focus { outline: 2px solid color-mix(in srgb, var(--brand, #16a34a) 45%, transparent); border-color: var(--brand, #16a34a); }
-.management-modal .dashboard-secondary-button { color: #cbd5e1; background: #1e293b; border: 1px solid #334155; }
-.management-modal .dashboard-secondary-button:hover { background: #334155; color: #fff; }
-.management-modal input::placeholder, .management-modal textarea::placeholder { color: #64748b; }
+/* Management dialogs inherit the active dashboard palette and brand accent.
+   They are portalled into .dashboard-root so theme variables stay in scope. */
+.management-modal {
+  color: var(--text, #f4f7fc);
+  background: var(--panel, #111827);
+  border-color: var(--line, #253148);
+}
+.management-modal .dashboard-muted { color: var(--muted, #8c9bb5); }
+.management-modal .dashboard-field {
+  color: var(--text, #f4f7fc);
+  background: color-mix(in srgb, var(--bg, #090d18) 72%, var(--panel, #111827));
+  border: 1px solid var(--line, #253148);
+}
+.management-modal .dashboard-field:focus {
+  outline: 2px solid color-mix(in srgb, var(--brand, #16a34a) 42%, transparent);
+  border-color: var(--brand, #16a34a);
+}
+.management-modal .dashboard-secondary-button {
+  color: var(--text, #f4f7fc);
+  background: color-mix(in srgb, var(--panel, #111827) 72%, var(--bg, #090d18));
+  border: 1px solid var(--line, #253148);
+}
+.management-modal .dashboard-secondary-button:hover {
+  background: color-mix(in srgb, var(--brand, #16a34a) 10%, var(--panel, #111827));
+  border-color: color-mix(in srgb, var(--brand, #16a34a) 45%, var(--line, #253148));
+}
+.management-modal input::placeholder, .management-modal textarea::placeholder {
+  color: var(--muted, #8c9bb5);
+  opacity: .8;
+}
