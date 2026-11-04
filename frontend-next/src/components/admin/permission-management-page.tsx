@@ -156,7 +156,7 @@ export function PermissionManagementPage() {
 
   return (
     <div className="space-y-4">
-      <nav aria-label="Current section" className="management-breadcrumb"><span aria-current="page">Permissions</span></nav>
+      
       <div className="management-page-heading">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <h1 className="text-xl font-semibold md:text-2xl">{t("permissions")}</h1>
