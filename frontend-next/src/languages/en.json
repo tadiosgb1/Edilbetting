@@ -542,5 +542,18 @@
   "rolesCount": "roles",
   "administratorRoleExample": "Administrator",
   "roleDescriptionExample": "Full system access with user management, role management, and system configuration capabilities. Can approve KYC, manage permissions, handle all administrative tasks, and access audit logs.",
-  "userIdExample": "e.g. 1"
+  "userIdExample": "e.g. 1",
+  "searchRoles": "Search roles...",
+  "actions": "Actions",
+  "cancel": "Cancel",
+  "roleFormHint": "Enter the role details below.",
+  "usersCount": "users",
+  "searchUsers": "Search by name, email, or phone...",
+  "previous": "Previous",
+  "next": "Next",
+  "showMore": "Show more",
+  "page": "Page",
+  "assignRole": "Assign role",
+  "userFormHint": "Enter the account details below.",
+  "settingsSubmenu": "Open settings submenu"
 }
