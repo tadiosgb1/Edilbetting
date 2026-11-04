@@ -970,3 +970,60 @@
 }
 .dashboard-light .permission-stat-label { color: #344054 !important; }
 .dashboard-light .permission-summary-grid strong { color: #172033 !important; }
+
+
+/* Focused Users page heading: clear title hierarchy with a compact action. */
+.dashboard-root .management-users-heading {
+  display: block;
+  padding: 0 0 12px;
+  border-bottom: 1px solid var(--line);
+}
+.dashboard-root .management-heading-row {
+  display: flex;
+  width: 100%;
+  min-height: 38px;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+.dashboard-root .management-heading-title {
+  min-width: 0;
+}
+.dashboard-root .management-heading-title h1 {
+  margin: 0;
+  color: var(--text);
+  font-size: 24px;
+  font-weight: 700;
+  line-height: 1.2;
+  letter-spacing: -.035em;
+}
+.dashboard-root .management-create-user {
+  display: inline-flex;
+  min-height: 34px;
+  height: 34px;
+  flex: 0 0 auto;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  padding: 0 12px !important;
+  border: 1px solid var(--brand);
+  border-radius: 3px !important;
+  background: var(--brand);
+  color: #fff !important;
+  font-size: 12px !important;
+  font-weight: 650;
+  line-height: 1;
+  box-shadow: 0 1px 2px rgba(15, 23, 42, .12);
+  transition: background-color .15s ease, box-shadow .15s ease, transform .15s ease;
+}
+.dashboard-root .management-create-user:hover {
+  background: color-mix(in srgb, var(--brand) 88%, #000);
+  box-shadow: 0 2px 5px rgba(15, 23, 42, .16);
+}
+.dashboard-root .management-create-user:active { transform: translateY(1px); }
+.dashboard-root .management-create-user svg { flex: none; color: #fff !important; }
+@media (max-width: 480px) {
+  .dashboard-root .management-heading-title h1 { font-size: 21px; }
+  .dashboard-root .management-heading-row { gap: 10px; }
+  .dashboard-root .management-create-user { padding-inline: 9px !important; }
+}
