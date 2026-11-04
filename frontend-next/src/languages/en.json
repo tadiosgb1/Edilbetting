@@ -536,5 +536,11 @@
   "pendingRemoveHelp": " means it will be included in",
   "changesNotSent": "Changes are not sent until you press",
   "of": "of",
-  "permissionsSelected": "permissions selected"
+  "permissionsSelected": "permissions selected",
+  "roles": "Roles",
+  "users": "Users",
+  "rolesCount": "roles",
+  "administratorRoleExample": "Administrator",
+  "roleDescriptionExample": "Full system access with user management, role management, and system configuration capabilities.",
+  "userIdExample": "e.g. 1"
 }
