@@ -166,16 +166,8 @@ export function PermissionManagementPage() {
       {error && <div role="alert" className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">{error}</div>}
 
       <section className="grid gap-3">
-        <div className="dashboard-card rounded-xl p-4 sm:p-5">
-          <div className="mb-3 flex flex-wrap items-center justify-between gap-3">
-            <div>
-              <h2 className="font-semibold">{t("rolePermissionEditor")}</h2>
-              <p className="mt-1 text-xs dashboard-muted">{t("selectRoleToLoadPermissions")}</p>
-            </div>
-            <span className="rounded-full bg-slate-100 px-3 py-1 text-xs dashboard-muted dark:bg-slate-800">{roles.length} {t("rolesCount")}</span>
-          </div>
-
-          <label htmlFor="permission-role" className="mb-2 block text-xs font-medium dashboard-muted">{t("selectRole")}</label>
+        <div className="space-y-3">
+          <label htmlFor="permission-role" className="mb-1.5 block text-xs font-medium dashboard-muted">{t("selectRole")}</label>
           <select id="permission-role" value={selectedRoleId} onChange={(event) => setSelectedRoleId(event.target.value)} disabled={loadingCatalog || roles.length === 0} className="dashboard-field w-full rounded-lg px-3 py-2.5 text-sm outline-none focus:border-emerald-400">
             {roles.length === 0 && <option value="">{t("noRolesAvailable")}</option>}
             {roles.map((role) => <option key={role.id} value={role.id}>{role.name} (ID: {role.id})</option>)}
