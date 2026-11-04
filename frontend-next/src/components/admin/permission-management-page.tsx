@@ -148,8 +148,8 @@ export function PermissionManagementPage() {
 
   return (
     <div className="space-y-4">
+      <nav aria-label="Breadcrumb" className="management-breadcrumb"><Link href="../users">Users</Link><span aria-hidden="true">/</span><Link href="../roles">Roles</Link><span aria-hidden="true">/</span><Link href="../permissions" aria-current="page">Permissions</Link></nav>
       <div className="management-page-heading">
-        <nav aria-label="Breadcrumb" className="management-breadcrumb"><Link href="../users">/users</Link><span>/</span><Link href="../roles">/roles</Link><span>/</span><span aria-current="page">/permissions</span></nav>
         <div className="flex flex-wrap items-center justify-between gap-3">
           <h1 className="text-xl font-semibold md:text-2xl">{t("permissions")}</h1>
           <button type="button" onClick={() => void loadCatalog()} disabled={loadingCatalog} className="dashboard-secondary-button inline-flex items-center gap-2 px-3 py-2 text-sm disabled:opacity-50">
