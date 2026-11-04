@@ -541,6 +541,6 @@
   "users": "Users",
   "rolesCount": "roles",
   "administratorRoleExample": "Administrator",
-  "roleDescriptionExample": "Full system access with user management, role management, and system configuration capabilities.",
+  "roleDescriptionExample": "Full system access with user management, role management, and system configuration capabilities. Can approve KYC, manage permissions, handle all administrative tasks, and access audit logs.",
   "userIdExample": "e.g. 1"
 }
