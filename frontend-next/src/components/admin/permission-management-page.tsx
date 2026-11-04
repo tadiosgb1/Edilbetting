@@ -149,7 +149,7 @@ export function PermissionManagementPage() {
     <div className="space-y-6">
       <div className="flex flex-wrap items-start justify-between gap-4">
         <div>
-          <div className="flex items-center gap-2 text-sm text-emerald-400">
+          <div className="flex items-center gap-2 text-sm text-emerald-600">
             <ShieldCheck size={17} />
             <span>{t("accessControl")}</span>
           </div>
@@ -185,8 +185,8 @@ export function PermissionManagementPage() {
           <div className="mt-5 grid grid-cols-2 gap-3 sm:grid-cols-4">
             <div className="rounded-xl border dashboard-subcard p-3"><div className="text-xl font-semibold">{permissions.length}</div><div className="mt-1 text-xs dashboard-muted">{t("systemPermissions")}</div></div>
             <div className="rounded-xl border dashboard-subcard p-3"><div className="text-xl font-semibold">{assignedIds.length}</div><div className="mt-1 text-xs dashboard-muted">{t("currentlyAssigned")}</div></div>
-            <div className="rounded-xl border dashboard-subcard p-3"><div className="text-xl font-semibold text-emerald-400">{additions.length}</div><div className="mt-1 text-xs dashboard-muted">{t("toAdd")}</div></div>
-            <div className="rounded-xl border dashboard-subcard p-3"><div className="text-xl font-semibold text-amber-400">{removals.length}</div><div className="mt-1 text-xs dashboard-muted">{t("toRemove")}</div></div>
+            <div className="rounded-xl border dashboard-subcard p-3"><div className="text-xl font-semibold text-emerald-600">{additions.length}</div><div className="mt-1 text-xs dashboard-muted">{t("toAdd")}</div></div>
+            <div className="rounded-xl border dashboard-subcard p-3"><div className="text-xl font-semibold text-amber-600">{removals.length}</div><div className="mt-1 text-xs dashboard-muted">{t("toRemove")}</div></div>
           </div>
 
           <div className="mt-5 flex flex-wrap items-center gap-2">
@@ -212,19 +212,19 @@ export function PermissionManagementPage() {
                   const checked = selectedSet.has(permission.id);
                   const originallyAssigned = assignedSet.has(permission.id);
                   return (
-                    <label key={permission.id} className="flex cursor-pointer items-start gap-3 px-4 py-3 transition-colors hover:bg-white/[0.03]">
+                    <label key={permission.id} className="flex cursor-pointer items-start gap-3 px-4 py-3 transition-colors hover:bg-slate-50">
                       <input type="checkbox" checked={checked} onChange={() => togglePermission(permission.id)} disabled={loadingAssigned || savingPermissions} className="mt-1 h-4 w-4 accent-emerald-500"/>
                       <span className="min-w-0 flex-1">
                         <span className="flex flex-wrap items-center gap-2 text-sm font-medium">
                           {permission.name}
-                          {originallyAssigned && <span className="rounded-full bg-emerald-500/10 px-2 py-0.5 text-[10px] font-medium text-emerald-400">{t("assigned")}</span>}
-                          {!originallyAssigned && checked && <span className="rounded-full bg-blue-500/10 px-2 py-0.5 text-[10px] font-medium text-blue-400">{t("pendingAdd")}</span>}
-                          {originallyAssigned && !checked && <span className="rounded-full bg-amber-500/10 px-2 py-0.5 text-[10px] font-medium text-amber-400">{t("pendingRemoval")}</span>}
+                          {originallyAssigned && <span className="rounded-full bg-emerald-50 px-2 py-0.5 text-[10px] font-medium text-emerald-600">{t("assigned")}</span>}
+                          {!originallyAssigned && checked && <span className="rounded-full bg-blue-50 px-2 py-0.5 text-[10px] font-medium text-blue-600">{t("pendingAdd")}</span>}
+                          {originallyAssigned && !checked && <span className="rounded-full bg-amber-50 px-2 py-0.5 text-[10px] font-medium text-amber-600">{t("pendingRemoval")}</span>}
                         </span>
                         <span className="mt-1 block break-all font-mono text-[11px] dashboard-muted">{permission.codename}</span>
                         {permission.content_type && <span className="mt-1 block text-[11px] dashboard-muted">{t("resource")} {permission.content_type}</span>}
                       </span>
-                      <span className={checked ? "mt-0.5 text-emerald-400" : "mt-0.5 dashboard-muted"}>{checked ? <Check size={16}/> : null}</span>
+                      <span className={checked ? "mt-0.5 text-emerald-600" : "mt-0.5 dashboard-muted"}>{checked ? <Check size={16}/> : null}</span>
                     </label>
                   );
                 })}
