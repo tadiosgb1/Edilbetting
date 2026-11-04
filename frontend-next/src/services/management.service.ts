@@ -74,9 +74,9 @@ export type UserPage = {
   currentPage: number;
 };
 
-export async function listUsersPage(page: number, limit: number, search: string): Promise<UserPage> {
+export async function listUsersPage(page: number, search: string): Promise<UserPage> {
   const response = await apiClient.get<unknown>("/users", {
-    params: { page, limit, ...(search.trim() ? { search: search.trim() } : {}) },
+    params: { page, ...(search.trim() ? { search: search.trim() } : {}) },
   });
   const payload = response.data && typeof response.data === "object"
     ? response.data as Record<string, unknown>
