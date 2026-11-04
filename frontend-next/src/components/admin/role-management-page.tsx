@@ -54,7 +54,7 @@ export function RoleManagementPage() {
   }
 
   return <div className="space-y-4">
-    <header className="management-page-heading"><div className="flex flex-wrap items-center justify-between gap-3"><h1 className="text-xl font-semibold md:text-2xl">{t("roleManagement")}</h1><button onClick={openCreate} className="management-primary-button inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold"><Plus size={14}/>{t("createRole")}</button></div></header>
+    <section className="dashboard-card management-heading-card"><header className="management-page-heading"><div className="management-heading-row"><div className="management-heading-title"><h1>{t("roleManagement")}</h1></div><button onClick={openCreate} className="management-primary-button management-create-user inline-flex items-center gap-2"><Plus size={15}/><span>{t("createRole")}</span></button></div></header></section>
     {error && <div role="alert" className="rounded-xl border border-red-300 bg-red-50 px-4 py-3 text-sm text-red-700">{error}</div>}
     <section className="dashboard-card rounded-xl p-0">
       <div className="dashboard-data-table-toolbar flex flex-wrap items-center justify-between gap-3 px-4 py-3"><h2 className="font-semibold">{t("allRoles")} <span className="dashboard-muted">({roles.length})</span></h2><button onClick={() => void refresh()} disabled={loading} aria-label={t("refresh")} title={t("refresh")} className="dashboard-secondary-button management-icon-button disabled:opacity-50"><RefreshCw size={15} className={loading ? "animate-spin" : ""}/></button></div>
