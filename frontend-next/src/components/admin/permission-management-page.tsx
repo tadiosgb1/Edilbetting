@@ -98,6 +98,19 @@ export function PermissionManagementPage() {
       })
       .catch((requestError: unknown) => {
         if (!active) return;
+        const status = (requestError as { response?: { status?: number } })?.response?.status;
+
+        // Some API implementations return 404 when a role has no permission
+        // assignments yet. Treat that as an empty baseline so permissions can
+        // be assigned to a newly-created or currently-unconfigured role.
+        if (status === 404) {
+          setAssignedIds([]);
+          setSelectedIds([]);
+          setAssignedReady(true);
+          setError("");
+          return;
+        }
+
         setAssignedIds([]);
         setSelectedIds([]);
         setAssignedReady(false);
