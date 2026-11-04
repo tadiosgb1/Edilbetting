@@ -25,7 +25,6 @@ export function PermissionManagementPage() {
   const [selectedIds, setSelectedIds] = useState<number[]>([]);
   const [loadingCatalog, setLoadingCatalog] = useState(true);
   const [loadingAssigned, setLoadingAssigned] = useState(false);
-  const [assignedReady, setAssignedReady] = useState(false);
   const [savingPermissions, setSavingPermissions] = useState(false);
   const [error, setError] = useState("");
   const [search, setSearch] = useState("");
@@ -81,12 +80,10 @@ export function PermissionManagementPage() {
     if (!Number.isInteger(roleId) || roleId <= 0) {
       setAssignedIds([]);
       setSelectedIds([]);
-      setAssignedReady(false);
       return;
     }
     let active = true;
     setLoadingAssigned(true);
-    setAssignedReady(false);
     setError("");
     getRolePermissions(roleId)
       .then((items) => {
@@ -94,7 +91,6 @@ export function PermissionManagementPage() {
         const ids = Array.from(new Set(items.map((item) => item.id)));
         setAssignedIds(ids);
         setSelectedIds(ids);
-        setAssignedReady(true);
       })
       .catch((requestError: unknown) => {
         if (!active) return;
@@ -106,7 +102,6 @@ export function PermissionManagementPage() {
         if (status === 404) {
           setAssignedIds([]);
           setSelectedIds([]);
-          setAssignedReady(true);
           setError("");
           return;
         }
