@@ -95,7 +95,7 @@ export async function manageRolePermissions(
   addPermissionIds: number[],
   removePermissionIds: number[],
 ): Promise<void> {
-  await apiClient.post("/role-permissions/manage", {
+  await apiClient.patch("/role-permissions/manage", {
     role_id: roleId,
     add_permission_ids: addPermissionIds,
     remove_permission_ids: removePermissionIds,
