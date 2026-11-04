@@ -132,10 +132,12 @@ Example:
 "use client";
 
 import { useApi } from "@/hooks/use-api";
-import { getProfile } from "@/services/user.service";
+import { apiClient } from "@/services/api-client";
+
+const getSummary = () => apiClient.get("/example/summary").then((response) => response.data);
 
 export function ProfilePanel() {
-  const { data, loading, error, execute } = useApi(getProfile);
+  const { data, loading, error, execute } = useApi(getSummary);
 
   // Call execute() from an event handler or effect when appropriate.
   // Render data, loading, and error in the component.
