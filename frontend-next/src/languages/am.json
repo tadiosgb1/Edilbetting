@@ -536,5 +536,11 @@
   "pendingRemoveHelp": " ማለት በዚህ ውስጥ ይካተታል",
   "changesNotSent": "ለውጦች የሚላኩት ይህን ሲጫኑ ብቻ ነው",
   "of": "ከ",
-  "permissionsSelected": "ፈቃዶች ተመርጠዋል"
+  "permissionsSelected": "ፈቃዶች ተመርጠዋል",
+  "roles": "ሚናዎች",
+  "users": "ተጠቃሚዎች",
+  "rolesCount": "ሚናዎች",
+  "administratorRoleExample": "አስተዳዳሪ",
+  "roleDescriptionExample": "የተጠቃሚ፣ የሚና አስተዳደርና የስርዓት ውቅር ሙሉ መዳረሻ።",
+  "userIdExample": "ለምሳሌ 1"
 }
