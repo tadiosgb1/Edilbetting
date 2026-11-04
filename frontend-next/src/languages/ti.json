@@ -536,5 +536,11 @@
   "pendingRemoveHelp": " ማለት ኣብዚ ክኣቱ እዩ",
   "changesNotSent": "ለውጢ ክለኣኽ እንተደሊኻ ነዚ ጠውቕ",
   "of": "ካብ",
-  "permissionsSelected": "ፍቓዳት ተመሪጾም"
+  "permissionsSelected": "ፍቓዳት ተመሪጾም",
+  "roles": "ተራታት",
+  "users": "ተጠቀምቲ",
+  "rolesCount": "ተራታት",
+  "administratorRoleExample": "ኣመሓዳሪ",
+  "roleDescriptionExample": "ምሉእ መእተዊ ንምሕደራ ተጠቀምቲ፣ ተራታትን ቅንብር ስርዓትን።",
+  "userIdExample": "ንኣብነት 1"
 }
