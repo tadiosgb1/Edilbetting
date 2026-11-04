@@ -3,6 +3,7 @@ import Link from "next/link";
 import { useLanguage } from "@/components/language-provider";
 import { Card } from "@/components/ui/card";
 import { Search, SlidersHorizontal } from "lucide-react";
+import { PermissionManagementPage } from "@/components/admin/permission-management-page";
 
 const titles: Record<string, string> = {
   agents: "Agents",
@@ -17,6 +18,7 @@ const titles: Record<string, string> = {
 
 export function SectionPage({ role, section }: { role: "admin" | "agent"; section: string }) {
   const { t } = useLanguage();
+  if (section === "permissions") return <PermissionManagementPage />;
   const title = t(titles[section] ?? (section.charAt(0).toUpperCase() + section.slice(1)));
 
   return (
