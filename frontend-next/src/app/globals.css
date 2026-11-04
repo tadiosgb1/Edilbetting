@@ -806,3 +806,167 @@
 .dashboard-root .management-search-input::placeholder {
   color: var(--muted) !important;
 }
+
+
+/* Compact, consistent management-page controls and loading feedback. */
+.dashboard-root .management-page-heading h1 {
+  color: var(--text);
+  font-size: 22px;
+  font-weight: 650;
+  line-height: 1.25;
+  letter-spacing: -.025em;
+}
+.dashboard-root .management-primary-button {
+  min-height: 30px;
+  padding: 6px 11px !important;
+  border-radius: 3px !important;
+  font-size: 12px !important;
+  line-height: 1.2;
+  white-space: nowrap;
+}
+.dashboard-root .management-icon-button {
+  display: inline-flex;
+  width: 32px;
+  height: 32px;
+  min-width: 32px;
+  min-height: 32px;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  border: 1px solid var(--line);
+  border-radius: 3px;
+  color: var(--text);
+  background: var(--panel);
+}
+.dashboard-root .management-search-input,
+.dashboard-root .dashboard-data-table-filters input {
+  min-height: 32px !important;
+  height: 32px;
+  padding-top: 5px !important;
+  padding-bottom: 5px !important;
+  border-radius: 3px !important;
+  font-size: 12px !important;
+}
+.dashboard-root .dashboard-data-table-toolbar {
+  min-height: 48px;
+  padding-top: 8px !important;
+  padding-bottom: 8px !important;
+}
+.dashboard-root .dashboard-data-table-filters {
+  padding-bottom: 8px !important;
+}
+.dashboard-root .dashboard-data-table-head th {
+  height: 36px;
+  padding: 8px 15px;
+  color: var(--text);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: .055em;
+}
+.dashboard-root .dashboard-data-table-row td {
+  height: 44px;
+  padding: 8px 15px;
+  color: var(--text);
+  font-size: 13px;
+  font-weight: 450;
+  line-height: 1.4;
+}
+.dashboard-root .dashboard-data-table-row td .dashboard-muted {
+  color: var(--muted);
+  font-size: 11px;
+}
+.dashboard-root .dashboard-data-table-row .dashboard-table-badge {
+  font-size: 11px;
+}
+.dashboard-root .dashboard-data-table-row .dashboard-secondary-button {
+  min-width: 28px;
+  min-height: 28px;
+  padding: 5px;
+}
+
+/* The permission totals are compact inline metrics, not tall stacked tiles. */
+.dashboard-root .permission-summary-grid > div {
+  display: flex;
+  min-height: 42px !important;
+  align-items: center;
+  gap: 8px;
+  padding: 7px 10px !important;
+  border: 1px solid var(--line);
+  background: var(--panel);
+}
+.dashboard-root .permission-stat-icon {
+  display: inline-flex;
+  width: 25px;
+  height: 25px;
+  flex: 0 0 25px;
+  align-items: center;
+  justify-content: center;
+  color: var(--brand);
+  background: color-mix(in srgb, var(--brand) 10%, var(--panel));
+}
+.dashboard-root .permission-stat-label {
+  min-width: 0;
+  color: var(--text);
+  font-size: 11px;
+  font-weight: 550;
+  line-height: 1.2;
+}
+.dashboard-root .permission-summary-grid strong {
+  margin-left: auto;
+  color: var(--text);
+  font-size: 16px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+.dashboard-root .permission-summary-grid .permission-stat-add { color: #16803c; }
+.dashboard-root .permission-summary-grid .permission-stat-remove { color: #b45309; }
+.dashboard-root.dashboard-dark .permission-summary-grid .permission-stat-add { color: #86efac; }
+.dashboard-root.dashboard-dark .permission-summary-grid .permission-stat-remove { color: #fbbf24; }
+
+/* Shared three-dot loading indicator for tables and permission lookups. */
+.management-loading-dots {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  min-width: 28px;
+  min-height: 14px;
+  vertical-align: middle;
+}
+.management-loading-dots i {
+  display: block;
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: var(--brand, #16a34a);
+  animation: management-dot-pulse 1s ease-in-out infinite;
+}
+.management-loading-dots i:nth-child(2) { animation-delay: .15s; }
+.management-loading-dots i:nth-child(3) { animation-delay: .3s; }
+@keyframes management-dot-pulse {
+  0%, 60%, 100% { opacity: .35; transform: translateY(0); }
+  30% { opacity: 1; transform: translateY(-3px); }
+}
+
+/* Stronger table contrast in light mode while retaining secondary metadata. */
+.dashboard-light .dashboard-data-table-row td,
+.dashboard-light .dashboard-data-table-head th {
+  color: #263244 !important;
+}
+.dashboard-light .dashboard-data-table-row td .dashboard-muted {
+  color: #526078 !important;
+}
+.dashboard-light .dashboard-data-table-head {
+  background: #eef2f7 !important;
+}
+.dashboard-light .dashboard-data-table-head th {
+  font-size: 10px !important;
+  font-weight: 750 !important;
+  letter-spacing: .055em;
+}
+.dashboard-light .dashboard-data-table-row td {
+  font-size: 13px !important;
+  font-weight: 450;
+}
+.dashboard-light .permission-stat-label { color: #344054 !important; }
+.dashboard-light .permission-summary-grid strong { color: #172033 !important; }
