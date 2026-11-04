@@ -74,7 +74,7 @@ export function UserManagementPage() {
   function applySearch(event:React.FormEvent<HTMLFormElement>){event.preventDefault();setPage(1);setSearch(searchInput.trim());}
 
   return <div className="space-y-5">
-    <header className="management-page-heading management-users-heading"><div className="management-heading-row"><div className="management-heading-title"><h1>{t("userManagement")}</h1></div><button onClick={openCreate} className="management-primary-button management-create-user inline-flex items-center gap-2"><Plus size={15}/><span>{t("createUser")}</span></button></div></header>
+    <section className="dashboard-card management-heading-card"><header className="management-page-heading management-users-heading"><div className="management-heading-row"><div className="management-heading-title"><h1>{t("userManagement")}</h1></div><button onClick={openCreate} className="management-primary-button management-create-user inline-flex items-center gap-2"><Plus size={15}/><span>{t("createUser")}</span></button></div></header></section>
     {error&&<div role="alert" className="rounded-xl border border-red-300 bg-red-50 px-4 py-3 text-sm text-red-700">{error}</div>}
     <section className="dashboard-card rounded-xl p-0">
       <div className="dashboard-data-table-toolbar flex flex-wrap items-center justify-between gap-3 px-4 py-3"><div><h2 className="font-semibold">{t("allUsers")}</h2><p className="mt-1 text-xs dashboard-muted">{count} {t("usersCount")}</p></div><button onClick={()=>void loadPage(page,search)} disabled={loading} aria-label={t("refresh")} title={t("refresh")} className="dashboard-secondary-button management-icon-button disabled:opacity-50"><RefreshCw size={15} className={loading?"animate-spin":""}/></button></div>
