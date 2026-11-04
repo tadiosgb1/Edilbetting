@@ -1,4 +1,4 @@
-import { apiClient, setAccessToken } from "@/services/api-client";
+import { apiClient } from "@/services/api-client";
 import type { UserRole, AuthUser } from "@/stores/auth-store";
 
 export type LoginCredentials = {
@@ -31,9 +31,6 @@ export async function login(credentials: LoginCredentials, expectedRole: UserRol
   const response = await apiClient.post<LoginResponse>("/users/login", credentials);
   const payload = response.data;
   const user = payload.user ?? payload.data?.user ?? payload.data ?? (payload as unknown as BackendUser);
-  const token = payload.accessToken ?? payload.token ?? payload.data?.accessToken ?? payload.data?.token;
-
-  if (token) setAccessToken(token);
 
   const roleValue = user.role?.toLowerCase();
   const role: UserRole =
@@ -52,5 +49,5 @@ export async function login(credentials: LoginCredentials, expectedRole: UserRol
 }
 
 export function logout(): void {
-  setAccessToken(null);
+  // Authentication is managed by the backend session cookie (withCredentials).
 }
