@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
-import { Bell, ChevronLeft, ChevronRight, CircleHelp, LayoutDashboard, LogOut, Menu, Settings, Users, Wallet, Trophy, UserRound, ChartNoAxesCombined, X, Sun, Moon, ChevronDown, ShieldCheck, Palette } from "lucide-react";
+import { Bell, ChevronLeft, ChevronRight, CircleHelp, LayoutDashboard, LogOut, Menu, Settings, Users, Wallet, Trophy, UserRound, ChartNoAxesCombined, X, Sun, Moon, ChevronDown, Palette } from "lucide-react";
 import { clsx } from "clsx";
 import { useAuthStore } from "@/stores/auth-store";
 import { LanguageSelector, useLanguage } from "@/components/language-provider";
