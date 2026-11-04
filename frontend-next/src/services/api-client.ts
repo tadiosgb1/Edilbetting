@@ -1,4 +1,4 @@
-import axios, { type AxiosError, type InternalAxiosRequestConfig } from "axios";
+import axios, { type AxiosError } from "axios";
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
 
@@ -14,23 +14,8 @@ if (!API_BASE_URL) {
 export const apiClient = axios.create({
   baseURL: API_BASE_URL || "https://10.195.49.21:3001",
   timeout: 20_000,
+  withCredentials: true,
   headers: { Accept: "application/json", "Content-Type": "application/json" },
-});
-
-const ACCESS_TOKEN_KEY = "edilbet-access-token";
-
-export function setAccessToken(token: string | null): void {
-  if (typeof window === "undefined") return;
-  if (token) window.localStorage.setItem(ACCESS_TOKEN_KEY, token);
-  else window.localStorage.removeItem(ACCESS_TOKEN_KEY);
-}
-
-apiClient.interceptors.request.use((config: InternalAxiosRequestConfig) => {
-  if (typeof window !== "undefined") {
-    const token = window.localStorage.getItem(ACCESS_TOKEN_KEY);
-    if (token) config.headers.Authorization = `Bearer ${token}`;
-  }
-  return config;
 });
 
 export function getApiErrorMessage(error: unknown, fallback = "Something went wrong. Please try again."): string {
