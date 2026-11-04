@@ -165,7 +165,7 @@ export function PermissionManagementPage() {
 
       {error && <div role="alert" className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">{error}</div>}
 
-      <section className="grid gap-3">
+      <section className="permission-workspace grid gap-3 rounded-xl border p-3 sm:p-4">
         <div className="space-y-3">
           <label htmlFor="permission-role" className="mb-1.5 block text-xs font-medium dashboard-muted">{t("selectRole")}</label>
           <select id="permission-role" value={selectedRoleId} onChange={(event) => setSelectedRoleId(event.target.value)} disabled={loadingCatalog || roles.length === 0} className="dashboard-field w-full rounded-lg px-3 py-2.5 text-sm outline-none focus:border-emerald-400">
@@ -174,14 +174,14 @@ export function PermissionManagementPage() {
           </select>
           {selectedRole?.description && <p className="mt-2 text-xs dashboard-muted">{selectedRole.description}</p>}
 
-          <div className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-4">
+          <div className="permission-summary-grid mt-3 grid grid-cols-2 gap-2 sm:grid-cols-4">
             <div className="dashboard-subcard rounded-lg px-3 py-2"><div className="text-lg font-semibold leading-5">{permissions.length}</div><div className="mt-0.5 text-[11px] dashboard-muted">{t("systemPermissions")}</div></div>
             <div className="rounded-xl border dashboard-subcard p-3"><div className="text-xl font-semibold">{assignedIds.length}</div><div className="mt-1 text-xs dashboard-muted">{t("currentlyAssigned")}</div></div>
             <div className="dashboard-subcard rounded-lg px-3 py-2"><div className="text-lg font-semibold leading-5 text-emerald-600">{additions.length}</div><div className="mt-1 text-xs dashboard-muted">{t("toAdd")}</div></div>
             <div className="dashboard-subcard rounded-lg px-3 py-2"><div className="text-lg font-semibold leading-5 text-amber-600">{removals.length}</div><div className="mt-1 text-xs dashboard-muted">{t("toRemove")}</div></div>
           </div>
 
-          <div className="mt-4 flex flex-wrap items-center gap-2">
+          <div className="permission-toolbar mt-4 flex flex-wrap items-center gap-2 rounded-lg border p-2.5">
             <button type="button" onClick={selectAll} disabled={loadingCatalog || loadingAssigned || permissions.length === 0} className="dashboard-secondary-button inline-flex items-center gap-2 rounded-lg px-3 py-2 text-xs font-medium disabled:opacity-50"><CheckCheck size={14}/> {t("selectAll")}</button>
             <button type="button" onClick={clearAll} disabled={loadingAssigned || selectedIds.length === 0} className="dashboard-secondary-button inline-flex items-center gap-2 rounded-lg border px-3 py-2 text-xs font-medium disabled:opacity-50"><X size={14}/> {t("clearAll")}</button>
             <div className="ml-auto min-w-[180px] flex-1 sm:max-w-[260px]">
@@ -189,8 +189,8 @@ export function PermissionManagementPage() {
             </div>
           </div>
 
-          <div className="mt-3 overflow-hidden rounded-lg">
-            <div className="flex items-center justify-between bg-slate-50/80 px-3 py-2.5 dark:bg-slate-800/50">
+          <div className="permission-list mt-3 overflow-hidden rounded-lg border">
+            <div className="permission-list-header flex items-center justify-between px-3 py-2.5">
               <span className="text-xs font-semibold">{t("availableSystemPermissions")}</span>
               {loadingAssigned && <span className="inline-flex items-center gap-2 text-xs dashboard-muted"><LoaderCircle size={13} className="animate-spin"/> {t("loadingRoleAccess")}</span>}
             </div>
@@ -204,8 +204,8 @@ export function PermissionManagementPage() {
                   const checked = selectedSet.has(permission.id);
                   const originallyAssigned = assignedSet.has(permission.id);
                   return (
-                    <label key={permission.id} className="flex cursor-pointer items-start gap-3 border-b border-slate-100 px-3 py-2.5 transition-colors last:border-0 hover:bg-slate-50/70 dark:border-slate-800 dark:hover:bg-slate-800/40">
-                      <input type="checkbox" checked={checked} onChange={() => togglePermission(permission.id)} disabled={loadingAssigned || savingPermissions} className="mt-1 h-4 w-4 accent-emerald-500"/>
+                    <label key={permission.id} className="permission-list-row flex cursor-pointer items-start gap-3 border-b px-3 py-2 transition-colors last:border-0">
+                      <input type="checkbox" checked={checked} onChange={() => togglePermission(permission.id)} disabled={loadingAssigned || savingPermissions} className="mt-0.5 h-4 w-4 accent-[var(--brand)]"/>
                       <span className="min-w-0 flex-1">
                         <span className="flex flex-wrap items-center gap-2 text-sm font-medium">
                           {permission.name}
