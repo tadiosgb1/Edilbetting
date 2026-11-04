@@ -6,7 +6,9 @@ import { useRouter } from "next/navigation";
 import { ArrowRight, LockKeyhole, UserPlus, X } from "lucide-react";
 import { useToast } from "@/components/toast-provider";
 import { LanguageSelector, useLanguage } from "@/components/language-provider";
-import { hashPassword, normalizePhone, useAuthStore, type UserRole } from "@/stores/auth-store";
+import { normalizePhone, useAuthStore, type UserRole } from "@/stores/auth-store";
+import { login, logout } from "@/services/auth.service";
+import { getApiErrorMessage } from "@/services/api-client";
 
 type AuthMode = "login" | "register";
 type AuthPageProps = {
@@ -21,11 +23,6 @@ const destinations: Record<UserRole, string> = {
   player: "/player",
   agent: "/agent",
   admin: "/admin",
-};
-const localAccounts: Record<string, { role: UserRole; name: string }> = {
-  "0963275521": { role: "player", name: "Player" },
-  "0963275522": { role: "agent", name: "Agent" },
-  "0963275523": { role: "admin", name: "Administrator" },
 };
 
 export default function AuthPage({
@@ -46,8 +43,6 @@ export default function AuthPage({
   const toast = useToast();
   const { t } = useLanguage();
   const user = useAuthStore((state) => state.user);
-  const accounts = useAuthStore((state) => state.accounts);
-  const addAccount = useAuthStore((state) => state.addAccount);
   const setUser = useAuthStore((state) => state.setUser);
   const isModal = presentation === "modal";
   const accentStyle = { "--auth-accent": "var(--player-brand, #16a34a)" } as React.CSSProperties;
@@ -71,58 +66,32 @@ export default function AuthPage({
     event.preventDefault();
     setError("");
     setBusy(true);
+
     const normalized = normalizePhone(phone);
     try {
       if (currentMode === "register") {
-        if (!name.trim()) {
-          notifyError("enterYourName");
-          return;
-        }
-        if (normalized.length !== 10 || !normalized.startsWith("0")) {
-          notifyError("enterValidPhone");
-          return;
-        }
-        if (password.length < 4) {
-          notifyError("passwordMinLength");
-          return;
-        }
-        if (password !== confirmPassword) {
-          notifyError("passwordsDoNotMatch");
-          return;
-        }
-        if (localAccounts[normalized] || accounts.some((item) => normalizePhone(item.phone) === normalized)) {
-          notifyError("accountAlreadyExists");
-          return;
-        }
-        const passwordHash = await hashPassword(password);
-        const registered = addAccount({ phone: normalized, name: name.trim(), role, passwordHash });
-        if (!registered) {
-          notifyError("accountAlreadyExists");
-          return;
-        }
-        setUser({ id: `local-${normalized}`, name: name.trim(), phone: normalized, role });
-      } else {
-        const account = accounts.find((item) => normalizePhone(item.phone) === normalized && item.role === role);
-        if (account) {
-          if (await hashPassword(password) !== account.passwordHash) {
-            notifyError("invalidCredentials");
-            return;
-          }
-          setUser({ id: `local-${normalized}`, name: account.name, phone: normalized, role: account.role });
-        } else {
-          const localAccount = localAccounts[normalized];
-          if (!localAccount || password !== "1234" || localAccount.role !== role) {
-            notifyError("invalidCredentials");
-            return;
-          }
-          setUser({ id: `account-${localAccount.role}`, name: localAccount.name, phone: normalized, role });
-        }
+        notifyError("Registration is not connected yet. Please contact the administrator to create an account.");
+        return;
       }
-      toast(currentMode === "login" ? "loginSuccess" : "registrationSuccess", "success");
+
+      if (!normalized || !password) {
+        notifyError("Enter your phone number and password.");
+        return;
+      }
+
+      const authenticatedUser = await login({ phone: normalized, password }, role);
+      if (authenticatedUser.role !== role) {
+        logout();
+        notifyError("This account does not have access to this workspace.");
+        return;
+      }
+
+      setUser(authenticatedUser);
+      toast("loginSuccess", "success");
       if (onSuccess) onSuccess();
-      else router.replace(destinations[role]);
-    } catch {
-      notifyError(currentMode === "login" ? "loginFailed" : "registrationFailed");
+      else router.replace(destinations[authenticatedUser.role]);
+    } catch (requestError) {
+      notifyError(getApiErrorMessage(requestError, "Unable to sign in. Please check your details and try again."));
     } finally {
       setBusy(false);
     }
