@@ -776,3 +776,24 @@
 .dashboard-root .dashboard-data-table-toolbar,
 .dashboard-root .dashboard-data-table-filters,
 .dashboard-root .dashboard-data-table-footer { padding-left: 14px; padding-right: 14px; }
+
+
+/* Keep admin primary actions legible regardless of the selected light palette. */
+.dashboard-root button[class*="bg-[var(--brand)]"],
+.dashboard-root button[class*="bg-emerald-"],
+.dashboard-root button[class*="bg-green-"] {
+  color: #fff !important;
+}
+.dashboard-root button[class*="bg-[var(--brand)]"] svg,
+.dashboard-root button[class*="bg-emerald-"] svg,
+.dashboard-root button[class*="bg-green-"] svg {
+  color: #fff !important;
+}
+.dashboard-root .management-search-input {
+  color: var(--text) !important;
+  background: var(--panel) !important;
+  border-color: var(--line) !important;
+}
+.dashboard-root .management-search-input::placeholder {
+  color: var(--muted) !important;
+}
