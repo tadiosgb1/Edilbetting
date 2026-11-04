@@ -273,7 +273,7 @@ export function PermissionManagementPage() {
             <form onSubmit={submitUserRole} className="mt-4 space-y-3">
               <div>
                 <label htmlFor="role-user-id" className="mb-1.5 block text-xs font-medium dashboard-muted">{t("userId")}</label>
-                <input id="role-user-id" type="number" min="1" step="1" required value={userId} onChange={(event) => setUserId(event.target.value)} placeholder="e.g. 1" className="dashboard-field w-full rounded-xl border px-3 py-2.5 text-sm outline-none focus:border-emerald-400"/>
+                <input id="role-user-id" type="number" min="1" step="1" required value={userId} onChange={(event) => setUserId(event.target.value)} placeholder={t("userIdExample")} className="dashboard-field w-full rounded-xl border px-3 py-2.5 text-sm outline-none focus:border-emerald-400"/>
               </div>
               <div className="rounded-xl border dashboard-subcard px-3 py-3">
                 <div className="text-[11px] dashboard-muted">{t("roleToAssign")}</div>
