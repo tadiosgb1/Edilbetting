@@ -542,5 +542,18 @@
   "rolesCount": "ሚናዎች",
   "administratorRoleExample": "አስተዳዳሪ",
   "roleDescriptionExample": "የተጠቃሚ፣ የሚና አስተዳደርና የስርዓት ውቅር ሙሉ መዳረሻ።",
-  "userIdExample": "ለምሳሌ 1"
+  "userIdExample": "ለምሳሌ 1",
+  "searchRoles": "ሚናዎችን ፈልግ...",
+  "actions": "ድርጊቶች",
+  "cancel": "ሰርዝ",
+  "roleFormHint": "ከታች የሚናውን ዝርዝር ያስገቡ።",
+  "usersCount": "ተጠቃሚዎች",
+  "searchUsers": "በስም፣ ኢሜይል ወይም ስልክ ፈልግ...",
+  "previous": "ቀዳሚ",
+  "next": "ቀጣይ",
+  "showMore": "ተጨማሪ አሳይ",
+  "page": "ገጽ",
+  "assignRole": "ሚና መድብ",
+  "userFormHint": "ከታች የመለያውን ዝርዝር ያስገቡ።",
+  "settingsSubmenu": "የቅንብር ንዑስ ምናሌ ክፈት"
 }
