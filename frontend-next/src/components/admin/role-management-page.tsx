@@ -54,7 +54,7 @@ export function RoleManagementPage() {
   }
 
   return <div className="space-y-4">
-    <nav aria-label="Current section" className="management-breadcrumb"><span aria-current="page">Roles</span></nav><header className="management-page-heading"><div className="flex flex-wrap items-center justify-between gap-3"><h1 className="text-xl font-semibold md:text-2xl">{t("roleManagement")}</h1><button onClick={openCreate} className="management-primary-button inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold"><Plus size={14}/>{t("createRole")}</button></div></header>
+    <header className="management-page-heading"><div className="flex flex-wrap items-center justify-between gap-3"><h1 className="text-xl font-semibold md:text-2xl">{t("roleManagement")}</h1><button onClick={openCreate} className="management-primary-button inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold"><Plus size={14}/>{t("createRole")}</button></div></header>
     {error && <div role="alert" className="rounded-xl border border-red-300 bg-red-50 px-4 py-3 text-sm text-red-700">{error}</div>}
     <section className="dashboard-card rounded-xl p-0">
       <div className="dashboard-data-table-toolbar flex flex-wrap items-center justify-between gap-3 px-4 py-3"><h2 className="font-semibold">{t("allRoles")} <span className="dashboard-muted">({roles.length})</span></h2><button onClick={() => void refresh()} disabled={loading} aria-label={t("refresh")} title={t("refresh")} className="dashboard-secondary-button management-icon-button disabled:opacity-50"><RefreshCw size={15} className={loading ? "animate-spin" : ""}/></button></div>
