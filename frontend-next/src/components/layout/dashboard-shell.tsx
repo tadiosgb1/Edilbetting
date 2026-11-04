@@ -21,6 +21,7 @@ export function DashboardShell({ role, children }: { role: Role; children: React
   const [collapsed, setCollapsed] = useState(false);
   const [profileOpen, setProfileOpen] = useState(false);
   const [settingsExpanded, setSettingsExpanded] = useState(false);
+  useEffect(() => { if (path.endsWith("/roles") || path.endsWith("/permissions")) setSettingsExpanded(true); }, [path]);
   const [brandPanelOpen, setBrandPanelOpen] = useState(false);
   const [brandColor, setBrandColor] = useState("#16a34a");
   const [theme, setTheme] = useState<"dark" | "light">("dark");
