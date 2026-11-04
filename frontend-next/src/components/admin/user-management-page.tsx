@@ -9,7 +9,6 @@ import { assignUserRole, createUser, deleteUser, listRoles, listUsersPage, updat
 import type { SystemRole } from "@/services/permission.service";
 
 const blank: UserInput = { first_name: "", last_name: "", email: "", phone_number: "", password: "", role_id: 0 };
-const PAGE_SIZE = 10;
 
 export function UserManagementPage() {
   const { t } = useLanguage(); const toast = useToast();
@@ -26,7 +25,7 @@ export function UserManagementPage() {
     if(append)setMoreLoading(true);else setLoading(true);
     setError("");
     try{
-      const result=await listUsersPage(nextPage,PAGE_SIZE,term);
+      const result=await listUsersPage(nextPage,term);
       setUsers(current=>append?[...current,...result.data]:result.data);
       setCount(result.count);setTotalPages(result.totalPages);setPage(result.currentPage);
     }catch(e){setError(getApiErrorMessage(e,t("unableToLoadUsers")));}
