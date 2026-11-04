@@ -542,5 +542,18 @@
   "rolesCount": "ተራታት",
   "administratorRoleExample": "ኣመሓዳሪ",
   "roleDescriptionExample": "ምሉእ መእተዊ ንምሕደራ ተጠቀምቲ፣ ተራታትን ቅንብር ስርዓትን።",
-  "userIdExample": "ንኣብነት 1"
+  "userIdExample": "ንኣብነት 1",
+  "searchRoles": "ተራታት ድለ...",
+  "actions": "ተግባራት",
+  "cancel": "ሰርዝ",
+  "roleFormHint": "ዝርዝር ናይቲ ተራ ኣብ ታሕቲ ኣእቱ።",
+  "usersCount": "ተጠቀምቲ",
+  "searchUsers": "ብስም፣ ኢመይል ወይ ቁጽሪ ስልኪ ድለ...",
+  "previous": "ዝሓለፈ",
+  "next": "ዝቕጽል",
+  "showMore": "ተወሳኺ ኣርኢ",
+  "page": "ገጽ",
+  "assignRole": "ተራ መድብ",
+  "userFormHint": "ዝርዝር ሕሳብ ኣብ ታሕቲ ኣእቱ።",
+  "settingsSubmenu": "ንኡስ ምናሌ ቅንብራት ክፈት"
 }
