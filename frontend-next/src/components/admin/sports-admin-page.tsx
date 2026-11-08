@@ -23,7 +23,8 @@ const defaults: Record<Kind,Record<string,unknown>> = {
 const titles:Record<Kind,string>={configs:"Platform Config",sports:"Sports",competitions:"Competitions"};
 const id=(r:Row)=>String(r.id ?? r._id ?? ("key" in r ? r.key : "code" in r ? r.code : r.slug));
 export function SportsAdminPage({kind}:{kind:Kind}) {
- const [data,setData]=useState<Row[]>([]),[countries,setCountries]=useState<CountryOption[]>([]),[sports,setSports]=useState<Sport[]>([]);\n const [pageSize,setPageSize]=useState(10),[pagination,setPagination]=useState({count:0,total_pages:1,current_page:1,next:null as string|null,previous:null as string|null,page_size:10});
+ const [data,setData]=useState<Row[]>([]),[countries,setCountries]=useState<CountryOption[]>([]),[sports,setSports]=useState<Sport[]>([]);
+ const [pageSize,setPageSize]=useState(10),[pagination,setPagination]=useState({count:0,total_pages:1,current_page:1,next:null as string|null,previous:null as string|null,page_size:10});
  const [loading,setLoading]=useState(true),[saving,setSaving]=useState(false),[error,setError]=useState(""),[notice,setNotice]=useState("");
  const [query,setQuery]=useState(""),[activeOnly,setActiveOnly]=useState(false),[sportFilter,setSportFilter]=useState(""),[countryFilter,setCountryFilter]=useState(""),[slugFilter,setSlugFilter]=useState(""),[sportCode,setSportCode]=useState("");
  const [sortKey,setSortKey]=useState(""),[sortDir,setSortDir]=useState<"asc"|"desc">("asc");
