@@ -3,7 +3,6 @@
 import { useCallback, useEffect, useMemo, useState, type FormEvent } from "react";
 import Link from "next/link";
 import { Check, CircleAlert, Globe2, Loader2, Pencil, Plus, RefreshCw, Search, Trash2, X } from "lucide-react";
-import { Card, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { getApiErrorMessage } from "@/services/api-client";
@@ -29,7 +28,7 @@ export default function CountriesPage() {
   const [notice, setNotice] = useState("");
   const [deleteTarget, setDeleteTarget] = useState<Country | null>(null);
 
-  const load = useCallback(async (mode: View = "all", code = "") => {
+  const load = useCallback(async (mode: View = "all") => {
     setLoading(true);
     setError("");
     try {
@@ -42,7 +41,7 @@ export default function CountriesPage() {
     }
   }, []);
 
-  useEffect(() => { void load("all", ""); }, [load]);
+  useEffect(() => { void load("all"); }, [load]);
 
   const visible = useMemo(() => {
     const query = search.trim().toLowerCase();
@@ -50,8 +49,6 @@ export default function CountriesPage() {
     return countries.filter((country) => [country.name, country.iso2, country.iso3].some((value) => value.toLowerCase().includes(query)));
   }, [countries, search]);
 
-  const activeCount = countries.filter((country) => country.is_active).length;
-  const inactiveCount = countries.length - activeCount;
 
   function startCreate() {
     setEditing(null); setForm(emptyForm); setFormOpen(true); setError(""); setNotice("");
@@ -89,7 +86,7 @@ export default function CountriesPage() {
   }
   async function chooseView(next: View) {
     setView(next);
-    await load(next, "");
+    await load(next);
   }
 
   return <div className="space-y-5">
