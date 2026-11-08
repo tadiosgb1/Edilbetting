@@ -30,14 +30,14 @@ const keyOf = (row: AnyRow) => String(row.id ?? row._id ?? row.key ?? row.code ?
 export const sportsAdminService = {
   async configs(activeOnly = false) { const {data}=await apiClient.get(activeOnly ? "/platform-config/active" : "/platform-config"); return rows<PlatformConfig>(data); },
   async createConfig(payload: Partial<PlatformConfig>) { const {data}=await apiClient.post("/platform-config",payload); return one<PlatformConfig>(data); },
-  async updateConfig(row: PlatformConfig,payload: Partial<PlatformConfig>) { const {data}=await apiClient.put(`/platform-config/${encodeURIComponent(keyOf(row))}`,payload); return one<PlatformConfig>(data); },
+  async updateConfig(row: PlatformConfig,payload: Partial<PlatformConfig>) { const {data}=await apiClient.patch(`/platform-config/${encodeURIComponent(keyOf(row))}`,payload); return one<PlatformConfig>(data); },
   async deleteConfig(row: PlatformConfig) { await apiClient.delete(`/platform-config/${encodeURIComponent(keyOf(row))}`); },
   async toggleConfig(row: PlatformConfig) { const {data}=await apiClient.post(`/platform-config/${encodeURIComponent(keyOf(row))}/toggle`); return one<PlatformConfig>(data); },
   async sports() { const {data}=await apiClient.get("/sports"); return rows<Sport>(data); },
   async activeSports() { const {data}=await apiClient.get("/sports"); return rows<Sport>(data).filter(sport=>sport.is_active); },
   async sportByCode(code: string) { const {data}=await apiClient.get(`/sports/by-code/${encodeURIComponent(code)}`); return one<Sport>(data); },
   async createSport(payload: Partial<Sport>) { const {data}=await apiClient.post("/sports",payload); return one<Sport>(data); },
-  async updateSport(row: Sport,payload: Partial<Sport>) { const {data}=await apiClient.put(`/sports/${encodeURIComponent(keyOf(row))}`,payload); return one<Sport>(data); },
+  async updateSport(row: Sport,payload: Partial<Sport>) { const {data}=await apiClient.patch(`/sports/${encodeURIComponent(keyOf(row))}`,payload); return one<Sport>(data); },
   async deleteSport(row: Sport) { await apiClient.delete(`/sports/${encodeURIComponent(keyOf(row))}`); },
   async countries() { const {data}=await apiClient.get("/countries/active"); return rows<CountryOption>(data); },
   async competitions(filters: {sportId?: string; countryId?: string; slug?: string} = {}) {
@@ -49,6 +49,6 @@ export const sportsAdminService = {
     const {data}=await apiClient.get(path); const result=rows<Competition>(data); return filters.sportId && filters.countryId ? result.filter(item=>String(item.sport_id)===filters.sportId) : result;
   },
   async createCompetition(payload: Partial<Competition>) { const {data}=await apiClient.post("/competitions",payload); return one<Competition>(data); },
-  async updateCompetition(row: Competition,payload: Partial<Competition>) { const {data}=await apiClient.put(`/competitions/${encodeURIComponent(keyOf(row))}`,payload); return one<Competition>(data); },
+  async updateCompetition(row: Competition,payload: Partial<Competition>) { const {data}=await apiClient.patch(`/competitions/${encodeURIComponent(keyOf(row))}`,payload); return one<Competition>(data); },
   async deleteCompetition(row: Competition) { await apiClient.delete(`/competitions/${encodeURIComponent(keyOf(row))}`); },
 };
