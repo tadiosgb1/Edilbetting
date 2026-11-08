@@ -105,7 +105,7 @@ export default function CountriesPage() {
       </header>
     </section>
 
-    {error && <div role="alert" className="rounded-xl border border-red-300 bg-red-50 px-4 py-3 text-sm text-red-700">{error}</div>}
+    {error && <div role="alert" className="flex items-start justify-between gap-3 rounded-xl border border-red-300 bg-red-50 px-4 py-3 text-sm text-red-700"><span>{error}</span><button type="button" onClick={() => setError("")} aria-label="Dismiss error" title="Dismiss error" className="shrink-0 rounded-md p-1 text-red-700 transition hover:bg-red-100"><X size={16}/></button></div>}
     {notice && <div role="status" className="rounded-xl border border-emerald-300 bg-emerald-50 px-4 py-3 text-sm text-emerald-700">{notice}</div>}
 
     <section className="dashboard-card rounded-xl p-0">
