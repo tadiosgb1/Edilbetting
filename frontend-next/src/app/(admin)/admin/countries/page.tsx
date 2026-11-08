@@ -1,12 +1,11 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState, type FormEvent } from "react";
-import Link from "next/link";
 import { createPortal } from "react-dom";
-import { Check, CircleAlert, Globe2, Loader2, Pencil, Plus, RefreshCw, Search, Trash2, X } from "lucide-react";
+import { Globe2, Loader2, Pencil, Plus, RefreshCw, Search, Trash2, X, ChevronLeft, ChevronRight } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { getApiErrorMessage } from "@/services/api-client";
-import { countryService, type Country, type CountryPayload } from "@/services/country.service";
+import { countryService, type Country, type CountryPayload, type CountryPage } from "@/services/country.service";
 
 type View = "all" | "active";
 const emptyForm: CountryPayload = { name: "", iso2: "", iso3: "", is_active: true };
@@ -18,6 +17,7 @@ export default function CountriesPage() {
   const [search, setSearch] = useState("");
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
+  const [pagination, setPagination] = useState<CountryPage>({ count: 0, total_pages: 1, current_page: 1, next: null, previous: null, page_size: 10, data: [] });
   const [form, setForm] = useState<CountryPayload>(emptyForm);
   const [editing, setEditing] = useState<Country | null>(null);
   const [formOpen, setFormOpen] = useState(false);
@@ -27,18 +27,26 @@ export default function CountriesPage() {
   const [notice, setNotice] = useState("");
   const [deleteTarget, setDeleteTarget] = useState<Country | null>(null);
 
-  const load = useCallback(async (mode: View = "all") => {
+  const load = useCallback(async (mode: View = "all", nextUrl?: string) => {
     setLoading(true);
     setError("");
     try {
-      if (mode === "active") setCountries(await countryService.active());
-      else setCountries(await countryService.list());
+      if (mode === "active") {
+        const rows = await countryService.active();
+        setCountries(rows);
+        setPagination({ count: rows.length, total_pages: Math.max(1, Math.ceil(rows.length / pageSize)), current_page: 1, next: null, previous: null, page_size: pageSize, data: rows });
+      } else {
+        const result = nextUrl ? await countryService.pageFromUrl(nextUrl) : await countryService.page(pageSize);
+        setCountries(result.data);
+        setPagination(result);
+        setPage(result.current_page);
+      }
     } catch (cause) {
       setError(getApiErrorMessage(cause, "Unable to load countries."));
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [pageSize]);
 
   useEffect(() => { void load("all"); }, [load]);
 
@@ -47,11 +55,10 @@ export default function CountriesPage() {
     if (!query) return countries;
     return countries.filter((country) => [country.name, country.iso2, country.iso3].some((value) => value.toLowerCase().includes(query)));
   }, [countries, search]);
-  const totalPages = Math.max(1, Math.ceil(filtered.length / pageSize));
-  const visible = filtered.slice((page - 1) * pageSize, page * pageSize);
+  const totalPages = pagination.total_pages;
+  const visible = filtered;
 
   useEffect(() => { setPage(1); }, [search, view]);
-  useEffect(() => { if (page > totalPages) setPage(totalPages); }, [page, totalPages]);
 
   function startCreate() {
     setEditing(null); setForm(emptyForm); setFormOpen(true); setError(""); setNotice("");
@@ -107,7 +114,7 @@ export default function CountriesPage() {
 
     <section className="dashboard-card rounded-xl p-0">
       <div className="dashboard-data-table-toolbar flex flex-wrap items-center justify-between gap-3 px-4 py-3">
-        <div><h2 className="font-semibold">All countries</h2><p className="mt-1 text-xs dashboard-muted">{countries.length} countries</p></div>
+        <div><h2 className="font-semibold">All countries</h2><p className="mt-1 text-xs dashboard-muted">{pagination.count} countries</p></div>
         <button onClick={() => void load(view)} disabled={loading} aria-label="Refresh" title="Refresh" className="dashboard-secondary-button management-icon-button disabled:opacity-50"><RefreshCw size={15} className={loading ? "animate-spin" : ""}/></button>
       </div>
       <div className="dashboard-data-table-filters flex flex-wrap items-center gap-2 px-4 pb-3">
@@ -123,16 +130,27 @@ export default function CountriesPage() {
       {loading ? <div className="flex justify-center py-10"><span className="management-loading-dots" role="status" aria-label="Loading"><i/><i/><i/></span></div>
       : visible.length === 0 ? <p className="py-14 text-center text-sm dashboard-muted"><Globe2 size={22} className="mx-auto mb-2 opacity-50"/>No countries found.</p>
       : <div className="dashboard-data-table-wrap"><table className="dashboard-data-table w-full min-w-[680px] text-left text-sm">
-        <thead className="dashboard-data-table-head"><tr><th>Country</th><th>ISO2</th><th>ISO3</th><th>Status</th><th className="text-right">Actions</th></tr></thead>
+        <thead className="dashboard-data-table-head"><tr><th>Country</th><th>ISO2</th><th>ISO3</th><th>Status</th><th>Created / Updated</th><th className="text-right">Actions</th></tr></thead>
         <tbody>{visible.map((country) => <tr key={country.id ?? country._id ?? country.iso2} className="dashboard-data-table-row transition-colors">
           <td><span className="font-medium">{country.name}</span></td>
           <td><span className="font-mono text-xs dashboard-muted">{country.iso2}</span></td>
           <td className="font-mono text-xs dashboard-muted">{country.iso3}</td>
           <td><span className={`dashboard-table-badge rounded-md px-2.5 py-1 text-xs font-semibold ${country.is_active ? "" : "opacity-60"}`}>{country.is_active ? "Active" : "Inactive"}</span></td>
+          <td><div className="space-y-1 text-xs dashboard-muted"><div><span className="font-medium">Created:</span> {country.created_at ? new Date(country.created_at).toLocaleString() : "—"}</div><div><span className="font-medium">Updated:</span> {country.updated_at ? new Date(country.updated_at).toLocaleString() : "—"}</div></div></td>
           <td><div className="flex justify-end gap-1"><button title="Edit" onClick={() => startEdit(country)} className="dashboard-secondary-button management-icon-button"><Pencil size={14}/></button><button title="Delete" onClick={() => setDeleteTarget(country)} className="dashboard-secondary-button management-icon-button text-red-500"><Trash2 size={14}/></button></div></td>
         </tr>)}</tbody>
       </table></div>}
-      <div className="dashboard-data-table-footer mt-0 flex flex-wrap items-center justify-between gap-3 px-4 py-3"><div className="flex flex-wrap items-center gap-3"><p className="text-xs dashboard-muted">Showing {filtered.length === 0 ? 0 : (page - 1) * pageSize + 1}–{Math.min(page * pageSize, filtered.length)} of {filtered.length} countries</p><label className="flex items-center gap-2 text-xs dashboard-muted">Show <select aria-label="Countries per page" value={pageSize} onChange={(event) => { setPageSize(Number(event.target.value)); setPage(1); }} className="dashboard-field rounded-lg border px-2 py-1.5 text-xs"><option value={5}>5</option><option value={10}>10</option><option value={20}>20</option><option value={50}>50</option><option value={100}>100</option><option value={500}>500</option><option value={1000}>1000</option></select> per page</label></div><div className="flex items-center gap-2"><button type="button" disabled={page <= 1 || loading} onClick={() => setPage((current) => Math.max(1, current - 1))} className="dashboard-secondary-button inline-flex items-center gap-1 rounded-lg border px-3 py-2 text-xs disabled:opacity-40">Previous</button><span className="text-xs dashboard-muted">Page {page} of {totalPages}</span><button type="button" disabled={page >= totalPages || loading} onClick={() => setPage((current) => Math.min(totalPages, current + 1))} className="dashboard-secondary-button inline-flex items-center gap-1 rounded-lg border px-3 py-2 text-xs disabled:opacity-40">Next</button></div></div>
+      <div className="dashboard-data-table-footer mt-0 flex flex-wrap items-center justify-between gap-3 px-4 py-3">
+        <div className="flex flex-wrap items-center gap-3">
+          <p className="text-xs dashboard-muted">Showing {pagination.count === 0 ? 0 : (pagination.current_page - 1) * pagination.page_size + 1}–{Math.min(pagination.current_page * pagination.page_size, pagination.count)} of {pagination.count} countries</p>
+          <label className="flex items-center gap-2 text-xs dashboard-muted">Show <select aria-label="Countries per page" value={pageSize} onChange={(event) => { setPageSize(Number(event.target.value)); setPage(1); }} className="dashboard-field rounded-lg border px-2 py-1.5 text-xs"><option value={5}>5</option><option value={10}>10</option><option value={20}>20</option><option value={50}>50</option><option value={100}>100</option><option value={500}>500</option><option value={1000}>1000</option></select> per page</label>
+        </div>
+        <div className="flex items-center gap-2">
+          <button type="button" disabled={!pagination.previous || loading} onClick={() => pagination.previous && void load(view, pagination.previous)} className="inline-flex items-center gap-1 rounded-lg border px-3 py-2 text-xs font-semibold text-[var(--brand)] border-[var(--brand)]/40 transition hover:bg-[var(--brand)]/10 disabled:cursor-not-allowed disabled:opacity-35"><ChevronLeft size={15}/>Previous</button>
+          <span className="text-xs dashboard-muted">Page {pagination.current_page} of {totalPages}</span>
+          <button type="button" disabled={!pagination.next || loading} onClick={() => pagination.next && void load(view, pagination.next)} className="inline-flex items-center gap-1 rounded-lg border px-3 py-2 text-xs font-semibold text-[var(--brand)] border-[var(--brand)]/40 transition hover:bg-[var(--brand)]/10 disabled:cursor-not-allowed disabled:opacity-35">Next<ChevronRight size={15}/></button>
+        </div>
+      </div>
     </section>
 
     {formOpen && createPortal(<div className="fixed inset-0 z-[1000] flex items-center justify-center overflow-y-auto bg-black/55 p-4" onMouseDown={(event) => {if(event.target === event.currentTarget)setFormOpen(false);}}><section role="dialog" aria-modal="true" aria-labelledby="country-form-title" className="management-modal my-auto max-h-[min(88vh,760px)] w-full max-w-xl overflow-y-auto border p-5 shadow-2xl sm:p-6"><div className="mb-5 flex items-start justify-between"><div><h2 id="country-form-title" className="text-lg font-semibold">{editing ? "Edit country" : "Add country"}</h2><p className="mt-1 text-xs dashboard-muted">Enter the country details and ISO codes.</p></div><button onClick={() => setFormOpen(false)} aria-label="Close dialog" className="dashboard-icon-button rounded-lg p-2"><X size={17}/></button></div>
