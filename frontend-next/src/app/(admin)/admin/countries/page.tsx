@@ -113,8 +113,8 @@ export default function CountriesPage() {
       </header>
     </section>
 
-    {error && <div role="alert" className="flex items-start justify-between gap-3 rounded-xl border border-red-300 bg-red-50 px-4 py-3 text-sm text-red-700"><span>{error}</span><button type="button" onClick={() => setError("")} aria-label="Dismiss error" title="Dismiss error" className="shrink-0 rounded-md p-1 text-red-700 transition hover:bg-red-100"><X size={16}/></button></div>}
-    {notice && <div role="status" className="rounded-xl border border-emerald-300 bg-emerald-50 px-4 py-3 text-sm text-emerald-700">{notice}</div>}
+    {error && <div role="alert" className="flex items-center justify-between gap-3 border border-red-300 bg-red-50 px-4 py-3 text-sm text-red-700"><span>{error}</span><button type="button" onClick={() => setError("")} aria-label="Dismiss error" title="Dismiss error" className="shrink-0 rounded-md p-1 text-red-700 transition hover:bg-red-100"><X size={16}/></button></div>}
+    {notice && <div role="status" className="flex items-center justify-between gap-3 border border-emerald-300 bg-emerald-50 px-4 py-3 text-sm text-emerald-700"><span className="min-w-0 flex-1">{notice}</span><button type="button" onClick={() => setNotice("")} aria-label="Dismiss success message" title="Dismiss success message" className="shrink-0 p-1 text-emerald-700 transition hover:bg-emerald-100"><X size={16}/></button></div>}
 
     <section className="dashboard-card rounded-xl p-0">
       <div className="dashboard-data-table-toolbar flex flex-wrap items-center justify-between gap-3 px-4 py-3">
