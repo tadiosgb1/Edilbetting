@@ -34,7 +34,7 @@ export const sportsAdminService = {
   async deleteConfig(row: PlatformConfig) { await apiClient.delete(`/platform-config/${encodeURIComponent(keyOf(row))}`); },
   async toggleConfig(row: PlatformConfig) { const {data}=await apiClient.post(`/platform-config/${encodeURIComponent(keyOf(row))}/toggle`); return one<PlatformConfig>(data); },
   async sports() { const {data}=await apiClient.get("/sports"); return rows<Sport>(data); },
-  async activeSports() { const {data}=await apiClient.get("/sports/active"); return rows<Sport>(data); },
+  async activeSports() { const {data}=await apiClient.get("/sports"); return rows<Sport>(data).filter(sport=>sport.is_active); },
   async sportByCode(code: string) { const {data}=await apiClient.get(`/sports/by-code/${encodeURIComponent(code)}`); return one<Sport>(data); },
   async createSport(payload: Partial<Sport>) { const {data}=await apiClient.post("/sports",payload); return one<Sport>(data); },
   async updateSport(row: Sport,payload: Partial<Sport>) { const {data}=await apiClient.put(`/sports/${encodeURIComponent(keyOf(row))}`,payload); return one<Sport>(data); },
