@@ -10,6 +10,7 @@ function rows<T>(response: unknown): T[] {
   if (Array.isArray(response)) return response as T[];
   if (response && typeof response === "object") {
     const value = response as Record<string, unknown>;
+    if ("id" in value || "_id" in value || "key" in value || "code" in value || "slug" in value) return [value as T];
     for (const key of ["data", "items", "results", "countries", "sports", "competitions", "configs", "country", "sport", "competition", "config"]) {
       if (Array.isArray(value[key])) return value[key] as T[];
       if (value[key] && typeof value[key] === "object") return rows<T>(value[key]);
