@@ -54,13 +54,14 @@ function oneFrom(response: CountryResponse): Country {
 
 function pageFrom(response: CountryResponse): CountryPage {
   const rows = listFrom(response);
+  const envelope = !Array.isArray(response) && "data" in response ? response : {};
   return {
-    count: response.count ?? rows.length,
-    total_pages: response.total_pages ?? 1,
-    current_page: response.current_page ?? 1,
-    next: response.next ?? null,
-    previous: response.previous ?? null,
-    page_size: response.page_size ?? rows.length,
+    count: envelope.count ?? rows.length,
+    total_pages: envelope.total_pages ?? 1,
+    current_page: envelope.current_page ?? 1,
+    next: envelope.next ?? null,
+    previous: envelope.previous ?? null,
+    page_size: envelope.page_size ?? rows.length,
     data: rows,
   };
 }
