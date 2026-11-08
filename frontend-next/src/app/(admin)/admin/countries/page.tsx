@@ -107,9 +107,9 @@ export default function CountriesPage() {
     </div>
 
     <div className="grid gap-3 sm:grid-cols-3">
-      <Card><div className="flex items-center justify-between"><span className="text-xs dashboard-muted">Countries in view</span><Globe2 size={17} className="text-[#9fe870]"/></div><div className="mt-3 text-2xl font-semibold tabular-nums">{countries.length}</div><p className="mt-1 text-[11px] dashboard-muted">Returned by selected endpoint</p></Card>
-      <Card><div className="flex items-center justify-between"><span className="text-xs dashboard-muted">Active countries</span><ShieldCheck size={17} className="text-emerald-400"/></div><div className="mt-3 text-2xl font-semibold tabular-nums">{activeCount}</div><p className="mt-1 text-[11px] dashboard-muted">Enabled for platform use</p></Card>
-      <Card><div className="flex items-center justify-between"><span className="text-xs dashboard-muted">Inactive countries</span><Activity size={17} className="dashboard-muted"/></div><div className="mt-3 text-2xl font-semibold tabular-nums">{inactiveCount}</div><p className="mt-1 text-[11px] dashboard-muted">Currently disabled</p></Card>
+      <Card className="countries-stat-card"><div className="countries-stat-icon"><Globe2 size={17}/></div><div className="min-w-0 flex-1"><div className="flex items-center justify-between gap-3"><span className="text-xs font-medium dashboard-muted">Countries in view</span><strong className="countries-stat-value">{countries.length}</strong></div><p className="mt-1 text-[11px] dashboard-muted">Returned by selected endpoint</p></div></Card>
+      <Card className="countries-stat-card"><div className="countries-stat-icon"><ShieldCheck size={17}/></div><div className="min-w-0 flex-1"><div className="flex items-center justify-between gap-3"><span className="text-xs font-medium dashboard-muted">Active countries</span><strong className="countries-stat-value">{activeCount}</strong></div><p className="mt-1 text-[11px] dashboard-muted">Enabled for platform use</p></div></Card>
+      <Card className="countries-stat-card"><div className="countries-stat-icon"><Activity size={17}/></div><div className="min-w-0 flex-1"><div className="flex items-center justify-between gap-3"><span className="text-xs font-medium dashboard-muted">Inactive countries</span><strong className="countries-stat-value">{inactiveCount}</strong></div><p className="mt-1 text-[11px] dashboard-muted">Currently disabled</p></div></Card>
     </div>
 
     {(error || notice) && <div role="status" className={`flex items-start gap-2 rounded-xl border px-4 py-3 text-sm ${error ? "border-red-500/30 bg-red-500/10 text-red-300" : "border-emerald-500/25 bg-emerald-500/10 text-emerald-300"}`}>{error ? <CircleAlert size={17} className="mt-0.5 shrink-0"/> : <Check size={17} className="mt-0.5 shrink-0"/>}<span className="flex-1">{error || notice}</span><button onClick={() => {setError("");setNotice("");}} aria-label="Dismiss message"><X size={15}/></button></div>}
@@ -117,16 +117,16 @@ export default function CountriesPage() {
     <Card className="p-0">
       <div className="flex flex-wrap items-center justify-between gap-3 border-b border-white/5 p-5">
         <div><CardTitle>Country directory</CardTitle><p className="mt-1 text-xs dashboard-muted">Create, edit, filter and remove country records.</p></div>
-        <Button variant="secondary" size="sm" onClick={() => void load(view, iso2Filter)} disabled={loading}><RefreshCw size={14} className={loading ? "animate-spin" : ""}/>Refresh</Button>
+        <Button className="countries-accent-button" variant="secondary" size="sm" onClick={() => void load(view, iso2Filter)} disabled={loading}><RefreshCw size={14} className={loading ? "animate-spin" : ""}/>Refresh</Button>
       </div>
       <div className="flex flex-col gap-3 border-b border-white/5 p-4 lg:flex-row lg:items-center lg:justify-between">
         <div className="flex flex-wrap gap-2">
-          <Button size="sm" variant={view === "all" ? "primary" : "secondary"} onClick={() => void chooseView("all")}>All countries</Button>
-          <Button size="sm" variant={view === "active" ? "primary" : "secondary"} onClick={() => void chooseView("active")}>Active countries</Button>
+          <Button className={`countries-accent-button ${view === "all" ? "is-selected" : ""}`} size="sm" variant="secondary" onClick={() => void chooseView("all")}>All countries</Button>
+          <Button className={`countries-accent-button ${view === "active" ? "is-selected" : ""}`} size="sm" variant="secondary" onClick={() => void chooseView("active")}>Active countries</Button>
         </div>
         <div className="flex flex-col gap-2 sm:flex-row">
           <div className="relative min-w-0 sm:w-56"><Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 dashboard-muted"/><Input value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Search name or ISO code..." className="pl-9"/></div>
-          <form className="flex gap-2" onSubmit={(event) => {event.preventDefault();void chooseView("iso2");}}><Input aria-label="Filter by ISO2" value={iso2Filter} maxLength={2} onChange={(event) => setIso2Filter(event.target.value.toUpperCase())} placeholder="ISO2 (e.g. GB)" className="w-28 uppercase"/><Button type="submit" size="md" variant={view === "iso2" ? "primary" : "secondary"}>Filter</Button></form>
+          <form className="flex gap-2" onSubmit={(event) => {event.preventDefault();void chooseView("iso2");}}><Input aria-label="Filter by ISO2" value={iso2Filter} maxLength={2} onChange={(event) => setIso2Filter(event.target.value.toUpperCase())} placeholder="ISO2 (e.g. GB)" className="w-28 uppercase"/><Button className={`countries-accent-button ${view === "iso2" ? "is-selected" : ""}`} type="submit" size="md" variant="secondary">Filter</Button></form>
         </div>
       </div>
       <div className="overflow-x-auto">
