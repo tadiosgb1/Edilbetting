@@ -30,7 +30,7 @@ export default function CountriesPage() {
   const [notice, setNotice] = useState("");
   const [deleteTarget, setDeleteTarget] = useState<Country | null>(null);
 
-  const load = useCallback(async (mode: View = view, code = iso2Filter) => {
+  const load = useCallback(async (mode: View = "all", code = "") => {
     setLoading(true);
     setError("");
     try {
@@ -44,7 +44,7 @@ export default function CountriesPage() {
     } finally {
       setLoading(false);
     }
-  }, [view, iso2Filter]);
+  }, []);
 
   useEffect(() => { void load("all", ""); }, [load]);
 
@@ -117,7 +117,7 @@ export default function CountriesPage() {
     <Card className="p-0">
       <div className="flex flex-wrap items-center justify-between gap-3 border-b border-white/5 p-5">
         <div><CardTitle>Country directory</CardTitle><p className="mt-1 text-xs dashboard-muted">Create, edit, filter and remove country records.</p></div>
-        <Button variant="secondary" size="sm" onClick={() => void load()} disabled={loading}><RefreshCw size={14} className={loading ? "animate-spin" : ""}/>Refresh</Button>
+        <Button variant="secondary" size="sm" onClick={() => void load(view, iso2Filter)} disabled={loading}><RefreshCw size={14} className={loading ? "animate-spin" : ""}/>Refresh</Button>
       </div>
       <div className="flex flex-col gap-3 border-b border-white/5 p-4 lg:flex-row lg:items-center lg:justify-between">
         <div className="flex flex-wrap gap-2">
