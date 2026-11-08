@@ -91,7 +91,8 @@ export const countryService = {
   },
   async update(country: Country, payload: CountryPayload): Promise<Country> {
     const key = country.id ?? country._id ?? country.iso2;
-    const { data } = await apiClient.patch<CountryResponse>(`/countries/${encodeURIComponent(String(key))}`, payload);
+    const body: CountryPayload = { name: payload.name, iso2: payload.iso2, iso3: payload.iso3, is_active: payload.is_active };
+    const { data } = await apiClient.patch<CountryResponse>(`/countries/${encodeURIComponent(String(key))}`, body);
     return oneFrom(data);
   },
   async remove(country: Country): Promise<void> {
