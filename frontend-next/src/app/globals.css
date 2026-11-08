@@ -1096,3 +1096,49 @@
 .dashboard-root .management-permissions-title {
   text-transform: capitalize;
 }
+
+
+/* Countries page: compact summary metrics and accent-aware toolbar actions. */
+.dashboard-root .countries-stat-card {
+  display: flex;
+  min-height: 76px;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 14px !important;
+  border: 1px solid var(--line);
+  background: var(--panel);
+  color: var(--text);
+}
+.dashboard-root .countries-stat-icon {
+  display: inline-flex;
+  width: 34px;
+  height: 34px;
+  flex: 0 0 34px;
+  align-items: center;
+  justify-content: center;
+  border-radius: 9px;
+  color: var(--brand);
+  background: color-mix(in srgb, var(--brand) 12%, var(--panel));
+}
+.dashboard-root .countries-stat-value {
+  color: var(--text);
+  font-size: 21px;
+  font-weight: 700;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+}
+.dashboard-root .countries-accent-button,
+.dashboard-root .countries-accent-button:hover,
+.dashboard-root .countries-accent-button:focus-visible {
+  border: 1px solid var(--brand) !important;
+  background: var(--brand) !important;
+  color: #fff !important;
+  font-weight: 650;
+}
+.dashboard-root .countries-accent-button svg { color: #fff !important; }
+.dashboard-root .countries-accent-button:hover { filter: brightness(.94); }
+.dashboard-root .countries-accent-button:disabled { opacity: .55; }
+.dashboard-root .countries-accent-button:focus-visible {
+  outline: 2px solid color-mix(in srgb, var(--brand) 45%, transparent);
+  outline-offset: 2px;
+}
