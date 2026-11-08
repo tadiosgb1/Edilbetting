@@ -21,17 +21,17 @@ type CountryResponse = Country | Country[] | {
 
 function listFrom(response: CountryResponse): Country[] {
   if (Array.isArray(response)) return response;
-  if (Array.isArray(response.data)) return response.data;
-  if (response.countries) return response.countries;
-  if (response.data) return [response.data];
-  if (response.country) return [response.country];
-  return [];
+  if ("data" in response && Array.isArray(response.data)) return response.data;
+  if ("countries" in response && response.countries) return response.countries;
+  if ("data" in response && response.data) return [response.data];
+  if ("country" in response && response.country) return [response.country];
+  return "name" in response ? [response] : [];
 }
 
 function oneFrom(response: CountryResponse): Country {
   if (Array.isArray(response)) return response[0];
-  if (response.data && !Array.isArray(response.data)) return response.data;
-  if (response.country) return response.country;
+  if ("data" in response && response.data && !Array.isArray(response.data)) return response.data;
+  if ("country" in response && response.country) return response.country;
   return response as Country;
 }
 
