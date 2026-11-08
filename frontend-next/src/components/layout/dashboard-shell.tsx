@@ -9,7 +9,7 @@ import { useAuthStore } from "@/stores/auth-store";
 import { LanguageSelector, useLanguage } from "@/components/language-provider";
 
 type Role = "admin" | "agent";
-const adminNav = [["Overview", "/admin", LayoutDashboard], ["Players", "/admin/players", Users], ["Agents", "/admin/agents", UserRound], ["Bets & Markets", "/admin/bets", Trophy], ["Transactions", "/admin/transactions", Wallet], ["Reports", "/admin/reports", ChartNoAxesCombined], ["Users", "/admin/users", Users], ["Settings", "/admin/settings", Settings]] as const;
+const adminNav = [["Overview", "/admin", LayoutDashboard], ["Players", "/admin/players", Users], ["Agents", "/admin/agents", UserRound], ["Bets & Markets", "/admin/bets", Trophy], ["Transactions", "/admin/transactions", Wallet], ["Reports", "/admin/reports", ChartNoAxesCombined], ["Users", "/admin/users", Users], ["Countries", "/admin/countries", Globe2], ["Settings", "/admin/settings", Settings]] as const;
 const agentNav = [["Overview", "/agent", LayoutDashboard], ["My Players", "/agent/players", Users], ["Bets", "/agent/bets", Trophy], ["Wallet & Payouts", "/agent/wallet", Wallet], ["Commissions", "/agent/commissions", ChartNoAxesCombined], ["Users", "/agent/users", Users], ["Settings", "/agent/settings", Settings]] as const;
 
 export function DashboardShell({ role, children }: { role: Role; children: React.ReactNode }) {
