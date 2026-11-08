@@ -65,7 +65,7 @@ export function SportsAdminPage({kind}:{kind:Kind}) {
   if(from<0||to<0)return;
   const [moved]=ordered.splice(from,1);ordered.splice(to,0,moved);
   const next=ordered.map((item,index)=>({...item,sort_order:index}) as Row);
-  const changed=next.filter((item,index)=>Number((data.find(old=>id(old)===id(item)) as Record<string,unknown>|undefined)?.sort_order??index)!==index);
+  const changed=next.filter((item,index)=>Number((data.find(old=>id(old)===id(item)) as Record<string,unknown>|undefined)?.sort_order??-1)!==index);
   setData(next);setDraggedId(null);setSaving(true);setError("");
   try{
     for(const item of changed)await sportsAdminService.updateCompetition(item as Competition,{sort_order:Number((item as Competition).sort_order)});
