@@ -11,16 +11,13 @@ import { countryService, type Country, type CountryPayload } from "@/services/co
 type View = "all" | "active";
 const emptyForm: CountryPayload = { name: "", iso2: "", iso3: "", is_active: true };
 
-function flagFromIso2(code: string) {
-  return code.toUpperCase().replace(/[A-Z]/g, (letter) => String.fromCodePoint(letter.charCodeAt(0) + 127397));
-}
 
 export default function CountriesPage() {
   const [countries, setCountries] = useState<Country[]>([]);
   const [view, setView] = useState<View>("all");
   const [search, setSearch] = useState("");
   const [page, setPage] = useState(1);
-  const pageSize = 10;
+  const [pageSize, setPageSize] = useState(10);
   const [form, setForm] = useState<CountryPayload>(emptyForm);
   const [editing, setEditing] = useState<Country | null>(null);
   const [formOpen, setFormOpen] = useState(false);
@@ -128,14 +125,14 @@ export default function CountriesPage() {
       : <div className="dashboard-data-table-wrap"><table className="dashboard-data-table w-full min-w-[680px] text-left text-sm">
         <thead className="dashboard-data-table-head"><tr><th>Country</th><th>ISO2</th><th>ISO3</th><th>Status</th><th className="text-right">Actions</th></tr></thead>
         <tbody>{visible.map((country) => <tr key={country.id ?? country._id ?? country.iso2} className="dashboard-data-table-row transition-colors">
-          <td><div className="flex items-center gap-3"><span className="text-xl" aria-hidden="true">{flagFromIso2(country.iso2)}</span><span className="font-medium">{country.name}</span></div></td>
+          <td><span className="font-medium">{country.name}</span></td>
           <td><span className="font-mono text-xs dashboard-muted">{country.iso2}</span></td>
           <td className="font-mono text-xs dashboard-muted">{country.iso3}</td>
           <td><span className={`dashboard-table-badge rounded-md px-2.5 py-1 text-xs font-semibold ${country.is_active ? "" : "opacity-60"}`}>{country.is_active ? "Active" : "Inactive"}</span></td>
           <td><div className="flex justify-end gap-1"><button title="Edit" onClick={() => startEdit(country)} className="dashboard-secondary-button management-icon-button"><Pencil size={14}/></button><button title="Delete" onClick={() => setDeleteTarget(country)} className="dashboard-secondary-button management-icon-button text-red-500"><Trash2 size={14}/></button></div></td>
         </tr>)}</tbody>
       </table></div>}
-      <div className="dashboard-data-table-footer mt-0 flex flex-wrap items-center justify-between gap-3 px-4 py-3"><p className="text-xs dashboard-muted">Showing {filtered.length === 0 ? 0 : (page - 1) * pageSize + 1}–{Math.min(page * pageSize, filtered.length)} of {filtered.length} countries</p><div className="flex items-center gap-2"><button type="button" disabled={page <= 1 || loading} onClick={() => setPage((current) => Math.max(1, current - 1))} className="dashboard-secondary-button inline-flex items-center gap-1 rounded-lg border px-3 py-2 text-xs disabled:opacity-40">Previous</button><span className="text-xs dashboard-muted">Page {page} of {totalPages}</span><button type="button" disabled={page >= totalPages || loading} onClick={() => setPage((current) => Math.min(totalPages, current + 1))} className="dashboard-secondary-button inline-flex items-center gap-1 rounded-lg border px-3 py-2 text-xs disabled:opacity-40">Next</button></div></div>
+      <div className="dashboard-data-table-footer mt-0 flex flex-wrap items-center justify-between gap-3 px-4 py-3"><div className="flex flex-wrap items-center gap-3"><p className="text-xs dashboard-muted">Showing {filtered.length === 0 ? 0 : (page - 1) * pageSize + 1}–{Math.min(page * pageSize, filtered.length)} of {filtered.length} countries</p><label className="flex items-center gap-2 text-xs dashboard-muted">Show <select aria-label="Countries per page" value={pageSize} onChange={(event) => { setPageSize(Number(event.target.value)); setPage(1); }} className="dashboard-field rounded-lg border px-2 py-1.5 text-xs"><option value={5}>5</option><option value={10}>10</option><option value={20}>20</option><option value={50}>50</option><option value={100}>100</option><option value={500}>500</option><option value={1000}>1000</option></select> per page</label></div><div className="flex items-center gap-2"><button type="button" disabled={page <= 1 || loading} onClick={() => setPage((current) => Math.max(1, current - 1))} className="dashboard-secondary-button inline-flex items-center gap-1 rounded-lg border px-3 py-2 text-xs disabled:opacity-40">Previous</button><span className="text-xs dashboard-muted">Page {page} of {totalPages}</span><button type="button" disabled={page >= totalPages || loading} onClick={() => setPage((current) => Math.min(totalPages, current + 1))} className="dashboard-secondary-button inline-flex items-center gap-1 rounded-lg border px-3 py-2 text-xs disabled:opacity-40">Next</button></div></div>
     </section>
 
     {formOpen && createPortal(<div className="fixed inset-0 z-[1000] flex items-center justify-center overflow-y-auto bg-black/55 p-4" onMouseDown={(event) => {if(event.target === event.currentTarget)setFormOpen(false);}}><section role="dialog" aria-modal="true" aria-labelledby="country-form-title" className="management-modal my-auto max-h-[min(88vh,760px)] w-full max-w-xl overflow-y-auto border p-5 shadow-2xl sm:p-6"><div className="mb-5 flex items-start justify-between"><div><h2 id="country-form-title" className="text-lg font-semibold">{editing ? "Edit country" : "Add country"}</h2><p className="mt-1 text-xs dashboard-muted">Enter the country details and ISO codes.</p></div><button onClick={() => setFormOpen(false)} aria-label="Close dialog" className="dashboard-icon-button rounded-lg p-2"><X size={17}/></button></div>
