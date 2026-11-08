@@ -4,6 +4,25 @@ export type PlatformConfig = { id?: string | number; _id?: string; key: string; 
 export type Sport = { id?: string | number; _id?: string; code: string; slug: string; has_outrights: boolean; is_active: boolean; sort_order: number };
 export type Competition = { id?: string | number; _id?: string; sport_id: string | number; country_id: string | number; name: string; short_name: string; slug: string; competition_type: string; scope: string; region_code: string | null; is_active: boolean; sort_order: number };
 export type CountryOption = { id?: string | number; _id?: string; name: string; iso2: string; is_active: boolean };
+export type SportPage = {
+  count: number;
+  total_pages: number;
+  current_page: number;
+  next: string | null;
+  previous: string | null;
+  page_size: number;
+  data: Sport[];
+};
+type SportPageResponse = {
+  status?: string;
+  count?: number;
+  total_pages?: number;
+  current_page?: number;
+  next?: string | null;
+  previous?: string | null;
+  page_size?: number;
+  data?: Sport[];
+};
 type AnyRow = Record<string, unknown>;
 
 function rows<T>(response: unknown): T[] {
@@ -37,6 +56,34 @@ export const sportsAdminService = {
   async deleteConfig(row: PlatformConfig) { await apiClient.delete(`/platform-config/${encodeURIComponent(keyOf(row))}`); },
   async toggleConfig(row: PlatformConfig) { const {data}=await apiClient.post(`/platform-config/${encodeURIComponent(keyOf(row))}/toggle`); return one<PlatformConfig>(data); },
   async sports() { const {data}=await apiClient.get("/sports"); return rows<Sport>(data); },
+  async sportsPage(pageSize = 10): Promise<SportPage> {
+    const {data}=await apiClient.get<SportPageResponse>("/sports", { params: { page: 1, page_size: pageSize } });
+    const result = data as SportPageResponse;
+    const records = Array.isArray(result?.data) ? result.data : rows<Sport>(data);
+    return {
+      count: result?.count ?? records.length,
+      total_pages: result?.total_pages ?? 1,
+      current_page: result?.current_page ?? 1,
+      next: result?.next ?? null,
+      previous: result?.previous ?? null,
+      page_size: result?.page_size ?? pageSize,
+      data: records,
+    };
+  },
+  async sportsPageFromUrl(url: string): Promise<SportPage> {
+    const {data}=await apiClient.get<SportPageResponse>(url);
+    const result = data as SportPageResponse;
+    const records = Array.isArray(result?.data) ? result.data : rows<Sport>(data);
+    return {
+      count: result?.count ?? records.length,
+      total_pages: result?.total_pages ?? 1,
+      current_page: result?.current_page ?? 1,
+      next: result?.next ?? null,
+      previous: result?.previous ?? null,
+      page_size: result?.page_size ?? records.length,
+      data: records,
+    };
+  },
   async activeSports() { const {data}=await apiClient.get("/sports"); return rows<Sport>(data).filter(sport=>sport.is_active); },
   async sportByCode(code: string) { const {data}=await apiClient.get(`/sports/by-code/${encodeURIComponent(code)}`); return one<Sport>(data); },
   async createSport(payload: Partial<Sport>) { const {data}=await apiClient.post("/sports",payload); return one<Sport>(data); },
