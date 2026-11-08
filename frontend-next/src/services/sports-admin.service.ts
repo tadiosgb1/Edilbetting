@@ -10,7 +10,7 @@ function rows<T>(response: unknown): T[] {
   if (Array.isArray(response)) return response as T[];
   if (response && typeof response === "object") {
     const value = response as Record<string, unknown>;
-    for (const key of ["data", "items", "results", "countries", "sports", "competitions", "configs"]) {
+    for (const key of ["data", "items", "results", "countries", "sports", "competitions", "configs", "country", "sport", "competition", "config"]) {
       if (Array.isArray(value[key])) return value[key] as T[];
       if (value[key] && typeof value[key] === "object") return rows<T>(value[key]);
     }
@@ -45,7 +45,7 @@ export const sportsAdminService = {
     else if (filters.sportId && filters.countryId) path = `/competitions/countries-by-sport/${encodeURIComponent(filters.sportId)}`;
     else if (filters.countryId) path = `/competitions/by-country/${encodeURIComponent(filters.countryId)}`;
     else if (filters.sportId) path = `/competitions/countries-by-sport/${encodeURIComponent(filters.sportId)}`;
-    const {data}=await apiClient.get(path); return rows<Competition>(data);
+    const {data}=await apiClient.get(path); const result=rows<Competition>(data); return filters.sportId && filters.countryId ? result.filter(item=>String(item.sport_id)===filters.sportId) : result;
   },
   async createCompetition(payload: Partial<Competition>) { const {data}=await apiClient.post("/competitions",payload); return one<Competition>(data); },
   async updateCompetition(row: Competition,payload: Partial<Competition>) { const {data}=await apiClient.put(`/competitions/${encodeURIComponent(keyOf(row))}`,payload); return one<Competition>(data); },
