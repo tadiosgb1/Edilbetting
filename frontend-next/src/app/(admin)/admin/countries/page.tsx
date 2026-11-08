@@ -19,6 +19,8 @@ export default function CountriesPage() {
   const [countries, setCountries] = useState<Country[]>([]);
   const [view, setView] = useState<View>("all");
   const [search, setSearch] = useState("");
+  const [page, setPage] = useState(1);
+  const pageSize = 10;
   const [form, setForm] = useState<CountryPayload>(emptyForm);
   const [editing, setEditing] = useState<Country | null>(null);
   const [formOpen, setFormOpen] = useState(false);
@@ -43,12 +45,16 @@ export default function CountriesPage() {
 
   useEffect(() => { void load("all"); }, [load]);
 
-  const visible = useMemo(() => {
+  const filtered = useMemo(() => {
     const query = search.trim().toLowerCase();
     if (!query) return countries;
     return countries.filter((country) => [country.name, country.iso2, country.iso3].some((value) => value.toLowerCase().includes(query)));
   }, [countries, search]);
+  const totalPages = Math.max(1, Math.ceil(filtered.length / pageSize));
+  const visible = filtered.slice((page - 1) * pageSize, page * pageSize);
 
+  useEffect(() => { setPage(1); }, [search, view]);
+  useEffect(() => { if (page > totalPages) setPage(totalPages); }, [page, totalPages]);
 
   function startCreate() {
     setEditing(null); setForm(emptyForm); setFormOpen(true); setError(""); setNotice("");
@@ -105,7 +111,7 @@ export default function CountriesPage() {
     <section className="dashboard-card rounded-xl p-0">
       <div className="dashboard-data-table-toolbar flex flex-wrap items-center justify-between gap-3 px-4 py-3">
         <div><h2 className="font-semibold">All countries</h2><p className="mt-1 text-xs dashboard-muted">{countries.length} countries</p></div>
-        <button onClick={() => void load(view, "")} disabled={loading} aria-label="Refresh" title="Refresh" className="dashboard-secondary-button management-icon-button disabled:opacity-50"><RefreshCw size={15} className={loading ? "animate-spin" : ""}/></button>
+        <button onClick={() => void load(view)} disabled={loading} aria-label="Refresh" title="Refresh" className="dashboard-secondary-button management-icon-button disabled:opacity-50"><RefreshCw size={15} className={loading ? "animate-spin" : ""}/></button>
       </div>
       <div className="dashboard-data-table-filters flex flex-wrap items-center gap-2 px-4 pb-3">
         <div className="flex shrink-0 gap-2">
@@ -129,13 +135,13 @@ export default function CountriesPage() {
           <td><div className="flex justify-end gap-1"><button title="Edit" onClick={() => startEdit(country)} className="dashboard-secondary-button management-icon-button"><Pencil size={14}/></button><button title="Delete" onClick={() => setDeleteTarget(country)} className="dashboard-secondary-button management-icon-button text-red-500"><Trash2 size={14}/></button></div></td>
         </tr>)}</tbody>
       </table></div>}
-      <div className="dashboard-data-table-footer mt-0 flex flex-wrap items-center justify-between gap-3 px-4 py-3"><p className="text-xs dashboard-muted">Showing {visible.length} of {countries.length} countries</p></div>
+      <div className="dashboard-data-table-footer mt-0 flex flex-wrap items-center justify-between gap-3 px-4 py-3"><p className="text-xs dashboard-muted">Showing {filtered.length === 0 ? 0 : (page - 1) * pageSize + 1}–{Math.min(page * pageSize, filtered.length)} of {filtered.length} countries</p><div className="flex items-center gap-2"><button type="button" disabled={page <= 1 || loading} onClick={() => setPage((current) => Math.max(1, current - 1))} className="dashboard-secondary-button inline-flex items-center gap-1 rounded-lg border px-3 py-2 text-xs disabled:opacity-40">Previous</button><span className="text-xs dashboard-muted">Page {page} of {totalPages}</span><button type="button" disabled={page >= totalPages || loading} onClick={() => setPage((current) => Math.min(totalPages, current + 1))} className="dashboard-secondary-button inline-flex items-center gap-1 rounded-lg border px-3 py-2 text-xs disabled:opacity-40">Next</button></div></div>
     </section>
 
-    {formOpen && <div className="fixed inset-0 z-[70] flex items-center justify-center bg-black/65 p-4" role="presentation" onMouseDown={(event) => {if(event.target === event.currentTarget)setFormOpen(false);}}><section role="dialog" aria-modal="true" aria-labelledby="country-form-title" className="management-modal my-auto max-h-[min(88vh,760px)] w-full max-w-xl overflow-y-auto rounded-xl border p-5 shadow-2xl sm:p-6"><div className="mb-5 flex items-start justify-between"><div><h2 id="country-form-title" className="text-lg font-semibold">{editing ? "Edit country" : "Add country"}</h2><p className="mt-1 text-xs dashboard-muted">Enter the country details and ISO codes.</p></div><button onClick={() => setFormOpen(false)} aria-label="Close dialog" className="dashboard-icon-button rounded-lg p-2"><X size={17}/></button></div>
+    {formOpen && <div className="fixed inset-0 z-[70] flex items-center justify-center bg-black/65 p-4" role="presentation" onMouseDown={(event) => {if(event.target === event.currentTarget)setFormOpen(false);}}><section role="dialog" aria-modal="true" aria-labelledby="country-form-title" className="management-modal my-auto max-h-[min(88vh,760px)] w-full max-w-xl overflow-y-auto border p-5 shadow-2xl sm:p-6"><div className="mb-5 flex items-start justify-between"><div><h2 id="country-form-title" className="text-lg font-semibold">{editing ? "Edit country" : "Add country"}</h2><p className="mt-1 text-xs dashboard-muted">Enter the country details and ISO codes.</p></div><button onClick={() => setFormOpen(false)} aria-label="Close dialog" className="dashboard-icon-button rounded-lg p-2"><X size={17}/></button></div>
       <form onSubmit={submit} className="space-y-4"><label className="block text-xs font-medium">Country name<Input required value={form.name} onChange={(event) => setForm({...form,name:event.target.value})} placeholder="England" className="mt-2"/></label><div className="grid gap-4 sm:grid-cols-2"><label className="block text-xs font-medium">ISO2 code<Input required minLength={2} maxLength={2} pattern="[A-Za-z]{2}" value={form.iso2} onChange={(event) => setForm({...form,iso2:event.target.value.toUpperCase()})} placeholder="GB" className="mt-2 uppercase"/></label><label className="block text-xs font-medium">ISO3 code<Input required minLength={3} maxLength={3} pattern="[A-Za-z]{3}" value={form.iso3} onChange={(event) => setForm({...form,iso3:event.target.value.toUpperCase()})} placeholder="GBR" className="mt-2 uppercase"/></label></div><label className="flex cursor-pointer items-center justify-between rounded-xl border border-white/10 p-3"><span><span className="block text-sm font-medium">Active country</span><span className="mt-1 block text-xs dashboard-muted">Allow this country to be selected on the platform.</span></span><input type="checkbox" checked={form.is_active} onChange={(event) => setForm({...form,is_active:event.target.checked})} className="h-4 w-4 accent-[#9fe870]"/></label><div className="flex justify-end gap-2 pt-2"><Button type="button" variant="secondary" onClick={() => setFormOpen(false)}>Cancel</Button><Button type="submit" disabled={saving}>{saving && <Loader2 size={15} className="animate-spin"/>}{editing ? "Save changes" : "Create country"}</Button></div></form>
     </section></div>}
 
-    {deleteTarget && <div className="fixed inset-0 z-[70] flex items-center justify-center bg-black/65 p-4"><section role="alertdialog" aria-modal="true" aria-labelledby="delete-country-title" className="management-modal my-auto w-full max-w-md rounded-xl border p-5 shadow-2xl sm:p-6"><div className="mb-4 flex h-10 w-10 items-center justify-center rounded-xl bg-red-500/10 text-red-400"><Trash2 size={19}/></div><h2 id="delete-country-title" className="text-lg font-semibold">Delete {deleteTarget.name}?</h2><p className="mt-2 text-sm dashboard-muted">This action will permanently remove this country record. This cannot be undone.</p><div className="mt-6 flex justify-end gap-2"><Button variant="secondary" onClick={() => setDeleteTarget(null)}>Cancel</Button><Button variant="danger" onClick={() => void removeCountry()} disabled={saving}>{saving && <Loader2 size={15} className="animate-spin"/>}Delete country</Button></div></section></div>}
+    {deleteTarget && <div className="fixed inset-0 z-[70] flex items-center justify-center bg-black/65 p-4"><section role="alertdialog" aria-modal="true" aria-labelledby="delete-country-title" className="management-modal my-auto w-full max-w-md border p-5 shadow-2xl sm:p-6"><div className="mb-4 flex h-10 w-10 items-center justify-center rounded-xl bg-red-500/10 text-red-400"><Trash2 size={19}/></div><h2 id="delete-country-title" className="text-lg font-semibold">Delete {deleteTarget.name}?</h2><p className="mt-2 text-sm dashboard-muted">This action will permanently remove this country record. This cannot be undone.</p><div className="mt-6 flex justify-end gap-2"><Button variant="secondary" onClick={() => setDeleteTarget(null)}>Cancel</Button><Button variant="danger" onClick={() => void removeCountry()} disabled={saving}>{saving && <Loader2 size={15} className="animate-spin"/>}Delete country</Button></div></section></div>}
   </div>;
 }
