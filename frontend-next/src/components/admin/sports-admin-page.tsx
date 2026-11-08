@@ -49,9 +49,9 @@ export function SportsAdminPage({kind}:{kind:Kind}) {
  function openForm(row?:Row){setEditing(row??null);setForm(row?{...defaults[kind],...row}: {...defaults[kind]});setOpen(true);setError("");}
  async function save(e:FormEvent){e.preventDefault();setSaving(true);setError("");try{
   const payload={...form};if(kind==="competitions"){payload.sport_id=Number(payload.sport_id);payload.country_id=Number(payload.country_id);payload.sort_order=Number(payload.sort_order||0);payload.region_code=payload.region_code||null;}
-  if(kind==="configs"){if(editing)await sportsAdminService.updateConfig(editing as PlatformConfig,payload);else await sportsAdminService.createConfig(payload as Partial<PlatformConfig>);}
-  if(kind==="sports"){if(editing)await sportsAdminService.updateSport(editing as Sport,payload);else await sportsAdminService.createSport(payload as Partial<Sport>);}
-  if(kind==="competitions"){if(editing)await sportsAdminService.updateCompetition(editing as Competition,payload);else await sportsAdminService.createCompetition(payload as Partial<Competition>);}
+  if(kind==="configs"){if(editing)await sportsAdminService.updateConfig(editing as PlatformConfig,payload as Partial<PlatformConfig>);else await sportsAdminService.createConfig(payload as Partial<PlatformConfig>);}
+  if(kind==="sports"){if(editing)await sportsAdminService.updateSport(editing as Sport,payload as Partial<Sport>);else await sportsAdminService.createSport(payload as Partial<Sport>);}
+  if(kind==="competitions"){if(editing)await sportsAdminService.updateCompetition(editing as Competition,payload as Partial<Competition>);else await sportsAdminService.createCompetition(payload as Partial<Competition>);}
   setOpen(false);setNotice(editing?"Updated successfully.":"Created successfully.");await load();
  }catch(e){setError(getApiErrorMessage(e,"Unable to save record."));}finally{setSaving(false);}}
  async function remove(){if(!deleting)return;setSaving(true);try{if(kind==="configs")await sportsAdminService.deleteConfig(deleting as PlatformConfig);if(kind==="sports")await sportsAdminService.deleteSport(deleting as Sport);if(kind==="competitions")await sportsAdminService.deleteCompetition(deleting as Competition);setDeleting(null);setNotice("Deleted successfully.");await load();}catch(e){setError(getApiErrorMessage(e,"Unable to delete record."));}finally{setSaving(false);}}
