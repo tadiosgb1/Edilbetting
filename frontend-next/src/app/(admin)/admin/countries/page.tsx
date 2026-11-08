@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useState, type FormEvent } from "react";
 import { createPortal } from "react-dom";
-import { Globe2, Loader2, Pencil, Plus, RefreshCw, Search, Trash2, X, ChevronLeft, ChevronRight } from "lucide-react";
+import { Globe2, Loader2, Pencil, Plus, RefreshCw, Search, Trash2, X, ChevronLeft, ChevronRight, ArrowUp, ArrowDown, ArrowUpDown } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { getApiErrorMessage } from "@/services/api-client";
 import { countryService, type Country, type CountryPayload, type CountryPage } from "@/services/country.service";
@@ -16,7 +16,7 @@ export default function CountriesPage() {
   const [view, setView] = useState<View>("all");
   const [search, setSearch] = useState("");
   const [page, setPage] = useState(1);
-  const [pageSize, setPageSize] = useState(10);
+  const [pageSize, setPageSize] = useState(10);\n  const [sortKey, setSortKey] = useState<"name"|"iso2"|"iso3"|"is_active"|"created_at"|"updated_at">("name");\n  const [sortDir, setSortDir] = useState<"asc"|"desc">("asc");
   const [pagination, setPagination] = useState<CountryPage>({ count: 0, total_pages: 1, current_page: 1, next: null, previous: null, page_size: 10, data: [] });
   const [form, setForm] = useState<CountryPayload>(emptyForm);
   const [editing, setEditing] = useState<Country | null>(null);
@@ -56,7 +56,7 @@ export default function CountriesPage() {
     return countries.filter((country) => [country.name, country.iso2, country.iso3].some((value) => value.toLowerCase().includes(query)));
   }, [countries, search]);
   const totalPages = pagination.total_pages;
-  const visible = filtered;
+  const visible = [...filtered].sort((a,b) => String(a[sortKey] ?? "").localeCompare(String(b[sortKey] ?? ""), undefined, {numeric:true}) * (sortDir === "asc" ? 1 : -1));\n  function toggleSort(key: typeof sortKey) { setSortDir(sortKey === key && sortDir === "asc" ? "desc" : "asc"); setSortKey(key); }\n  function sortHeader(label: string, key: typeof sortKey) { return <th><button type="button" onClick={() => toggleSort(key)} className="inline-flex items-center gap-1.5 font-semibold hover:text-[var(--brand)]">{label}{sortKey === key ? (sortDir === "asc" ? <ArrowUp size={13}/> : <ArrowDown size={13}/>) : <ArrowUpDown size={13} className="opacity-40"/>}</button></th>; }
 
   useEffect(() => { setPage(1); }, [search, view]);
 
@@ -130,7 +130,7 @@ export default function CountriesPage() {
       {loading ? <div className="flex justify-center py-10"><span className="management-loading-dots" role="status" aria-label="Loading"><i/><i/><i/></span></div>
       : visible.length === 0 ? <p className="py-14 text-center text-sm dashboard-muted"><Globe2 size={22} className="mx-auto mb-2 opacity-50"/>No countries found.</p>
       : <div className="dashboard-data-table-wrap"><table className="dashboard-data-table w-full min-w-[680px] text-left text-sm">
-        <thead className="dashboard-data-table-head"><tr><th>Country</th><th>ISO2</th><th>ISO3</th><th>Status</th><th>Created / Updated</th><th className="text-right">Actions</th></tr></thead>
+        <thead className="dashboard-data-table-head"><tr>{sortHeader("Country","name")}{sortHeader("ISO2","iso2")}{sortHeader("ISO3","iso3")}{sortHeader("Status","is_active")}{sortHeader("Created / Updated","updated_at")}<th className="text-right">Actions</th></tr></thead>
         <tbody>{visible.map((country) => <tr key={country.id ?? country._id ?? country.iso2} className="dashboard-data-table-row transition-colors">
           <td><span className="font-medium">{country.name}</span></td>
           <td><span className="font-mono text-xs dashboard-muted">{country.iso2}</span></td>
