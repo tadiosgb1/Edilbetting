@@ -20,8 +20,10 @@ export function DashboardShell({ role, children }: { role: Role; children: React
   const [mobile, setMobile] = useState(false);
   const [collapsed, setCollapsed] = useState(false);
   const [profileOpen, setProfileOpen] = useState(false);
-  const [settingsExpanded, setSettingsExpanded] = useState(false);\n  const [sportsExpanded, setSportsExpanded] = useState(false);
-  useEffect(() => { if (path.endsWith("/roles") || path.endsWith("/permissions") || path.endsWith("/platform-config")) setSettingsExpanded(true);\n    if (path.includes("/countries") || path.includes("/sports") || path.includes("/competitions")) setSportsExpanded(true); }, [path]);
+  const [settingsExpanded, setSettingsExpanded] = useState(false);
+  const [sportsExpanded, setSportsExpanded] = useState(false);
+  useEffect(() => { if (path.endsWith("/roles") || path.endsWith("/permissions") || path.endsWith("/platform-config")) setSettingsExpanded(true);
+    if (path.includes("/countries") || path.includes("/sports") || path.includes("/competitions")) setSportsExpanded(true); }, [path]);
   const [brandPanelOpen, setBrandPanelOpen] = useState(false);
   const [brandColor, setBrandColor] = useState("#16a34a");
   const [theme, setTheme] = useState<"dark" | "light">("dark");
