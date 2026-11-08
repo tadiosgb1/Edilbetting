@@ -16,7 +16,9 @@ export default function CountriesPage() {
   const [view, setView] = useState<View>("all");
   const [search, setSearch] = useState("");
   const [page, setPage] = useState(1);
-  const [pageSize, setPageSize] = useState(10);\n  const [sortKey, setSortKey] = useState<"name"|"iso2"|"iso3"|"is_active"|"created_at"|"updated_at">("name");\n  const [sortDir, setSortDir] = useState<"asc"|"desc">("asc");
+  const [pageSize, setPageSize] = useState(10);
+  const [sortKey, setSortKey] = useState<"name"|"iso2"|"iso3"|"is_active"|"created_at"|"updated_at">("name");
+  const [sortDir, setSortDir] = useState<"asc"|"desc">("asc");
   const [pagination, setPagination] = useState<CountryPage>({ count: 0, total_pages: 1, current_page: 1, next: null, previous: null, page_size: 10, data: [] });
   const [form, setForm] = useState<CountryPayload>(emptyForm);
   const [editing, setEditing] = useState<Country | null>(null);
@@ -56,7 +58,9 @@ export default function CountriesPage() {
     return countries.filter((country) => [country.name, country.iso2, country.iso3].some((value) => value.toLowerCase().includes(query)));
   }, [countries, search]);
   const totalPages = pagination.total_pages;
-  const visible = [...filtered].sort((a,b) => String(a[sortKey] ?? "").localeCompare(String(b[sortKey] ?? ""), undefined, {numeric:true}) * (sortDir === "asc" ? 1 : -1));\n  function toggleSort(key: typeof sortKey) { setSortDir(sortKey === key && sortDir === "asc" ? "desc" : "asc"); setSortKey(key); }\n  function sortHeader(label: string, key: typeof sortKey) { return <th><button type="button" onClick={() => toggleSort(key)} className="inline-flex items-center gap-1.5 font-semibold hover:text-[var(--brand)]">{label}{sortKey === key ? (sortDir === "asc" ? <ArrowUp size={13}/> : <ArrowDown size={13}/>) : <ArrowUpDown size={13} className="opacity-40"/>}</button></th>; }
+  const visible = [...filtered].sort((a,b) => String(a[sortKey] ?? "").localeCompare(String(b[sortKey] ?? ""), undefined, {numeric:true}) * (sortDir === "asc" ? 1 : -1));
+  function toggleSort(key: typeof sortKey) { setSortDir(sortKey === key && sortDir === "asc" ? "desc" : "asc"); setSortKey(key); }
+  function sortHeader(label: string, key: typeof sortKey) { return <th><button type="button" onClick={() => toggleSort(key)} className="inline-flex items-center gap-1.5 font-semibold hover:text-[var(--brand)]">{label}{sortKey === key ? (sortDir === "asc" ? <ArrowUp size={13}/> : <ArrowDown size={13}/>) : <ArrowUpDown size={13} className="opacity-40"/>}</button></th>; }
 
   useEffect(() => { setPage(1); }, [search, view]);
 
