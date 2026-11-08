@@ -48,7 +48,7 @@ export function SportsAdminPage({kind}:{kind:Kind}) {
  const columns=kind==="configs"?["key","value","description","is_active"]:kind==="sports"?["code","slug","has_outrights","sort_order","is_active"]:["name","short_name","sport_id","country_id","competition_type","scope","sort_order","is_active"];
  function openForm(row?:Row){setEditing(row??null);setForm(row?{...defaults[kind],...row}: {...defaults[kind]});setOpen(true);setError("");}
  async function save(e:FormEvent){e.preventDefault();setSaving(true);setError("");try{
-  const payload={...form};if(kind==="competitions"){payload.sort_order=Number(payload.sort_order||0);payload.region_code=payload.region_code||null;}
+  const payload=Object.fromEntries(fields[kind].map(field=>[field.key,form[field.key]])) as Record<string,unknown>;if(kind==="competitions"){payload.sort_order=Number(payload.sort_order||0);payload.region_code=payload.region_code||null;}
   if(kind==="configs"){if(editing)await sportsAdminService.updateConfig(editing as PlatformConfig,payload as Partial<PlatformConfig>);else await sportsAdminService.createConfig(payload as Partial<PlatformConfig>);}
   if(kind==="sports"){if(editing)await sportsAdminService.updateSport(editing as Sport,payload as Partial<Sport>);else await sportsAdminService.createSport(payload as Partial<Sport>);}
   if(kind==="competitions"){if(editing)await sportsAdminService.updateCompetition(editing as Competition,payload as Partial<Competition>);else await sportsAdminService.createCompetition(payload as Partial<Competition>);}
