@@ -13,7 +13,24 @@ export type Country = {
 
 export type CountryPayload = Pick<Country, "name" | "iso2" | "iso3" | "is_active">;
 
+export type CountryPage = {
+  count: number;
+  total_pages: number;
+  current_page: number;
+  next: string | null;
+  previous: string | null;
+  page_size: number;
+  data: Country[];
+};
+
 type CountryResponse = Country | Country[] | {
+  status?: string;
+  count?: number;
+  total_pages?: number;
+  current_page?: number;
+  next?: string | null;
+  previous?: string | null;
+  page_size?: number;
   data?: Country | Country[];
   countries?: Country[];
   country?: Country;
@@ -35,10 +52,29 @@ function oneFrom(response: CountryResponse): Country {
   return response as Country;
 }
 
+function pageFrom(response: CountryResponse): CountryPage {
+  const rows = listFrom(response);
+  return {
+    count: response.count ?? rows.length,
+    total_pages: response.total_pages ?? 1,
+    current_page: response.current_page ?? 1,
+    next: response.next ?? null,
+    previous: response.previous ?? null,
+    page_size: response.page_size ?? rows.length,
+    data: rows,
+  };
+}
+
 export const countryService = {
-  async list(): Promise<Country[]> {
-    const { data } = await apiClient.get<CountryResponse>("/countries");
-    return listFrom(data);
+  async page(pageSize = 10): Promise<CountryPage> {
+    const { data } = await apiClient.get<CountryResponse>("/countries", {
+      params: { page: 1, page_size: pageSize },
+    });
+    return pageFrom(data);
+  },
+  async pageFromUrl(url: string): Promise<CountryPage> {
+    const { data } = await apiClient.get<CountryResponse>(url);
+    return pageFrom(data);
   },
   async active(): Promise<Country[]> {
     const { data } = await apiClient.get<CountryResponse>("/countries/active");
