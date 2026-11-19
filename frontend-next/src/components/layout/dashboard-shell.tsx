@@ -64,7 +64,8 @@ export function DashboardShell({ role, children }: { role: Role; children: React
   }
   function signOut() {
     clearUser();
-    router.replace("/auth/login");
+    window.localStorage.removeItem("token");
+    router.replace("/");
   }
 
   return <div style={{ "--brand": brandColor, "--custom-dark-surface": darkSurfaceColor } as React.CSSProperties} data-dashboard-theme={theme} data-dashboard-palette={darkPalette} className={clsx("dashboard-root min-h-screen md:flex", theme === "light" ? "dashboard-light" : "dashboard-dark bg-[#090d18] text-slate-100")}>
