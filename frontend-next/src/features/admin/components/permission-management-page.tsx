@@ -108,7 +108,6 @@ export function PermissionManagementPage() {
 
         setAssignedIds([]);
         setSelectedIds([]);
-        setAssignedReady(false);
         setError(getApiErrorMessage(requestError, t("unableToLoadAssignedPermissions")));
       })
       .finally(() => {
