@@ -40,7 +40,10 @@ function listFrom(response: CountryResponse): Country[] {
   if (Array.isArray(response)) return response;
   if ("data" in response && Array.isArray(response.data)) return response.data;
   if ("countries" in response && response.countries) return response.countries;
-  if ("data" in response && response.data) return [response.data];
+  if ("data" in response && response.data) {
+    const payload = response.data;
+    return Array.isArray(payload) ? payload : [payload];
+  }
   if ("country" in response && response.country) return [response.country];
   return "name" in response ? [response] : [];
 }
