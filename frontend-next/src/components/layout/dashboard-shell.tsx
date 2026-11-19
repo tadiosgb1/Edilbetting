@@ -63,8 +63,9 @@ export function DashboardShell({ role, children }: { role: Role; children: React
     window.localStorage.setItem("edilbet-dashboard-brand", color);
   }
   function signOut() {
-    clearUser();
+    window.sessionStorage.setItem("edilbet-logout-in-progress", "1");
     window.localStorage.removeItem("token");
+    clearUser();
     router.replace("/");
   }
 
