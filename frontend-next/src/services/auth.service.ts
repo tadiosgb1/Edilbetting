@@ -39,8 +39,7 @@ type LoginResponse = {
   message?: string;
 };
 
-function resolveUserRole(user: BackendUser, fallback: UserRole): UserRole {
-  // The current API's user model exposes isAdmin instead of a role string.
+function resolveUserRole(user: BackendUser): UserRole {
   if (user.isAdmin === true || user.isAdmin === 1 || String(user.isAdmin).toLowerCase() === "true") {
     return "admin";
   }
@@ -50,22 +49,18 @@ function resolveUserRole(user: BackendUser, fallback: UserRole): UserRole {
     user.role ?? "",
   ].map((name) => name.trim().toLowerCase().replace(/[\\s_-]+/g, ""));
 
-  if (roleNames.some((name) => ["superadmin", "admin"].includes(name))) return "admin";
+  // Backend role is authoritative. Portal selection must never override it.
+  if (roleNames.includes("superadmin") || roleNames.includes("admin")) return "admin";
   if (roleNames.includes("agent")) return "agent";
-  // Agent login is a distinct portal. The legacy backend user response often
-  // labels every non-admin account as Player or omits a role, so don't let that
-  // generic Player value override an Agent portal login.
-  if (fallback === "agent") return "agent";
   if (roleNames.includes("player")) return "player";
-  // Never grant Super Admin access based on client-selected portal alone.
-  return fallback === "admin" ? "player" : fallback;
-}
 
+  throw new Error("Your account has no recognized role. Please contact support.");
+}
 /**
  * Authentication service. Role routing prefers explicit API roles and recognizes
  * the current API's isAdmin flag; expectedRole is the login-entry fallback.
  */
-export async function login(credentials: LoginCredentials, expectedRole: UserRole): Promise<AuthUser> {
+export async function login(credentials: LoginCredentials): Promise<AuthUser> {
   const response = await apiClient.post<LoginResponse>("/users/login", { phoneNumber: credentials.email.trim(), password: credentials.password });
   const payload = response.data;
   const accessToken =
@@ -81,7 +76,7 @@ export async function login(credentials: LoginCredentials, expectedRole: UserRol
   }
 
   const user = payload.data?.user ?? payload.user ?? payload.data ?? (payload as unknown as BackendUser);
-  const role = resolveUserRole(user, expectedRole);
+  const role = resolveUserRole(user);
   const firstName = user.first_name?.trim() ?? "";
   const lastName = user.last_name?.trim() ?? "";
   const fullName = [firstName, lastName].filter(Boolean).join(" ");
