@@ -24,11 +24,6 @@ const sections = [
 const oddsFormats = ["Decimal (2.20)", "US (+120)", "UK (+6/5)", "Hong Kong (1.20)", "Indonesian (+1.20)", "Malaysian (-0.83)"];
 const defaultPreferences = { oddsFormat: "Decimal (2.20)", marketView: "Full", liveAccumulator: true, accumulatorOfDay: true, newWindowStats: false, moveVideoOnScroll: false, showGameId: false, disableMelZones: false, accessibleMarkets: false };
 
-export function generateStaticParams() {
-  return ["bonus-points", "main-account", "unsettled-bets", "deposit", "withdraw", "invite-friends", "profile", "bet-history", "settings", "messages"].map((section) => ({ section }));
-}
-
-
 export default function PlayerAccountSectionPage() {
   const params = useParams<{ section: string }>();
   const user = useAuthStore((state) => state.user);
