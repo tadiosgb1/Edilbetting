@@ -14,7 +14,6 @@ import { useApi } from "@/hooks/use-api";
 type AuthMode = "login" | "register";
 type AuthPageProps = {
   mode: AuthMode;
-  role?: UserRole;
   presentation?: "page" | "modal";
   onClose?: () => void;
   onSuccess?: () => void;
@@ -28,7 +27,6 @@ const destinations: Record<UserRole, string> = {
 
 export default function AuthPage({
   mode,
-  role = (process.env.NEXT_PUBLIC_APP_ROLE || "player") as UserRole,
   presentation = "page",
   onClose,
   onSuccess,
