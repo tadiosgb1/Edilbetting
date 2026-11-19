@@ -82,16 +82,11 @@ export default function AuthPage({
       }
 
       const authenticatedUser = await loginRequest.execute({ email: submittedEmail, password }, role);
-      if (authenticatedUser.role !== role) {
-        logout();
-        notifyError("This account does not have access to this workspace.");
-        return;
-      }
-
+      // The API response is authoritative: role determines the destination.
       setUser(authenticatedUser);
       toast("loginSuccess", "success");
-      if (onSuccess) onSuccess();
-      else router.replace(destinations[authenticatedUser.role]);
+      onSuccess?.();
+      router.replace(destinations[authenticatedUser.role]);
     } catch (requestError) {
       notifyError(getApiErrorMessage(requestError, "Unable to sign in. Please check your details and try again."));
     } finally {
