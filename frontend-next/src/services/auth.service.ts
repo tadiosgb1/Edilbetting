@@ -74,7 +74,7 @@ export async function login(credentials: LoginCredentials, expectedRole: UserRol
 
   return {
     id: String(user.id ?? user._id ?? user.email ?? credentials.email),
-    name: user.name ?? user.fullName ?? fullName || user.email || credentials.email,
+    name: user.name ?? user.fullName ?? (fullName || user.email || credentials.email),
     email: user.email ?? credentials.email,
     phone: user.phone_number ?? user.phone ?? "",
     role,
