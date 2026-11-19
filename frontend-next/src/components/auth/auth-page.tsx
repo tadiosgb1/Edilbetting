@@ -7,7 +7,7 @@ import { ArrowRight, LockKeyhole, UserPlus, X } from "lucide-react";
 import { useToast } from "@/components/toast-provider";
 import { LanguageSelector, useLanguage } from "@/components/language-provider";
 import { useAuthStore, type UserRole } from "@/stores/auth-store";
-import { login, logout } from "@/services/auth.service";
+import { login } from "@/services/auth.service";
 import { getApiErrorMessage } from "@/services/api-client";
 import { useApi } from "@/hooks/use-api";
 
