@@ -122,9 +122,10 @@ export default function PlayerPage() {
 
   function signOut() {
     clearUser();
+    window.localStorage.removeItem("token");
     setAppearanceOpen(false);
     toast("You have been logged out.", "success");
-    router.replace("/player");
+    router.replace("/");
   }
 
   async function submitPasswordChange(event: React.FormEvent<HTMLFormElement>) {
