@@ -10,11 +10,14 @@ type BackendRole = { name?: string } | string;
 type BackendUser = {
   id?: string | number;
   _id?: string | number;
+  userId?: string | number;
   name?: string;
   fullName?: string;
+  full_name?: string;
   first_name?: string;
   last_name?: string;
   email?: string;
+  phoneNumber?: string;
   phone_number?: string;
   phone?: string;
   role?: string;
@@ -58,7 +61,7 @@ function resolveUserRole(user: BackendUser, fallback: UserRole): UserRole {
  * the current API's isAdmin flag; expectedRole is the login-entry fallback.
  */
 export async function login(credentials: LoginCredentials, expectedRole: UserRole): Promise<AuthUser> {
-  const response = await apiClient.post<LoginResponse>("/users/login", credentials);
+  const response = await apiClient.post<LoginResponse>("/users/login", { phoneNumber: credentials.email.trim(), password: credentials.password });
   const payload = response.data;
   const accessToken =
     payload.data?.access_token ??
@@ -79,10 +82,10 @@ export async function login(credentials: LoginCredentials, expectedRole: UserRol
   const fullName = [firstName, lastName].filter(Boolean).join(" ");
 
   return {
-    id: String(user.id ?? user._id ?? user.email ?? credentials.email),
-    name: user.name ?? user.fullName ?? (fullName || user.email || credentials.email),
+    id: String(user.id ?? user._id ?? user.userId ?? user.email ?? credentials.email),
+    name: user.name ?? user.fullName ?? user.full_name ?? (fullName || user.email || credentials.email),
     email: user.email ?? credentials.email,
-    phone: user.phone_number ?? user.phone ?? "",
+    phone: user.phoneNumber ?? user.phone_number ?? user.phone ?? "",
     role,
   };
 }
