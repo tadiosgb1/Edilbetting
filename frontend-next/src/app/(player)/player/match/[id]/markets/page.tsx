@@ -93,6 +93,10 @@ const categories: Category[] = [
 ];
 
 const categoriesNames = categories.map((category) => category.name);
+export function generateStaticParams() {
+  return ["m1", "m2", "m3", "m4", "m5", "m6"].map((id) => ({ id }));
+}
+
 export default function MatchMarketsPage() {
   const { t } = useLanguage();
   const params = useParams<{ id: string }>();
