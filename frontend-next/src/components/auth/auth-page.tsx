@@ -125,7 +125,7 @@ export default function AuthPage({
   if (busy || redirecting) {
     const message = redirecting ? "Your account is verified. We're opening the correct dashboard for your role." : "Please wait while we securely verify your credentials and load your account permissions.";
     const loader = <div className="flex flex-col items-center gap-5 text-center"><div className="grid h-16 w-16 place-items-center rounded-2xl border border-emerald-400/30 bg-emerald-400/10"><span className="text-xl font-black tracking-wide">E<span className="text-emerald-400">B</span></span></div><div className="text-sm font-bold tracking-[0.18em]">EDILBET</div><div className="h-9 w-9 animate-spin rounded-full border-2 border-slate-700 border-t-emerald-400" aria-label="Loading" /><h1 className="text-base font-semibold">{redirecting ? "Preparing your dashboard…" : "Signing you in…"}</h1><p className="max-w-xs text-sm leading-6 text-slate-400">{message}</p></div>;
-    if (isModal) return <div className="fixed inset-0 z-[100] grid place-items-center bg-black/65 p-4"><div role="status" aria-live="polite" className="w-full max-w-sm rounded-xl border border-slate-700 bg-[#080c16] p-8 text-slate-100">{loader}</div></div>;
+    if (isModal) return <main className="fixed inset-0 z-[100] grid min-h-screen place-items-center bg-[#080c16] px-4 text-slate-100" role="status" aria-live="polite">{loader}</main>;
     return <main className="grid min-h-screen place-items-center bg-[#080c16] px-4 text-slate-100" role="status" aria-live="polite">{loader}</main>;
   }
 
