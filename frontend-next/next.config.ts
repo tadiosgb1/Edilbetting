@@ -11,5 +11,4 @@ const nextConfig: NextConfig = {
     optimizePackageImports: ["lucide-react"],
   },
 };
-
 export default nextConfig;
