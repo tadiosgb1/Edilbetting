@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { ArrowRight, LockKeyhole, UserPlus, X } from "lucide-react";
@@ -46,7 +46,6 @@ export default function AuthPage({
   const router = useRouter();
   const toast = useToast();
   const { t } = useLanguage();
-  const user = useAuthStore((state) => state.user);
   const setUser = useAuthStore((state) => state.setUser);
   const isModal = presentation === "modal";
   const accentStyle = { "--auth-accent": "var(--player-brand, #16a34a)" } as React.CSSProperties;
