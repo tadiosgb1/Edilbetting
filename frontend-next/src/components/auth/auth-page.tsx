@@ -40,6 +40,7 @@ export default function AuthPage({
   const [confirmPassword, setConfirmPassword] = useState("");
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
+  const [redirecting, setRedirecting] = useState(false);
   const loginRequest = useApi(login);
   const router = useRouter();
   const toast = useToast();
@@ -83,6 +84,8 @@ export default function AuthPage({
 
       const authenticatedUser = await loginRequest.execute({ email: submittedEmail, password }, role);
       // The API response is authoritative: role determines the destination.
+      setRedirecting(true);
+      window.sessionStorage.removeItem("edilbet-logout-in-progress");
       setUser(authenticatedUser);
       toast("loginSuccess", "success");
       onSuccess?.();
@@ -118,6 +121,12 @@ export default function AuthPage({
       </p>
     </section>
   );
+
+  if (!isModal && (busy || redirecting)) {
+    const message = redirecting ? "Preparing your dashboard…" : "Securely verifying your account…";
+    return <main className="grid min-h-screen place-items-center bg-[#080c16] px-4 text-slate-100"><div className="flex flex-col items-center gap-5 text-center"><div className="grid h-16 w-16 place-items-center rounded-2xl border border-emerald-400/30 bg-emerald-400/10"><span className="text-xl font-black tracking-wide">E<span className="text-emerald-400">B</span></span></div><div className="text-sm font-bold tracking-[0.18em]">EDILBET</div><div className="h-8 w-8 animate-spin rounded-full border-2 border-slate-700 border-t-emerald-400" aria-label="Loading" /><h1 className="text-base font-semibold">{redirecting ? "Redirecting…" : "Signing you in…"}</h1><p className="max-w-xs text-sm text-slate-400">{message}</p></div></main>;
+  }
+
 
   if (isModal) {
     return <div className="fixed inset-0 z-[100] grid place-items-center bg-black/65 p-4" role="presentation" onMouseDown={(event) => { if (event.target === event.currentTarget) onClose?.(); }}>
