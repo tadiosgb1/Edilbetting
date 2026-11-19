@@ -51,7 +51,7 @@ export default function AuthPage({
   const accentStyle = { "--auth-accent": "var(--player-brand, #16a34a)" } as React.CSSProperties;
 
   useEffect(() => {
-    if (!isModal && user?.role === role) router.replace(destinations[role]);
+    if (!isModal && user?.role === role) window.location.replace(destinations[role]);
   }, [user, role, router, isModal]);
 
   function notifyError(message: string) {
@@ -89,7 +89,7 @@ export default function AuthPage({
       setUser(authenticatedUser);
       toast("loginSuccess", "success");
       onSuccess?.();
-      router.replace(destinations[authenticatedUser.role]);
+      // Use a full document navigation so the root Player route cannot flash during role transitions.\n      window.location.replace(destinations[authenticatedUser.role]);
     } catch (requestError) {
       notifyError(getApiErrorMessage(requestError, "Unable to sign in. Please check your details and try again."));
     } finally {
