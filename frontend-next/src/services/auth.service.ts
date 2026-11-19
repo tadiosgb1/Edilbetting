@@ -19,6 +19,7 @@ type BackendUser = {
   phone?: string;
   role?: string;
   roles?: BackendRole[];
+  isAdmin?: boolean | string | number;
 };
 
 type LoginResponse = {
@@ -36,10 +37,15 @@ type LoginResponse = {
 };
 
 function resolveUserRole(user: BackendUser, fallback: UserRole): UserRole {
+  // The current API's user model exposes isAdmin instead of a role string.
+  if (user.isAdmin === true || user.isAdmin === 1 || String(user.isAdmin).toLowerCase() === "true") {
+    return "admin";
+  }
+
   const roleNames = [
     ...(user.roles ?? []).map((role) => typeof role === "string" ? role : role.name ?? ""),
     user.role ?? "",
-  ].map((name) => name.trim().toLowerCase().replace(/[\s_-]+/g, ""));
+  ].map((name) => name.trim().toLowerCase().replace(/[\\s_-]+/g, ""));
 
   if (roleNames.some((name) => ["superadmin", "admin"].includes(name))) return "admin";
   if (roleNames.includes("agent")) return "agent";
@@ -48,8 +54,8 @@ function resolveUserRole(user: BackendUser, fallback: UserRole): UserRole {
 }
 
 /**
- * Authentication service. Role routing is based on the roles returned by the API,
- * not the hostname, port, or workspace selected before login.
+ * Authentication service. Role routing prefers explicit API roles and recognizes
+ * the current API's isAdmin flag; expectedRole is the login-entry fallback.
  */
 export async function login(credentials: LoginCredentials, expectedRole: UserRole): Promise<AuthUser> {
   const response = await apiClient.post<LoginResponse>("/users/login", credentials);
