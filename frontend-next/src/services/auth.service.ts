@@ -52,9 +52,12 @@ function resolveUserRole(user: BackendUser, fallback: UserRole): UserRole {
 
   if (roleNames.some((name) => ["superadmin", "admin"].includes(name))) return "admin";
   if (roleNames.includes("agent")) return "agent";
+  // Agent login is a distinct portal. The legacy backend user response often
+  // labels every non-admin account as Player or omits a role, so don't let that
+  // generic Player value override an Agent portal login.
+  if (fallback === "agent") return "agent";
   if (roleNames.includes("player")) return "player";
-  // Never grant the Super Admin dashboard solely because the login portal was selected.
-  // Admin access must be asserted by the backend role or isAdmin flag.
+  // Never grant Super Admin access based on client-selected portal alone.
   return fallback === "admin" ? "player" : fallback;
 }
 
