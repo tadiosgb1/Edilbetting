@@ -14,7 +14,7 @@ const agentNav = [["Overview", "/agent", LayoutDashboard], ["My Players", "/agen
 
 export function DashboardShell({ role, children }: { role: Role; children: React.ReactNode }) {
   const { t } = useLanguage();
-  const path = usePathname();
+  const path = usePathname() ?? "";
   const router = useRouter();
   const clearUser = useAuthStore((state) => state.clearUser);
   const [mobile, setMobile] = useState(false);
