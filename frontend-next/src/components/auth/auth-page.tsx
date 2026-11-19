@@ -34,7 +34,6 @@ export default function AuthPage({
   onSuccess,
 }: AuthPageProps) {
   const [currentMode, setCurrentMode] = useState<AuthMode>(mode);
-  const [loginRole, setLoginRole] = useState<UserRole>(role);
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -101,10 +100,9 @@ export default function AuthPage({
       {isModal && onClose && <button type="button" onClick={onClose} aria-label={t("dismissNotification")} className="absolute right-3 top-3 rounded-md p-1.5 text-slate-400 hover:bg-slate-800 hover:text-white"><X size={18}/></button>}
       <div className="mb-4 flex items-center gap-2 text-[var(--auth-accent)]">
         {currentMode === "login" ? <LockKeyhole size={17}/> : <UserPlus size={17}/>}
-        <span className="text-xs font-semibold uppercase tracking-wider">{t(loginRole === "player" ? "playerAccount" : loginRole === "agent" ? "agentAccess" : "adminAccess")}</span>
+        <span className="text-xs font-semibold uppercase tracking-wider">Account access</span>
       </div>
       <h1 className="text-2xl font-bold">{t(currentMode === "login" ? "signIn" : "createAccount")}</h1>
-      {currentMode === "login" && <div className="mt-4 grid grid-cols-3 gap-2" aria-label="Choose login portal">{(["player", "agent", "admin"] as UserRole[]).map((portal) => <button key={portal} type="button" onClick={() => setLoginRole(portal)} aria-pressed={loginRole === portal} className={`rounded-lg border px-2 py-2 text-xs font-semibold capitalize ${loginRole === portal ? "border-emerald-400 bg-emerald-500/15 text-emerald-300" : "border-slate-700 bg-slate-950 text-slate-400"}`}>{portal === "admin" ? "Super Admin" : portal}</button>)}</div>}
       <form onSubmit={submit} className="mt-5 space-y-3.5">
         {currentMode === "register" && <div><label htmlFor="auth-name" className="mb-1.5 block text-xs font-medium text-slate-300">{t("name")}</label><input id="auth-name" autoComplete="name" value={name} onChange={(event) => setName(event.target.value)} placeholder={t("yourName")} required className="w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2.5 text-sm outline-none focus:border-[var(--auth-accent)]" /></div>}
         <div><label htmlFor="auth-email" className="mb-1.5 block text-xs font-medium text-slate-300">Phone number</label><input id="auth-email" type="tel" inputMode="tel" autoComplete="tel" value={email} onChange={(event) => setEmail(event.target.value)} placeholder="+251…" required className="w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2.5 text-sm outline-none focus:border-[var(--auth-accent)]" /></div>
