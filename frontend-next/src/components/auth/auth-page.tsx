@@ -83,7 +83,7 @@ export default function AuthPage({
         return;
       }
 
-      const authenticatedUser = await loginRequest.execute({ email: submittedEmail, password }, loginRole);
+      const authenticatedUser = await loginRequest.execute({ email: submittedEmail, password });
       // The API response is authoritative: role determines the destination.
       setRedirecting(true);
       window.sessionStorage.removeItem("edilbet-logout-in-progress");
