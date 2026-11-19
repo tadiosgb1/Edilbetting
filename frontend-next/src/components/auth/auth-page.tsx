@@ -51,9 +51,8 @@ export default function AuthPage({
   const isModal = presentation === "modal";
   const accentStyle = { "--auth-accent": "var(--player-brand, #16a34a)" } as React.CSSProperties;
 
-  useEffect(() => {
-    if (!isModal && user?.role === loginRole) window.location.replace(destinations[loginRole]);
-  }, [user, loginRole, router, isModal]);
+  // Keep the login page accessible even if a Player session is already persisted.
+  // Otherwise the default Player portal can redirect away before Agent/Admin is selected.
 
   function notifyError(message: string) {
     setError(message);
