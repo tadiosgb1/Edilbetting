@@ -47,7 +47,7 @@ function resolveUserRole(user: BackendUser): UserRole {
   const roleNames = [
     ...(user.roles ?? []).map((role) => typeof role === "string" ? role : role.name ?? ""),
     user.role ?? "",
-  ].map((name) => name.trim().toLowerCase().replace(/[\\s_-]+/g, ""));
+  ].map((name) => name.trim().toLowerCase().replace(/[\s_-]+/g, ""));
 
   // Backend role is authoritative. Portal selection must never override it.
   if (roleNames.includes("superadmin") || roleNames.includes("admin")) return "admin";
