@@ -55,6 +55,7 @@ export default function PlayerPage() {
   const clearUser = useAuthStore((state) => state.clearUser);
   const accounts = useAuthStore((state) => state.accounts);
   const updatePassword = useAuthStore((state) => state.updatePassword);
+  useEffect(() => { window.sessionStorage.removeItem("edilbet-logout-in-progress"); }, []);
   const [authHydrated, setAuthHydrated] = useState(false);
   const [authMode, setAuthMode] = useState<"login" | "register" | null>(null);
   const [profileOpen, setProfileOpen] = useState(false);
