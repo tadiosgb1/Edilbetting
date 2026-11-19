@@ -1,6 +1,7 @@
-import { redirect } from "next/navigation";
+"use client";
 
-export const dynamic = "force-dynamic";
+import { useEffect } from "react";
+import { useRouter } from "next/navigation";
 
 const roleRoutes: Record<string, string> = {
   player: "/player",
@@ -9,6 +10,15 @@ const roleRoutes: Record<string, string> = {
 };
 
 export default function HomePage() {
-  const role = process.env.EDILBET_ROLE || "player";
-  redirect(roleRoutes[role] || "/player");
+  const router = useRouter();
+  useEffect(() => {
+    const role = process.env.NEXT_PUBLIC_EDILBET_ROLE || "player";
+    router.replace(roleRoutes[role] || "/player");
+  }, [router]);
+
+  return (
+    <main className="flex min-h-screen items-center justify-center bg-slate-950 text-slate-100">
+      <p className="text-sm text-slate-400">Loading EdilBet…</p>
+    </main>
+  );
 }
