@@ -68,22 +68,22 @@ export async function getSystemRoles(): Promise<SystemRole[]> {
 export async function getRolePermissions(roleId: number): Promise<SystemPermission[]> {
   const response = await apiClient.get<unknown>(`/role-permissions/role/${roleId}/permissions`);
   const items = asArray<unknown>(response.data);
-  return items.map((item) => {
-    if (!item || typeof item !== "object") return null;
+  return items.flatMap((item): SystemPermission[] => {
+    if (!item || typeof item !== "object") return [];
     const record = item as Record<string, unknown>;
     const permission = (record.permission && typeof record.permission === "object"
       ? record.permission
       : record) as Record<string, unknown>;
     const id = Number(permission.id ?? record.permission_id ?? record.id);
-    if (!Number.isFinite(id)) return null;
-    return {
+    if (!Number.isFinite(id)) return [];
+    return [{
       id,
       name: String(permission.name ?? record.name ?? `Permission ${id}`),
       codename: String(permission.codename ?? record.codename ?? ""),
       content_type: typeof permission.content_type === "string" ? permission.content_type : undefined,
       created_at: typeof permission.created_at === "string" ? permission.created_at : undefined,
-    };
-  }).filter((permission): permission is SystemPermission => permission !== null);
+    }];
+  });
 }
 
 export async function assignUserRole(userId: number, roleId: number): Promise<void> {
