@@ -61,7 +61,7 @@ function resolveUserRole(user: BackendUser): UserRole {
  * the current API's isAdmin flag; expectedRole is the login-entry fallback.
  */
 export async function login(credentials: LoginCredentials): Promise<AuthUser> {
-  const response = await apiClient.post<LoginResponse>("/users/login", { phoneNumber: credentials.email.trim(), password: credentials.password });
+  const response = await apiClient.post<LoginResponse>("/users/login", { email: credentials.email.trim(), password: credentials.password });
   const payload = response.data;
   const accessToken =
     payload.data?.access_token ??
