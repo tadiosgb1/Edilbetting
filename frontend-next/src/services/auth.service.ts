@@ -6,13 +6,19 @@ export type LoginCredentials = {
   password: string;
 };
 
+type BackendRole = { name?: string } | string;
 type BackendUser = {
   id?: string | number;
   _id?: string | number;
   name?: string;
   fullName?: string;
+  first_name?: string;
+  last_name?: string;
   email?: string;
+  phone_number?: string;
+  phone?: string;
   role?: string;
+  roles?: BackendRole[];
 };
 
 type LoginResponse = {
@@ -29,9 +35,21 @@ type LoginResponse = {
   message?: string;
 };
 
+function resolveUserRole(user: BackendUser, fallback: UserRole): UserRole {
+  const roleNames = [
+    ...(user.roles ?? []).map((role) => typeof role === "string" ? role : role.name ?? ""),
+    user.role ?? "",
+  ].map((name) => name.trim().toLowerCase().replace(/[\s_-]+/g, ""));
+
+  if (roleNames.some((name) => ["superadmin", "admin"].includes(name))) return "admin";
+  if (roleNames.includes("agent")) return "agent";
+  if (roleNames.includes("player")) return "player";
+  return fallback;
+}
+
 /**
- * Authentication service. Components should call this service rather than
- * knowing backend URLs, Axios details, or response parsing rules.
+ * Authentication service. Role routing is based on the roles returned by the API,
+ * not the hostname, port, or workspace selected before login.
  */
 export async function login(credentials: LoginCredentials, expectedRole: UserRole): Promise<AuthUser> {
   const response = await apiClient.post<LoginResponse>("/users/login", credentials);
@@ -48,20 +66,17 @@ export async function login(credentials: LoginCredentials, expectedRole: UserRol
     window.localStorage.setItem("token", accessToken);
   }
 
-  const user = payload.user ?? payload.data?.user ?? payload.data ?? (payload as unknown as BackendUser);
-
-  const roleValue = user.role?.toLowerCase();
-  const role: UserRole =
-    roleValue === "admin" || roleValue === "agent" || roleValue === "player"
-      ? roleValue
-      : expectedRole;
+  const user = payload.data?.user ?? payload.user ?? payload.data ?? (payload as unknown as BackendUser);
+  const role = resolveUserRole(user, expectedRole);
+  const firstName = user.first_name?.trim() ?? "";
+  const lastName = user.last_name?.trim() ?? "";
+  const fullName = [firstName, lastName].filter(Boolean).join(" ");
 
   return {
     id: String(user.id ?? user._id ?? user.email ?? credentials.email),
-    name: user.name ?? user.fullName ?? credentials.email,
+    name: user.name ?? user.fullName ?? fullName || user.email || credentials.email,
     email: user.email ?? credentials.email,
-    // Retain the legacy field while other profile screens migrate to email.
-    phone: "",
+    phone: user.phone_number ?? user.phone ?? "",
     role,
   };
 }
