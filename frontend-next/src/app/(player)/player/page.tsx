@@ -57,6 +57,7 @@ export default function PlayerPage() {
   const updatePassword = useAuthStore((state) => state.updatePassword);
   useEffect(() => { window.sessionStorage.removeItem("edilbet-logout-in-progress"); }, []);
   const [authHydrated, setAuthHydrated] = useState(false);
+  const [signingOut, setSigningOut] = useState(false);
   const [authMode, setAuthMode] = useState<"login" | "register" | null>(null);
   const [profileOpen, setProfileOpen] = useState(false);
   const [passwordOpen, setPasswordOpen] = useState(false);
@@ -122,6 +123,8 @@ export default function PlayerPage() {
   }
 
   function signOut() {
+    setSigningOut(true);
+    window.sessionStorage.setItem("edilbet-logout-in-progress", "1");
     clearUser();
     window.localStorage.removeItem("token");
     setAppearanceOpen(false);
@@ -202,6 +205,10 @@ export default function PlayerPage() {
       ? current.filter((pick) => `${pick.matchId}-${pick.selection}` !== key)
       : [...current.filter((pick) => pick.matchId !== match.id), { matchId: match.id, teams: `${match.home} vs ${match.away}`, selection, odd: match.odds[index] }]);
     toast(alreadySelected ? "Selection removed from bet slip." : "Selection added to bet slip.", alreadySelected ? "info" : "success");
+  }
+
+  if (signingOut) {
+    return <main className="fixed inset-0 z-[9999] grid min-h-screen place-items-center bg-[#080c16] px-4 text-slate-100" role="status" aria-live="polite"><div className="flex flex-col items-center gap-5 text-center"><div className="grid h-16 w-16 place-items-center rounded-2xl border border-emerald-400/30 bg-emerald-400/10"><span className="text-xl font-black tracking-wide">E<span className="text-emerald-400">B</span></span></div><div className="text-sm font-bold tracking-[0.18em]">EDILBET</div><div className="h-9 w-9 animate-spin rounded-full border-2 border-slate-700 border-t-emerald-400" aria-label="Loading" /><h1 className="text-base font-semibold">Signing you out…</h1><p className="max-w-xs text-sm leading-6 text-slate-400">Securely ending your session and returning you to the homepage.</p></div></main>;
   }
 
   return (
