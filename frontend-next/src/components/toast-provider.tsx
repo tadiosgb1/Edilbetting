@@ -6,17 +6,30 @@ import { useLanguage } from "@/components/language-provider";
 
 type ToastKind = "success" | "error" | "info";
 type ToastItem = { id: number; kind: ToastKind; message: string };
-type ToastContextValue = { toast: (message: string, kind?: ToastKind) => void };
+type ToastContextValue = { toast: (message: unknown, kind?: ToastKind) => void };
 const ToastContext = createContext<ToastContextValue | null>(null);
 let toastSequence = 0;
+
+function normalizeToastMessage(input: unknown): string {
+  if (typeof input === "string") return input.trim();
+  if (input instanceof Error) return input.message.trim();
+  if (input && typeof input === "object") {
+    const value = input as { message?: unknown; error?: unknown };
+    if (typeof value.message === "string") return value.message.trim();
+    if (typeof value.error === "string") return value.error.trim();
+  }
+  return input == null ? "" : String(input).trim();
+}
 
 export function ToastProvider({ children }: { children: ReactNode }) {
   const { t } = useLanguage();
   const [items, setItems] = useState<ToastItem[]>([]);
-  const toast = useCallback((message: string, kind: ToastKind = "info") => {
-    if (!message.trim()) return;
+  const toast = useCallback((input: unknown, kind: ToastKind = "info") => {
+    const message = normalizeToastMessage(input);
+    if (!message) return;
+    const safeKind: ToastKind = kind === "success" || kind === "error" ? kind : "info";
     const id = ++toastSequence;
-    setItems((current) => [...current, { id, kind, message: message.trim() }].slice(-4));
+    setItems((current) => [...current, { id, kind: safeKind, message }].slice(-4));
   }, []);
 
   useEffect(() => {
