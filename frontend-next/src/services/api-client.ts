@@ -12,7 +12,7 @@ if (!API_BASE_URL) {
  * remains configurable per environment.
  */
 export const apiClient = axios.create({
-  baseURL: API_BASE_URL || "https://10.195.49.21:3001",
+  baseURL: API_BASE_URL || "https://api.edillbet.com",
   timeout: 20_000,
   withCredentials: true,
   headers: { Accept: "application/json", "Content-Type": "application/json" },
