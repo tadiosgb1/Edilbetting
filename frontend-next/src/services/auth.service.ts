@@ -1,5 +1,5 @@
 import { apiClient } from "@/services/api-client";
-import type { UserRole, AuthUser } from "@/stores/auth-store";
+import { useAuthStore, type UserRole, type AuthUser } from "@/stores/auth-store";
 
 export type LoginCredentials = {
   phone_number: string;
@@ -95,7 +95,8 @@ export async function login(credentials: LoginCredentials): Promise<AuthUser> {
 }
 
 export function logout(): void {
-  if (typeof window !== "undefined") {
-    window.localStorage.removeItem("token");
-  }
+  if (typeof window === "undefined") return;
+  window.sessionStorage.removeItem("edilbet-logout-in-progress");
+  window.localStorage.removeItem("token");
+  useAuthStore.getState().clearUser();
 }
