@@ -3,7 +3,7 @@
   "version": "2.1.0",
   "private": true,
   "scripts": {
-    "dev": "node scripts/dev-role.mjs player",
+    "dev": "next dev --turbo --hostname 0.0.0.0 -p 3000",
     "dev:player": "node scripts/dev-role.mjs player",
     "dev:admin": "node scripts/dev-role.mjs admin",
     "dev:agent": "node scripts/dev-role.mjs agent",
