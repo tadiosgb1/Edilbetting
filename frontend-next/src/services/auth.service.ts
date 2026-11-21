@@ -40,7 +40,7 @@ type LoginResponse = {
   message?: string;
 };
 
-const normalizeRoleName = (name: string) => name.trim().toLowerCase().replace(/[\\s_-]+/g, "");
+const normalizeRoleName = (name: string) => name.trim().toLowerCase().replace(/[\s_-]+/g, "");
 
 export function resolveUserRole(user: BackendUser): UserRole {
   const roleNames = [
