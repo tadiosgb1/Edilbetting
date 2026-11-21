@@ -6,7 +6,7 @@ export type LoginCredentials = {
   password: string;
 };
 
-type BackendRole = { name?: string } | string;
+type BackendRole = { name?: string; role?: string; role_name?: string } | string;
 type BackendUser = {
   id?: string | number;
   _id?: string | number;
@@ -20,8 +20,8 @@ type BackendUser = {
   phoneNumber?: string;
   phone_number?: string;
   phone?: string;
-  role?: string;
-  roles?: BackendRole[];
+  role?: BackendRole;
+  roles?: BackendRole[] | BackendRole;
   isAdmin?: boolean | string | number;
 };
 
@@ -53,7 +53,7 @@ export function resolveUserRole(user: BackendUser): UserRole {
     user.isAdmin === true ||
     user.isAdmin === 1 ||
     String(user.isAdmin).toLowerCase() === "true" ||
-    roleNames.some((name) => ["admin", "administrator", "superadmin", "superuser"].includes(name))
+    roleNames.some((name) => ["admin", "administrator", "superadmin", "superadministrator", "superuser"].includes(name))
   ) return "admin";
 
   if (roleNames.includes("agent")) return "agent";
