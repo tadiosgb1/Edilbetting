@@ -5,6 +5,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { hashPassword, normalizePhone, useAuthStore } from "@/stores/auth-store";
 import AuthPage from "@/components/auth/auth-page";
+import { logout } from "@/services/auth.service";
 import { useToast } from "@/components/toast-provider";
 import { LanguageSelector, useLanguage } from "@/components/language-provider";
 import {
@@ -52,10 +53,8 @@ export default function PlayerPage() {
   const router = useRouter();
   const toast = useToast();
   const user = useAuthStore((state) => state.user);
-  const clearUser = useAuthStore((state) => state.clearUser);
   const accounts = useAuthStore((state) => state.accounts);
   const updatePassword = useAuthStore((state) => state.updatePassword);
-  useEffect(() => { window.sessionStorage.removeItem("edilbet-logout-in-progress"); }, []);
   const [authHydrated, setAuthHydrated] = useState(false);
   const [signingOut, setSigningOut] = useState(false);
   const [authMode, setAuthMode] = useState<"login" | "register" | null>(null);
@@ -124,12 +123,10 @@ export default function PlayerPage() {
 
   function signOut() {
     setSigningOut(true);
-    window.sessionStorage.setItem("edilbet-logout-in-progress", "1");
-    clearUser();
-    window.localStorage.removeItem("token");
+    logout();
     setAppearanceOpen(false);
     toast("You have been logged out.", "success");
-    router.replace("/");
+    window.location.replace("/");
   }
 
   async function submitPasswordChange(event: React.FormEvent<HTMLFormElement>) {
@@ -219,7 +216,7 @@ export default function PlayerPage() {
             <button aria-label="Toggle sports menu" onClick={() => setMobileMenu(!mobileMenu)} className="grid h-9 w-9 shrink-0 place-items-center rounded-lg text-[var(--player-brand)] hover:bg-slate-800 lg:hidden">
               {mobileMenu ? <X size={19} className="player-accent-icon" /> : <Menu size={19} className="player-accent-icon" />}
             </button>
-            <Link href="/player" className="flex shrink-0 items-center gap-1.5">
+            <Link href="/" className="flex shrink-0 items-center gap-1.5">
               <span style={{ backgroundColor: brandColor }} className="rounded px-2 py-0.5 text-base font-black tracking-widest text-slate-950 sm:text-lg">EDIL</span>
               <span className="text-base font-black tracking-wide text-white sm:text-lg">BET</span>
             </Link>
@@ -393,7 +390,7 @@ export default function PlayerPage() {
           </form>
         </section>
       </div>}
-      {authMode && <AuthPage key={authMode} mode={authMode} role="player" presentation="modal" onClose={() => setAuthMode(null)} onSuccess={() => setAuthMode(null)} />}
+      {authMode && <AuthPage key={authMode} mode={authMode} presentation="modal" onClose={() => setAuthMode(null)} onSuccess={() => setAuthMode(null)} />}
       <footer className="border-t border-slate-800 bg-slate-900 px-4 py-4 text-center text-[10px] text-slate-600">EdilBet · {t("Play responsibly")} · 18+ only</footer>
       <nav className="fixed inset-x-0 bottom-0 z-30 grid grid-cols-3 border-t border-slate-800 bg-slate-900/95 backdrop-blur lg:hidden">{([{id:"home",label:"Home",icon:<CalendarDays size={16}/>},{id:"sports",label:"Sports",icon:<Trophy size={16}/>},{id:"live",label:"Live",icon:<Zap size={16}/>} ] as const).map((item) => <button key={item.id} onClick={() => { setTab(item.id); setDay(item.id === "live" ? "Live" : "All"); }} className={`flex flex-col items-center gap-1 py-2 text-[10px] font-bold ${tab === item.id ? "text-[var(--player-brand)]" : "text-slate-500"}`}>{item.icon}{t(item.label)}</button>)}</nav>
     </main>

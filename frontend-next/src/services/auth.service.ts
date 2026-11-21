@@ -1,12 +1,12 @@
 import { apiClient } from "@/services/api-client";
-import type { UserRole, AuthUser } from "@/stores/auth-store";
+import { useAuthStore, type UserRole, type AuthUser } from "@/stores/auth-store";
 
 export type LoginCredentials = {
   phone_number: string;
   password: string;
 };
 
-type BackendRole = { name?: string } | string;
+type BackendRole = { name?: string; role?: string; role_name?: string } | string;
 type BackendUser = {
   id?: string | number;
   _id?: string | number;
@@ -20,8 +20,8 @@ type BackendUser = {
   phoneNumber?: string;
   phone_number?: string;
   phone?: string;
-  role?: string;
-  roles?: BackendRole[];
+  role?: BackendRole;
+  roles?: BackendRole[] | BackendRole;
   isAdmin?: boolean | string | number;
 };
 
@@ -40,20 +40,22 @@ type LoginResponse = {
   message?: string;
 };
 
-const normalizeRoleName = (name: string) => name.trim().toLowerCase().replace(/[\s_-]+/g, "");
+const normalizeRoleName = (role: BackendRole | undefined): string => {
+  const name = typeof role === "string" ? role : role?.name ?? role?.role ?? role?.role_name ?? "";
+  return String(name).trim().toLowerCase().replace(/[\s_-]+/g, "");
+};
 
 export function resolveUserRole(user: BackendUser): UserRole {
-  const roleNames = [
-    ...(user.roles ?? []).map((role) => typeof role === "string" ? role : role.name ?? ""),
-    user.role ?? "",
-  ].map(normalizeRoleName);
+  const backendRoles = Array.isArray(user.roles) ? user.roles : user.roles ? [user.roles] : [];
+  const roleNames = [...backendRoles, user.role].map(normalizeRoleName).filter(Boolean);
 
   // Admin takes priority if the account has multiple roles.
   if (
     user.isAdmin === true ||
     user.isAdmin === 1 ||
-    String(user.isAdmin).toLowerCase() === "true" ||
-    roleNames.some((name) => ["admin", "administrator", "superadmin", "superuser"].includes(name))
+    String(user.isAdmin).trim().toLowerCase() === "true" ||
+    String(user.isAdmin).trim() === "1" ||
+    roleNames.some((name) => ["admin", "administrator", "superadmin", "superadministrator", "superuser"].includes(name))
   ) return "admin";
 
   if (roleNames.includes("agent")) return "agent";
@@ -95,7 +97,8 @@ export async function login(credentials: LoginCredentials): Promise<AuthUser> {
 }
 
 export function logout(): void {
-  if (typeof window !== "undefined") {
-    window.localStorage.removeItem("token");
-  }
+  if (typeof window === "undefined") return;
+  window.sessionStorage.removeItem("edilbet-logout-in-progress");
+  window.localStorage.removeItem("token");
+  useAuthStore.getState().clearUser();
 }
