@@ -17,7 +17,7 @@ export default function HomePage() {
 
   useEffect(() => {
     const persist = useAuthStore.persist;
-    if (persist.hasHydated()) setHydrated(true);
+    if (persist.hasHydrated()) setHydrated(true);
     const unsubscribe = persist.onFinishHydration(() => setHydrated(true));
     return unsubscribe;
   }, []);
