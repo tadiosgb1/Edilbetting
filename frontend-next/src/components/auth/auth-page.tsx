@@ -34,6 +34,7 @@ export default function AuthPage({
   const [currentMode, setCurrentMode] = useState<AuthMode>(mode);
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
+  const [phoneNumber, setPhoneNumber] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [error, setError] = useState("");
@@ -72,13 +73,13 @@ export default function AuthPage({
         return;
       }
 
-      const submittedEmail = email.trim();
-      if (!submittedEmail || !password) {
-        notifyError("Enter your email address and password.");
+      const submittedPhoneNumber = phoneNumber.trim();
+      if (!submittedPhoneNumber || !password) {
+        notifyError("Enter your phone number and password.");
         return;
       }
 
-      const authenticatedUser = await loginRequest.execute({ email: submittedEmail, password });
+      const authenticatedUser = await loginRequest.execute({ phone_number: submittedPhoneNumber, password });
       // The API response is authoritative: role determines the destination.
       setRedirecting(true);
       window.sessionStorage.removeItem("edilbet-logout-in-progress");
@@ -103,7 +104,7 @@ export default function AuthPage({
       <h1 className="text-2xl font-bold">{t(currentMode === "login" ? "signIn" : "createAccount")}</h1>
       <form onSubmit={submit} className="mt-5 space-y-3.5">
         {currentMode === "register" && <div><label htmlFor="auth-name" className="mb-1.5 block text-xs font-medium text-slate-300">{t("name")}</label><input id="auth-name" autoComplete="name" value={name} onChange={(event) => setName(event.target.value)} placeholder={t("yourName")} required className="w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2.5 text-sm outline-none focus:border-[var(--auth-accent)]" /></div>}
-        <div><label htmlFor="auth-email" className="mb-1.5 block text-xs font-medium text-slate-300">Email address</label><input id="auth-email" type="email" inputMode="email" autoComplete="email" value={email} onChange={(event) => setEmail(event.target.value)} placeholder="you@example.com" required className="w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2.5 text-sm outline-none focus:border-[var(--auth-accent)]" /></div>
+        {currentMode === "login" ? <div><label htmlFor="auth-phone" className="mb-1.5 block text-xs font-medium text-slate-300">Phone number</label><input id="auth-phone" type="tel" inputMode="tel" autoComplete="tel" value={phoneNumber} onChange={(event) => setPhoneNumber(event.target.value)} placeholder="Your phone number" required className="w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2.5 text-sm outline-none focus:border-[var(--auth-accent)]" /></div> : <div><label htmlFor="auth-email" className="mb-1.5 block text-xs font-medium text-slate-300">Email address</label><input id="auth-email" type="email" inputMode="email" autoComplete="email" value={email} onChange={(event) => setEmail(event.target.value)} placeholder="you@example.com" required className="w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2.5 text-sm outline-none focus:border-[var(--auth-accent)]" /></div>}
         <div><label htmlFor="auth-password" className="mb-1.5 block text-xs font-medium text-slate-300">{t("password")}</label><input id="auth-password" type="password" autoComplete={currentMode === "login" ? "current-password" : "new-password"} value={password} onChange={(event) => setPassword(event.target.value)} placeholder={t("password")} minLength={currentMode === "register" ? 4 : undefined} required className="w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2.5 text-sm outline-none focus:border-[var(--auth-accent)]" /></div>
         {currentMode === "register" && <div><label htmlFor="auth-confirm" className="mb-1.5 block text-xs font-medium text-slate-300">{t("confirmPassword")}</label><input id="auth-confirm" type="password" autoComplete="new-password" value={confirmPassword} onChange={(event) => setConfirmPassword(event.target.value)} placeholder={t("repeatPassword")} required className="w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2.5 text-sm outline-none focus:border-[var(--auth-accent)]" /></div>}
         {error && <p role="alert" className="rounded-md bg-red-500/10 px-3 py-2 text-xs text-red-300">{t(error)}</p>}
