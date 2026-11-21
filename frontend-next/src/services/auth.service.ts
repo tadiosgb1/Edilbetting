@@ -26,57 +26,60 @@ type BackendUser = {
 };
 
 type LoginResponse = {
-  user?: BackendUser;
-  data?: BackendUser & {
-    user?: BackendUser;
+  status?: string;
+  data?: {
     access_token?: string;
     accessToken?: string;
     token?: string;
+    user?: BackendUser;
   };
+  user?: BackendUser;
   access_token?: string;
   accessToken?: string;
   token?: string;
   message?: string;
 };
 
-function resolveUserRole(user: BackendUser): UserRole {
-  if (user.isAdmin === true || user.isAdmin === 1 || String(user.isAdmin).toLowerCase() === "true") {
-    return "admin";
-  }
+const normalizeRoleName = (name: string) => name.trim().toLowerCase().replace(/[\\s_-]+/g, "");
 
+export function resolveUserRole(user: BackendUser): UserRole {
   const roleNames = [
     ...(user.roles ?? []).map((role) => typeof role === "string" ? role : role.name ?? ""),
     user.role ?? "",
-  ].map((name) => name.trim().toLowerCase().replace(/[\s_-]+/g, ""));
+  ].map(normalizeRoleName);
 
-  // Backend role is authoritative. Portal selection must never override it.
-  if (roleNames.includes("superadmin") || roleNames.includes("superuser") || roleNames.includes("admin") || roleNames.includes("administrator")) return "admin";
+  // Admin takes priority if the account has multiple roles.
+  if (
+    user.isAdmin === true ||
+    user.isAdmin === 1 ||
+    String(user.isAdmin).toLowerCase() === "true" ||
+    roleNames.some((name) => ["admin", "administrator", "superadmin", "superuser"].includes(name))
+  ) return "admin";
+
   if (roleNames.includes("agent")) return "agent";
   if (roleNames.includes("player")) return "player";
-
-  // Unknown or non-portal roles fall back to the public/player home.
   return "player";
 }
-/**
- * Authentication service. Role routing prefers explicit API roles and recognizes
- * the current API's isAdmin flag; expectedRole is the login-entry fallback.
- */
-export async function login(credentials: LoginCredentials): Promise<AuthUser> {
-  const response = await apiClient.post<LoginResponse>("/users/login", { phone_number: credentials.phone_number.trim(), password: credentials.password });
-  const payload = response.data;
-  const accessToken =
-    payload.data?.access_token ??
-    payload.data?.accessToken ??
-    payload.data?.token ??
-    payload.access_token ??
-    payload.accessToken ??
-    payload.token;
 
+export async function login(credentials: LoginCredentials): Promise<AuthUser> {
+  const response = await apiClient.post<LoginResponse>("/users/login", {
+    phone_number: credentials.phone_number.trim(),
+    password: credentials.password,
+  });
+
+  // Production API shape: { status, data: { access_token, user } }
+  const payload = response.data;
+  const user = payload.data?.user ?? payload.user;
+  if (!user || typeof user !== "object") {
+    throw new Error("Login succeeded but the API response did not include a user.");
+  }
+
+  const accessToken = payload.data?.access_token ?? payload.data?.accessToken ?? payload.data?.token ??
+    payload.access_token ?? payload.accessToken ?? payload.token;
   if (accessToken && typeof window !== "undefined") {
     window.localStorage.setItem("token", accessToken);
   }
 
-  const user = payload.data?.user ?? payload.user ?? payload.data ?? (payload as unknown as BackendUser);
   const role = resolveUserRole(user);
   const firstName = user.first_name?.trim() ?? "";
   const lastName = user.last_name?.trim() ?? "";
