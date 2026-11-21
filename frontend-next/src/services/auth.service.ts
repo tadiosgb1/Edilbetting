@@ -42,7 +42,7 @@ type LoginResponse = {
 
 const normalizeRoleName = (role: BackendRole | undefined): string => {
   const name = typeof role === "string" ? role : role?.name ?? role?.role ?? role?.role_name ?? "";
-  return String(name).trim().toLowerCase().replace(/[\\s_-]+/g, "");
+  return String(name).trim().toLowerCase().replace(/[\s_-]+/g, "");
 };
 
 export function resolveUserRole(user: BackendUser): UserRole {
