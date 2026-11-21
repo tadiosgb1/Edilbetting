@@ -5,7 +5,6 @@ import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { Bell, ChevronLeft, ChevronRight, CircleHelp, LayoutDashboard, LogOut, Menu, Settings, Users, Wallet, Trophy, UserRound, ChartNoAxesCombined, X, Sun, Moon, ChevronDown, Palette, Trophy as SportsIcon } from "lucide-react";
 import { clsx } from "clsx";
-import { useAuthStore } from "@/stores/auth-store";
 import { logout } from "@/services/auth.service";
 import { LanguageSelector, useLanguage } from "@/components/language-provider";
 
@@ -17,7 +16,6 @@ export function DashboardShell({ role, children }: { role: Role; children: React
   const { t } = useLanguage();
   const path = usePathname() ?? "";
   const router = useRouter();
-  const clearUser = useAuthStore((state) => state.clearUser);
   const [mobile, setMobile] = useState(false);
   const [collapsed, setCollapsed] = useState(false);
   const [profileOpen, setProfileOpen] = useState(false);
