@@ -54,7 +54,8 @@ function resolveUserRole(user: BackendUser): UserRole {
   if (roleNames.includes("agent")) return "agent";
   if (roleNames.includes("player")) return "player";
 
-  throw new Error("Your account has no recognized role. Please contact support.");
+  // Unknown or non-portal roles fall back to the public/player home.
+  return "player";
 }
 /**
  * Authentication service. Role routing prefers explicit API roles and recognizes
