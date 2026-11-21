@@ -53,7 +53,6 @@ export default function PlayerPage() {
   const router = useRouter();
   const toast = useToast();
   const user = useAuthStore((state) => state.user);
-  const clearUser = useAuthStore((state) => state.clearUser);
   const accounts = useAuthStore((state) => state.accounts);
   const updatePassword = useAuthStore((state) => state.updatePassword);
   const [authHydrated, setAuthHydrated] = useState(false);
