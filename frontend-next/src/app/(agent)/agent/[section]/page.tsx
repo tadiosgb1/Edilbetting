@@ -1,7 +1,7 @@
 import { SectionPage } from "@/components/dashboard/section-page";
 
 export function generateStaticParams() {
-  return ["bets", "wallet", "commissions", "users", "settings", "roles", "permissions"].map((section) => ({ section }));
+  return ["bets", "wallet", "commissions", "users", "settings", "roles", "permissions", "bank-accounts", "employees"].map((section) => ({ section }));
 }
 
 
