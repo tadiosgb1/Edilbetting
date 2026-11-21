@@ -6,6 +6,7 @@ import { Search, SlidersHorizontal } from "lucide-react";
 import { PermissionManagementPage } from "@/components/admin/permission-management-page";
 import { RoleManagementPage } from "@/components/admin/role-management-page";
 import { UserManagementPage } from "@/components/admin/user-management-page";
+import { AgentManagementPage } from "@/features/admin/components/agent-management-page";
 
 const titles: Record<string, string> = {
   agents: "Agents",
@@ -23,6 +24,7 @@ export function SectionPage({ role, section }: { role: "admin" | "agent"; sectio
   if (section === "permissions") return <PermissionManagementPage />;
   if (section === "roles") return <RoleManagementPage />;
   if (section === "users") return <UserManagementPage />;
+  if (role === "admin" && section === "agents") return <AgentManagementPage />;
   const title = t(titles[section] ?? (section.charAt(0).toUpperCase() + section.slice(1)));
 
   return (
