@@ -63,16 +63,16 @@ async function register(req, res) {
 }
 
 async function login(req, res) {
-  const { phone_number, password } = req.body;
+  const { phoneNumber, password } = req.body;
 
-  if (!phone_number || !password) {
+  if (!phoneNumber || !password) {
     return res.status(400).json({
       success: false,
-      error: 'phone_number and password are required.',
+      error: 'phoneNumber and password are required.',
     });
   }
 
-  const user = await User.findOne({ where: { phoneNumber: String(phone_number).trim() } });
+  const user = await User.findOne({ where: { phoneNumber: String(phoneNumber).trim() } });
 
   if (!user || !(await bcrypt.compare(String(password), user.passwordHash))) {
     return res.status(401).json({
