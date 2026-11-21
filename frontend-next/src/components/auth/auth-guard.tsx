@@ -19,7 +19,7 @@ export function AuthGuard({ role, children }: { role: Extract<UserRole, "admin" 
 
   useEffect(() => {
     if (!hydrated) return;
-    if (!window.sessionStorage.getItem("edilbet-logout-in-progress") && (!user || user.role !== role)) {
+    if (!user || user.role !== role) {
       router.replace(`/auth/login?next=${encodeURIComponent(pathname || (role === "admin" ? "/admin" : "/agent"))}`);
     }
   }, [hydrated, user, role, router, pathname]);
