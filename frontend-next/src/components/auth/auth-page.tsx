@@ -20,7 +20,7 @@ type AuthPageProps = {
 };
 
 const destinations: Record<UserRole, string> = {
-  player: "/player",
+  player: "/",
   agent: "/agent",
   admin: "/admin",
 };
@@ -82,7 +82,6 @@ export default function AuthPage({
       const authenticatedUser = await loginRequest.execute({ phone_number: submittedPhoneNumber, password });
       // The API response is authoritative: role determines the destination.
       setRedirecting(true);
-      window.sessionStorage.removeItem("edilbet-logout-in-progress");
       setUser(authenticatedUser);
       toast("loginSuccess", "success");
       onSuccess?.();
