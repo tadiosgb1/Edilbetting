@@ -40,19 +40,21 @@ type LoginResponse = {
   message?: string;
 };
 
-const normalizeRoleName = (name: string) => name.trim().toLowerCase().replace(/[\s_-]+/g, "");
+const normalizeRoleName = (role: BackendRole | undefined): string => {
+  const name = typeof role === "string" ? role : role?.name ?? role?.role ?? role?.role_name ?? "";
+  return String(name).trim().toLowerCase().replace(/[\\s_-]+/g, "");
+};
 
 export function resolveUserRole(user: BackendUser): UserRole {
-  const roleNames = [
-    ...(user.roles ?? []).map((role) => typeof role === "string" ? role : role.name ?? ""),
-    user.role ?? "",
-  ].map(normalizeRoleName);
+  const backendRoles = Array.isArray(user.roles) ? user.roles : user.roles ? [user.roles] : [];
+  const roleNames = [...backendRoles, user.role].map(normalizeRoleName).filter(Boolean);
 
   // Admin takes priority if the account has multiple roles.
   if (
     user.isAdmin === true ||
     user.isAdmin === 1 ||
-    String(user.isAdmin).toLowerCase() === "true" ||
+    String(user.isAdmin).trim().toLowerCase() === "true" ||
+    String(user.isAdmin).trim() === "1" ||
     roleNames.some((name) => ["admin", "administrator", "superadmin", "superadministrator", "superuser"].includes(name))
   ) return "admin";
 
