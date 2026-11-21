@@ -6,10 +6,10 @@ import { Search, SlidersHorizontal } from "lucide-react";
 import { PermissionManagementPage } from "@/components/admin/permission-management-page";
 import { RoleManagementPage } from "@/components/admin/role-management-page";
 import { UserManagementPage } from "@/components/admin/user-management-page";
-import { AgentManagementPage } from "@/features/admin/components/agent-management-page";
+import { AgentManagementPage } from "@/features/admin/components/agent-management-page";\nimport { BanksManagementPage } from "@/features/admin/components/banks-management-page";\nimport { AgentOperationsPage } from "@/features/agent/components/agent-operations-page";
 
 const titles: Record<string, string> = {
-  agents: "Agents",
+  agents: "Agents",\n  banks: "Banks",\n  "bank-accounts": "Bank accounts",\n  employees: "Agent employees",
   bets: "Bets",
   transactions: "Transactions",
   reports: "Reports",
@@ -24,7 +24,7 @@ export function SectionPage({ role, section }: { role: "admin" | "agent"; sectio
   if (section === "permissions") return <PermissionManagementPage />;
   if (section === "roles") return <RoleManagementPage />;
   if (section === "users") return <UserManagementPage />;
-  if (role === "admin" && section === "agents") return <AgentManagementPage />;
+  if (role === "admin" && section === "agents") return <AgentManagementPage />;\n  if (role === "admin" && section === "banks") return <BanksManagementPage />;\n  if (role === "agent" && (section === "bank-accounts" || section === "employees")) return <AgentOperationsPage section={section} />;
   const title = t(titles[section] ?? (section.charAt(0).toUpperCase() + section.slice(1)));
 
   return (
