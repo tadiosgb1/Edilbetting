@@ -63,10 +63,10 @@ export function DashboardShell({ role, children }: { role: Role; children: React
     window.localStorage.setItem("edilbet-dashboard-brand", color);
   }
   function signOut() {
-    window.sessionStorage.setItem("edilbet-logout-in-progress", "1");
+    window.sessionStorage.removeItem("edilbet-logout-in-progress");
     window.localStorage.removeItem("token");
     clearUser();
-    router.replace("/");
+    window.location.replace("/");
   }
 
   return <div style={{ "--brand": brandColor, "--custom-dark-surface": darkSurfaceColor } as React.CSSProperties} data-dashboard-theme={theme} data-dashboard-palette={darkPalette} className={clsx("dashboard-root min-h-screen md:flex", theme === "light" ? "dashboard-light" : "dashboard-dark bg-[#090d18] text-slate-100")}>
