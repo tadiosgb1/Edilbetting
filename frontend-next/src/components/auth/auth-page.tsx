@@ -85,7 +85,8 @@ export default function AuthPage({
       setUser(authenticatedUser);
       toast("loginSuccess", "success");
       onSuccess?.();
-      // Use a full document navigation so the root Player route cannot flash during role transitions.\n      window.location.replace(destinations[authenticatedUser.role]);
+      // Use a full document navigation so the root Player route cannot flash during role transitions.
+      window.location.replace(destinations[authenticatedUser.role]);
     } catch (requestError) {
       notifyError(getApiErrorMessage(requestError, "Unable to sign in. Please check your details and try again."));
     } finally {

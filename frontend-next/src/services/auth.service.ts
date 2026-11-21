@@ -87,13 +87,31 @@ export async function login(credentials: LoginCredentials): Promise<AuthUser> {
   const lastName = user.last_name?.trim() ?? "";
   const fullName = [firstName, lastName].filter(Boolean).join(" ");
 
-  return {
+  const authUser: AuthUser = {
     id: String(user.id ?? user._id ?? user.userId ?? user.email ?? credentials.phone_number),
     name: user.name ?? user.fullName ?? user.full_name ?? (fullName || user.email || credentials.phone_number),
     email: user.email ?? "",
     phone: user.phoneNumber ?? user.phone_number ?? user.phone ?? "",
     role,
   };
+
+  // Flush the authenticated user to localStorage immediately so it is available
+  // the moment the browser lands on the destination page after window.location.replace.
+  // Zustand's persist middleware flushes asynchronously; writing here ensures the
+  // new page never reads stale data.
+  if (typeof window !== "undefined") {
+    try {
+      const existing = JSON.parse(window.localStorage.getItem("edilbet-auth") || "{}");
+      window.localStorage.setItem(
+        "edilbet-auth",
+        JSON.stringify({ ...existing, state: { ...(existing.state ?? {}), user: authUser }, version: 2 }),
+      );
+    } catch {
+      // If localStorage is unavailable, Zustand will still persist on its next flush.
+    }
+  }
+
+  return authUser;
 }
 
 export function logout(): void {
