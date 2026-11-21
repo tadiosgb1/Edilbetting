@@ -50,7 +50,7 @@ function resolveUserRole(user: BackendUser): UserRole {
   ].map((name) => name.trim().toLowerCase().replace(/[\s_-]+/g, ""));
 
   // Backend role is authoritative. Portal selection must never override it.
-  if (roleNames.includes("superadmin") || roleNames.includes("admin")) return "admin";
+  if (roleNames.includes("superadmin") || roleNames.includes("superuser") || roleNames.includes("admin") || roleNames.includes("administrator")) return "admin";
   if (roleNames.includes("agent")) return "agent";
   if (roleNames.includes("player")) return "player";
 
@@ -82,9 +82,9 @@ export async function login(credentials: LoginCredentials): Promise<AuthUser> {
   const fullName = [firstName, lastName].filter(Boolean).join(" ");
 
   return {
-    id: String(user.id ?? user._id ?? user.userId ?? user.email ?? credentials.email),
-    name: user.name ?? user.fullName ?? user.full_name ?? (fullName || user.email || credentials.email),
-    email: user.email ?? credentials.email,
+    id: String(user.id ?? user._id ?? user.userId ?? user.email ?? credentials.phone_number),
+    name: user.name ?? user.fullName ?? user.full_name ?? (fullName || user.email || credentials.phone_number),
+    email: user.email ?? "",
     phone: user.phoneNumber ?? user.phone_number ?? user.phone ?? "",
     role,
   };
